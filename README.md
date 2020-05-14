@@ -33,3 +33,6 @@ The UN population data is static over the time period of the first two, so it sh
 As other data is added to the repo, the additions should be documented here.
 
 # Notebooks
+
+Check in the Notebooks folder for notebooks.  Currently there is one, that just begins to look at the data.
+
