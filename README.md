@@ -12,6 +12,10 @@ The aim of this repository is to build models to fit policies for covid-19 respo
 
 The project is described in [project.ipynb](https://github.com/ProtoLife/covid-recovery/blob/master/project.ipynb).  NB: the jupyter notebook is merely used to provide documentation that can include equations, since github markdown cannot do so conveniently.
 
+# Origins
+
+The idea of using [daptics](https://daptics.ai) tools to model covid-19 response protocols came from conversations with [John McCaskill](http://biomip.org).  The general idea is out in the world (e.g. Peter's [find on Twitter](https://twitter.com/btshapir/status/1258385835562536964?s=21)).  Daptics tools seem particularly appropriate given their focus on *small data* model building, with all the necessary careful regularization (see the [daptics white paper](https://daptics.ai/pdf/White.pdf) on this).  
+
 # Data
 
 This repo has data sourced externally.  Data curation is not the primary aim of this site, though data quality control (via multiple sources) may eventually be necessary.
