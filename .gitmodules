@@ -2,5 +2,8 @@
 	path = covid-policy-tracker
 	url = git@github.com:OxCGRT/covid-policy-tracker.git
 [submodule "covid-19-data"]
-	path = covid-19-data
+	path = covid-19-owid
 	url = git@github.com:owid/covid-19-data.git
+[submodule "COVID-19"]
+	path = covid-19-JH
+	url = git@github.com:CSSEGISandData/COVID-19.git

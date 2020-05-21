@@ -22,13 +22,15 @@ This repo has data sourced externally.  Data curation is not the primary aim of 
 
 Currently this repo has data from
 
-* [Our World in Data](https://github.com/owid/covid-19-data)  (OWID), included as a submodule, covid-19-data.
+* [Our World in Data](https://github.com/owid/covid-19-data)  (OWID), included as a submodule, covid-19-owid.
 
 * [Oxford Covid-19 Government Response Tracker](https://github.com/OxCGRT/covid-policy-tracker) (OxCGRT) included as a submodule, covid-policy-tracker.
 
+* [Johns Hopkins data](https://github.com/CSSEGISandData/COVID-19.git), included as submodule covid-19-JH
+
 * [UN population data](https://population.un.org) in folder `data`
 
-The first two are updated by executing a script:
+The first three are updated by executing a script:
 ```
 sh updateSubmodules.sh
 ```
@@ -38,5 +40,7 @@ As other data is added to the repo, the additions should be documented here.
 
 # Notebooks
 
-Check in the Notebooks folder for notebooks.  Currently there is one, that just begins to look at the data.
+Check in the Notebooks folder for notebooks. Note that there are some notebooks for covid-response modeling, others for epidemiological modeling.
+
+
 
