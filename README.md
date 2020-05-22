@@ -34,6 +34,10 @@ The first three are updated by executing a script:
 ```
 sh updateSubmodules.sh
 ```
+following initialization (caution: over 1 GB of data) if required using the script:
+```
+sh initSubmodules.sh
+```
 The UN population data is static over the time period of the first two, so it should not need updating; for reference the script to download the data is in `data/getUNpopulation.sh`
 
 As other data is added to the repo, the additions should be documented here.
