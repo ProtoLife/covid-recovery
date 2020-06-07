@@ -54,6 +54,7 @@ This project would benefit from any policy databases analogous to the [Oxford Co
 - [Ancor.org](https://www.ancor.org/covid-19/state-tracker)
 - [Kaiser](https://www.kff.org/health-costs/issue-brief/state-data-and-policy-actions-to-address-coronavirus/)
 - [National Conference of State Legislatures](https://www.ncsl.org/research/health/state-action-on-coronavirus-covid-19.aspx)
+- [National Governors' Association](https://www.nga.org/coronavirus/#states)
 
 Looking for volunteers to transform state-level data (for US, but also for other countries) into the Oxford format!
 
