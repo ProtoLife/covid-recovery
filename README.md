@@ -46,5 +46,16 @@ As other data is added to the repo, the additions should be documented here.
 
 Check in the Notebooks folder for notebooks. Note that there are some notebooks for covid-response modeling, others for epidemiological modeling.
 
+# Other resources
+
+This project would benefit from any policy databases analogous to the [Oxford Covid-19 Government Response Tracker](https://github.com/OxCGRT/covid-policy-tracker), but with finer-grained data than by country.  State-level information does exist, but so far (June 6, 2020) not reduced to a numerical vector as for OxCGRT.
+
+- [Multistate.us](https://www.multistate.us/pages/covid-19-policy-tracker)
+- [Ancor.org](https://www.ancor.org/covid-19/state-tracker)
+- [Kaiser](https://www.kff.org/health-costs/issue-brief/state-data-and-policy-actions-to-address-coronavirus/)
+- [National Conference of State Legislatures](https://www.ncsl.org/research/health/state-action-on-coronavirus-covid-19.aspx)
+- [National Governors' Association](https://www.nga.org/coronavirus/#states)
+
+Looking for volunteers to transform state-level data (for US, but also for other countries) into the Oxford format!
 
 
