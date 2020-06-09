@@ -1,5 +1,5 @@
 import datetime
-
+import re
 
 
 from .get_data import get_data
@@ -12,7 +12,9 @@ def Float(x):
     return rtn 
 
 def get_jhu_ts():
-    base = '../covid-19-JH/csse_covid_19_data/csse_covid_19_time_series/'
+    stmp = __path__[0] # e.g. "../jhu"
+    stmp = re.split('jhu',stmp)[0] # e.g. "../"
+    base = stmp+'../covid-19-JH/csse_covid_19_data/csse_covid_19_time_series/'
     confirmed = get_data(base+'time_series_covid19_confirmed_global.csv')
     deaths = get_data(base+'time_series_covid19_deaths_global.csv')
     recovered = get_data(base+'time_series_covid19_recovered_global.csv')
@@ -29,7 +31,8 @@ def get_jhu_countries(dat):
     countries = [(row[0],row[1]) for row in confirmed][1:]
     print("number of countries listed",len(countries_jhu))
 
-    
+def get_module_loc():
+    print(__path__)
 
 def get_ave_data(country_s,datatype='confirmed',dataaccum='daily_av_weekly',
                  firstdate=None, lastdate=None):
