@@ -126,6 +126,9 @@ def get_ave_data(country_s,datatype='confirmed',dataaccum='daily_av_weekly',
         else:
             country = country[0]
         res[country] = yy
+    if dataaccum not in ['cum','daily','cum_av_weekly','daily_av_weekly']:
+        print('data accumulation method not known',dataaccum)
+        print('choose from:','cum','daily','cum_av_weekly','daily_av_weekly')
     return res
         
       
