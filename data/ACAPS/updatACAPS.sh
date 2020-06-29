@@ -1,0 +1,1 @@
+curl -L https://data.humdata.org/dataset/e1a91ae0-292d-4434-bc75-bf863d4608ba/resource/f7eccd68-81b6-4dd5-adf8-22bd0029ac22/download/acaps_covid19_government_measures_dataset.xlsx > acaps_covid19_government_measures_dataset.xlsx
