@@ -22,20 +22,27 @@ def get_jhu_ts():
     return covid_ts
 
 
-def get_jhu_countries(dat):
-    try:
-        confirmed = dat['confirmed']
-    except:
-        print("arg dat must be data returned by get_jhu_ts")
-        return
+def get_jhu_countries():
+    dat = get_jhu_ts()
+    confirmed = dat['confirmed']
     countries = [(row[0],row[1]) for row in confirmed][1:]
-    print("number of countries listed",len(countries_jhu))
+    print("number of countries in jhu data = ",len(countries))
+    return countries
 
 def get_module_loc():
     print(__path__)
 
 def get_ave_data(country_s,datatype='confirmed',dataaccum='daily_av_weekly',
                  firstdate=None, lastdate=None):
+    if dataaccum not in ['cum','daily','cum_av_weekly','daily_av_weekly']:
+        print('data accumulation method not known',dataaccum)
+        print('choose from:','cum','daily','cum_av_weekly','daily_av_weekly')
+        return
+    if datatype not in ['confirmed','deaths','recovered']:
+        print('datatype not known: ',datatype)
+        print('choose from:   confirmed','deaths','recovered')
+        return
+    
     countries = []
     if isinstance(country_s,list):
         for country in country_s:
@@ -126,9 +133,6 @@ def get_ave_data(country_s,datatype='confirmed',dataaccum='daily_av_weekly',
         else:
             country = country[0]
         res[country] = yy
-    if dataaccum not in ['cum','daily','cum_av_weekly','daily_av_weekly']:
-        print('data accumulation method not known',dataaccum)
-        print('choose from:','cum','daily','cum_av_weekly','daily_av_weekly')
     return res
         
       
