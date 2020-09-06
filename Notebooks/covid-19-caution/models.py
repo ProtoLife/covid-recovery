@@ -48,7 +48,13 @@ import sys
 savefigs = False # whether to save specific figures for paper to .../figures directory
 
 
-def dumpparams(self): # Have to add self since this will become a method
+# This cell adds two methods to the DeterministicODE class of pygom
+# dumpparams: stores params in a file './params/Model_Name.pk'
+# loadparams: loads params from same file.  returns None if any problem finding the file.
+# e.g. will be accessed by SCIR.dumparams() or SCIR.loadparams()
+# This stuff needs modules os, sys, pickle as pk.
+
+def dumpparams(self,run_id=''): # Have to add self since this will become a method
     mname = self.modelname
     dirnm = os.getcwd()
     pfile = dirnm+'/params/'+mname+'.pk'
@@ -57,14 +63,22 @@ def dumpparams(self): # Have to add self since this will become a method
         with open(pfile,'wb') as fp:
             pk.dump(params,fp,protocol=pk.HIGHEST_PROTOCOL)
         print('dumped params to',pfile)
+        if run_id != '':
+            pfile2 = dirnm+'/params/'+run_id+'.pk'
+            with open(pfile2,'wb') as fp:
+                pk.dump(params,fp,protocol=pk.HIGHEST_PROTOCOL)
+            print('dumped params to',pfile2)
     except:
         print('problem dumping params to ',pfile)
 
 
-def loadparams(self): # Have to add self since this will become a method
+def loadparams(self,run_id=''): # Have to add self since this will become a method
     mname = self.modelname
     dirnm = os.getcwd()
-    pfile = dirnm+'/params/'+mname+'.pk'
+    if run_id == '':
+        pfile = dirnm+'/params/'+mname+'.pk'
+    else:
+        pfile = dirnm+'/params/'+run_id+'.pk'
     try:
         with open(pfile,'rb') as fp:
             params = pk.load(fp)
@@ -76,12 +90,16 @@ def loadparams(self): # Have to add self since this will become a method
 
     nms = [x.name for x in self.param_list]
     try:
-        self.parameters = params.copy()
         self.params = params.copy()
+        self.parameters = params.copy()
     except:
         print('problem loading the params; none loaded')
         return None
     return True
+
+OdeClass = DeterministicOde().__class__
+setattr(OdeClass,'dumpparams', dumpparams)
+setattr(OdeClass,'loadparams', loadparams)
 
 OdeClass = DeterministicOde().__class__
 setattr(OdeClass,'dumpparams', dumpparams)
