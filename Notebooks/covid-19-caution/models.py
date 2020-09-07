@@ -29,11 +29,6 @@ import pickle as pk
 import jsonpickle as jpk
 
 from cycler import cycler
-from pandas.plotting import register_matplotlib_converters
-register_matplotlib_converters()
-import pwlf
-
-from cycler import cycler
 import datetime
 import matplotlib.dates as mdates
 from pandas.plotting import register_matplotlib_converters
@@ -196,6 +191,7 @@ def make_model(mod_name):
         model.confirmed=slice(1,4)  # cases 1-3 i.e. I, R and D
         model.recovered=slice(2,3)
         model.deaths=slice(3,4)
+        model.I_1 = 1
         x0 = [1.0-I_0, I_0, 0.0, 0.0]
         model.initial_values = (x0, 0) # 0 for t[0]
 
@@ -233,6 +229,7 @@ def make_model(mod_name):
         model.deaths=slice(3,4)
         model.all_susceptibles=[0,4]
         model.S_c=4
+        model.I_1 = 1
         x0_SCIR = [1.0-I_0, I_0, 0.0, 0.0, 0.0]
         model.initial_values = (x0_SCIR, 0)
 
@@ -277,6 +274,7 @@ def make_model(mod_name):
         model.deaths=slice(3,4)
         model.all_susceptibles=[0,5]
         model.S_c=5
+        model.I_1 = 1
         x0_SC2IR = [1.0-I_0, I_0, 0.0, 0.0, 0.0, 0.0]
         model.initial_values = (x0_SC2IR, 0)
 
@@ -306,6 +304,7 @@ def make_model(mod_name):
         model.confirmed=slice(2,5)  # cases 2-4 i.e. I, R and D, not E
         model.recovered=slice(3,4)
         model.deaths=slice(4,5)
+        model.I_1 = 2
         x0_SEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0]
         model.initial_values = (x0_SEIR, 0)
 
@@ -343,6 +342,7 @@ def make_model(mod_name):
         model.deaths=slice(4,5)
         model.all_susceptibles=[0,5]
         model.S_c=5
+        model.I_1 = 2
         x0_SCEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0]
         model.initial_values = (x0_SCEIR, 0)
         rtn['state'] = state
@@ -393,6 +393,7 @@ def make_model(mod_name):
         model.deaths=slice(4,5)
         model.all_susceptibles=[0,6]
         model.S_c=6
+        model.I_1 = 2
         x0_SC3EIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0]
         model.initial_values = (x0_SC3EIR, 0)
 
@@ -432,6 +433,7 @@ def make_model(mod_name):
         model.confirmed=slice(2,7)  # cases 2-6 i.e. I1, I2, I3, R and D
         model.recovered=slice(5,6)
         model.deaths=slice(6,7)
+        model.I_1 = 2
         x0_SEI3R = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0]
         model.initial_values = (x0_SEI3R, 0)
 
@@ -479,6 +481,7 @@ def make_model(mod_name):
         model.deaths=slice(6,7)
         model.all_susceptibles=[0,7]
         model.S_c=7
+        model.I_1 = 2
         x0_SCEI3R = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0]
         model.initial_values = (x0_SCEI3R, 0)
 
@@ -540,6 +543,7 @@ def make_model(mod_name):
         model.deaths=slice(6,7)
         model.all_susceptibles=[0,8]
         model.S_c=8
+        model.I_1 = 2
         x0_SC3EI3R = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         model.initial_values = (x0_SC3EI3R, 0)
 
@@ -571,6 +575,7 @@ def make_model(mod_name):
         model.deaths=slice(3,4)
         model.all_susceptibles=[0,5,6]
         model.S_c=5
+        model.I_1 = 1
         x0_SC2UIR = [1.0-I_0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
         model.initial_values = (x0_SC2UIR, 0)
 
@@ -611,6 +616,7 @@ def make_model(mod_name):
         model.deaths=slice(3,4)
         model.all_susceptibles=[0,5,6]
         model.S_c=5
+        model.I_1 = 1
         x0_SC3UEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
         model.initial_values = (x0_SC3UEIR, 0)
 
@@ -644,6 +650,7 @@ def make_model(mod_name):
         model.deaths=slice(4,5)
         model.all_susceptibles=[0,6,8]
         model.S_c=6
+        model.I_1 = 2
         x0_SC3UEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
         model.initial_values = (x0_SC3UEIR, 0)
 
@@ -680,6 +687,7 @@ def make_model(mod_name):
         model.deaths=slice(6,7)     # case 6 D
         model.all_susceptibles=[0,8,10]
         model.S_c=8
+        model.I_1 = 2
         x0_SC3UEI3R = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
         model.initial_values = (x0_SC3UEI3R, 0)
 
@@ -711,10 +719,11 @@ def param_modify(model,param,value):
     
 # param_modify(SCIR_model,'beta',0.721)  # requires .params to be set (see below)
 
-# these earlier parameter translation routines are kept here for reference
-# currently not used
-# they allow the construction of model specific parameters for different models from a single set
 def vector2params_old(b,a,g,p,u,c,k,N,modelname):
+    """this earlier version of arameter translation routine is kept here for reference
+    allows the construction of model specific parameters for different models from a single set
+    based on SEI3R model with vector b,g,p as well as vector caution c and economics k
+    later modified for better correspondence between SEIR and SEI3R and derivates """
     if 'I3' in modelname:  # models with hospitalization
         params = {
             'beta_1' : b[1],
@@ -756,9 +765,9 @@ def vector2params_old(b,a,g,p,u,c,k,N,modelname):
     params['N'] = N
     return params
 
-# vector2params allows the construction of model specific parameters for different models from a single set
-def vector2params(b,a,g,p,u,c,k,N,modelname):
-    global FracCritical
+def vector2params(b,a,g,p,u,c,k,N,FracCritical,modelname):
+    """allows the construction of model specific parameters for different models from a single set
+    based on SEI3R model with vector b,g,p as well as vector caution c and economics k"""
     if 'I3' in modelname:  # models with hospitalization
         params = {
             'beta_1' : b[1],
@@ -836,7 +845,77 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
         k[3] = params['kappa']
     return (b,a,g,p,u,c,k,N)
 
-# Set up multimodel consistent sets of parameters
+def base2vectors(sbparams,cbparams,fbparams):
+    """ converts dictionary of bae parameters to vector of parameters and then to pygom simulation parameters"""
+    Exposure =sbparams['Exposure']
+    IncubPeriod = sbparams['IncubPeriod']
+    DurMildInf = sbparams['DurMildInf']
+    FracMild = sbparams['FracMild']
+    FracSevere = sbparams['FracSevere']
+    FracCritical = sbparams['FracCritical']
+    CFR = sbparams['CFR']
+    TimeICUDeath = sbparams['TimeICUDeath']
+    DurHosp = sbparams['DurHosp']
+    ICUFrac = sbparams['ICUFrac']
+    I0 = sbparams['I0']
+
+    CautionFactor = cbparams['CautionFactor']
+    CautionRetention = cbparams['CautionRetention']
+    CautionICUFrac = cbparams['CautionICUFrac']
+    EconomicRetention =  cbparams['EconomicRetention']
+    EconomicCostOfCaution = cbparams['EconomicCostOfCaution']
+    
+    FracConfirmedDet = fbparams['FracConfirmedDet']
+    FracRecoveredDet = fbparams['FracRecoveredDet']
+    FracDeathsDet = fbparams['FracDeathsDet']
+    
+    N=1
+    b=np.zeros(4)     # beta
+    g=np.zeros(4)     # gamma
+    p=np.zeros(3)     # progression
+    c=np.zeros(3)     # caution
+    k=np.zeros(4)     # economic caution
+
+    a=1/IncubPeriod                       # transition rate from exposed to infected
+    b=Exposure*np.array([0,1,0,0])/N      # hospitalized cases don't transmit
+    u=(1/TimeICUDeath)*(CFR/FracCritical) # death rate from ICU
+    g[3]=(1/TimeICUDeath)-u               # recovery rate
+
+    p[2]=(1/DurHosp)*(FracCritical/(FracCritical+FracSevere))
+    g[2]=(1/DurHosp)-p[2]
+
+    g[1]=(1/DurMildInf)*FracMild
+    p[1]=(1/DurMildInf)-g[1]
+
+    c[0]=CautionFactor
+    c[1]=1/CautionRetention
+    c[2]=1/(N*ICUFrac*CautionICUFrac)     # this is the rate coefficient giving 1/day at I3 = denominator
+
+    k[0]=1/EconomicRetention              # assumes default rate is same as 1
+    k[1]=1/EconomicRetention              # this is always correct
+    k[2]=1/EconomicRetention              # assumes default rate is same as 1
+    k[3]=EconomicCostOfCaution
+    
+    return(b,a,g,p,u,c,k,N,FracCritical,I0)
+
+def base2params(sbparams,cbparams,fbparams,smodel):
+    b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
+    return(vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel))
+
+def base2ICs(I0,N,smodel,cmodels):
+    model = cmodels[smodel]
+    (x0old,t0) = model.initial_values
+    nstates = len(x0old)
+    x0 = [0.]*nstates
+    x0[0] = N*(1-I0)
+    if model.I_1 < nstates:
+        x0[model.I_1] = N*I0
+
+    else:
+        print('error, initial infectives location out of bounds',model.I_1,'not <',nstates)
+    return (x0,t0)
+
+# Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
 Exposure=0.25     # Rate coefficient for exposure per individual in contact per day
 IncubPeriod=5     #Incubation period, days 
 DurMildInf=10     #Duration of mild infections, days
@@ -846,44 +925,31 @@ FracCritical=0.05 #Fraction of infections that are critical
 CFR=0.02          #Case fatality rate (fraction of infections resulting in death)
 TimeICUDeath=7    #Time from ICU admission to death, days
 DurHosp=11        #Duration of hospitalization, days
+ICUFrac= 0.001    # Fraction of ICUs relative to population size N
+I0 = 0.00003      # Fraction of population initially infected
+
+sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
+           'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
+           'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'I0':I0}
 
 # Model extension by John McCaskill to include caution 
 CautionFactor= 0.3    # Fractional reduction of exposure rate for cautioned individuals
 CautionRetention= 14. # Duration of cautionary state of susceptibles (4 weeks)
 CautionICUFrac= 0.25  # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
-ICUFrac= 0.001        # Fraction of ICUs relative to population size N
-
+EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
 EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
 
-N=1
-b=np.zeros(4)     # beta
-g=np.zeros(4)     # gamma
-p=np.zeros(3)     # progression
-c=np.zeros(3)     # caution
-k=np.zeros(4)     # economic caution
+cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,
+            'EconomicRetention':EconomicRetention,'EconomicCostOfCaution':EconomicCostOfCaution}
 
-a=1/IncubPeriod                       # transition rate from exposed to infected
-b=Exposure*np.array([0,1,0,0])/N      # hospitalized cases don't transmit
-u=(1/TimeICUDeath)*(CFR/FracCritical) # death rate from ICU
-g[3]=(1/TimeICUDeath)-u               # recovery rate
+# Model fitting extension to allow for incomplete detection
+FracConfirmedDet=1.0  # Fraction of recovered individuals measured : plots made with this parameter NYI
+FracRecoveredDet=FracConfirmedDet # Fraction of recovered individuals measured
+FracDeathsDet=1.0
 
-p[2]=(1/DurHosp)*(FracCritical/(FracCritical+FracSevere))
-g[2]=(1/DurHosp)-p[2]
+fbparams = {'FracConfirmedDet':FracConfirmedDet,'FracRecoveredDet':FracRecoveredDet,'FracDeathsDet':FracDeathsDet}
 
-g[1]=(1/DurMildInf)*FracMild
-p[1]=(1/DurMildInf)-g[1]
-
-c[0]=CautionFactor
-c[1]=1/CautionRetention
-c[2]=1/(N*ICUFrac*CautionICUFrac)     # this is the rate coefficient giving 1/day at I3 = denominator
-
-k[0]=c[1]
-k[1]=c[1]
-k[2]=c[1]
-k[3]=EconomicCostOfCaution
-
-
-
+b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
     
 smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']
 
@@ -892,9 +958,14 @@ fullmodels = {}
 for smodel in smodels:
     fullmodels[smodel] = make_model(smodel)
     cmodels[smodel] = fullmodels[smodel]['model']
-    params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
-    fullmodels[smodel]['model'].parameters = params_in
+    params_in=vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel)
+    cmodels[smodel].initial_values = base2ICs(I0,N,smodel,cmodels)
+    fullmodels[smodel]['model'].parameters = params_in # sets symbolic name parameters
+    fullmodels[smodel]['model'].params = params_in    # sets string params
     cmodels[smodel].parameters = params_in
+    cmodels[smodel].sbparams = sbparams
+    cmodels[smodel].cbparams = cbparams
+    cmodels[smodel].fbparams = fbparams
     modelnm = smodel+'_model'
     exec(modelnm+" = cmodels[smodel]")
     
