@@ -5,3 +5,4 @@ curl https://population.un.org/wpp/Download/Files/1_Indicators%20\(Standard\)/EX
 
 curl https://population.un.org/wup/Download/Files/WUP2018-F01-Total_Urban_Rural.xls > WUP2018-F01-Total_Urban_Rural.xls
 
+curl https://population.un.org/wpp/Download/Files/1_Indicators%20\(Standard\)/CSV_FILES/WPP2019_TotalPopulationBySex.csv > WPP2019_TotalPopulationBySex.csv
