@@ -549,28 +549,40 @@ def make_model(mod_name):
         return rtn
 
     if mod_name == 'SC2UIR':
+        # set up the symbolic model from transitions, works using separate birth and death list
+
         state = ['S', 'I', 'R', 'D', 'I_c', 'S_c', 'S_u', 'W']
         param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
 
         transition = [
-            Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u'),
-            Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+c_2*(I+I_c)*S-k_u*(1-W)*S_c'),
-            Transition(origin='S_u', equation='-beta*(I+c_0*I_c)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
-            Transition(origin='I', equation='beta*(I+c_0*I_c)*S-gamma*I-mu*I+c_1*I_c-c_2*(I+I_c)*I'),
-            Transition(origin='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c-gamma*I_c-mu*I_c-c_1*I_c+c_2*(I+I_c)*I'),
-            Transition(origin='R', equation='gamma*(I+I_c)'),
-            Transition(origin='D', equation='mu*(I+I_c)'),
-            Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)')
+            Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S', transition_type=TransitionType.T),
+            Transition(origin='S', destination='S_c', equation='c_2*(I+I_c)*S', transition_type=TransitionType.T),
+            Transition(origin='S', destination='S_u', equation='k_u*(1-W)*S', transition_type=TransitionType.T),
+            Transition(origin='S_c', destination='S', equation='c_1*S_c', transition_type=TransitionType.T),
+            Transition(origin='S_c', destination='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c', transition_type=TransitionType.T),
+            Transition(origin='S_c', destination='S_u', equation='k_u*(1-W)*S_c', transition_type=TransitionType.T),
+            Transition(origin='S_u', destination='S', equation='k_1*S_u', transition_type=TransitionType.T),   
+            Transition(origin='S_u', destination='I', equation='beta*(I+c_0*I_c)*S_u', transition_type=TransitionType.T),    
+            Transition(origin='I', destination='I_c', equation='c_2*(I+I_c)*I', transition_type=TransitionType.T),    
+            Transition(origin='I', destination='R', equation='gamma*I', transition_type=TransitionType.T), 
+            Transition(origin='I', destination='D', equation='mu*I', transition_type=TransitionType.T), 
+            Transition(origin='I_c', destination='I', equation='c_1*I_c', transition_type=TransitionType.T),
+            Transition(origin='I_c', destination='R', equation='gamma*I_c', transition_type=TransitionType.T), 
+            Transition(origin='I_c', destination='D', equation='mu*I_c', transition_type=TransitionType.T),
+            Transition(origin='W', destination='D', equation='0*W', transition_type=TransitionType.T)
             ]
+        bdlist =     [Transition(origin='W',equation='k_w*W*(1-kappa*S_c-W)', transition_type=TransitionType.B)
+            ]
+        SC2UIR_model = DeterministicOde(state, param_list, transition=transition)
+        SC2UIR_model.birth_death_list = bdlist
+        SC2UIR_model.modelname='SC2UIR'
+        SC2UIR_model.ei=1                  # case 1 i.e. I  # note I_c not included
+        SC2UIR_model.confirmed=slice(1,5)  # cases 1-4 i.e. I, R, D, and I_c
+        SC2UIR_model.recovered=slice(2,3)
+        SC2UIR_model.deaths=slice(3,4)
+        SC2UIR_model.all_susceptibles=[0,5,6]
+        SC2UIR_model.S_c=5
 
-        model = DeterministicOde(state, param_list, ode=transition)
-        model.modelname='SC2UIR'
-        model.ei=1                  # case 1 i.e. I  # note I_c not included
-        model.confirmed=slice(1,5)  # cases 1-4 i.e. I, R, D, and I_c
-        model.recovered=slice(2,3)
-        model.deaths=slice(3,4)
-        model.all_susceptibles=[0,5,6]
-        model.S_c=5
         x0_SC2UIR = [1.0-I_0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
         model.initial_values = (x0_SC2UIR, 0)
 
