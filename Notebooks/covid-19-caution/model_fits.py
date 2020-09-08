@@ -38,102 +38,7 @@ import sys
 #from IPython.core.display import display, HTML
 #display(HTML("<style>.container { width:100% !important; }</style>"))
 
-
-
 savefigs = False # whether to save specific figures for paper to .../figures directory
-
-
-# This cell adds two methods to the DeterministicODE class of pygom
-# dumpparams: stores params in a file './params/Model_Name.pk'
-# loadparams: loads params from same file.  returns None if any problem finding the file.
-# e.g. will be accessed by SCIR.dumparams() or SCIR.loadparams()
-# This stuff needs modules os, sys, pickle as pk.
-
-def dumpparams(self,run_id=''): # Have to add self since this will become a method
-    mname = self.modelname
-    country = self.dbparams['country']
-    rname = self.dbparams['run_name']
-    dirnm = os.getcwd()
-
-    if run_id != '':            # if run_id, turn it into run_name and use it for output filename
-        if run_id != rname:
-            print("warning: changing run_name from ",rname,'to',run_id)
-            self.dbparams['run_name'] = run_id
-        pfile = dirnm+'/params/'+run_id+'.pk'
-    else:                       # construct default run_name from mname and country
-        if country != '':
-            stmp = mname+'_'+country
-        else:
-            stmp = mname
-        pfile = dirnm+'/params/'+stmp+'.pk'
-    
-    try:
-        all_params = {'params':self.params.copy(),           # need copy()? you are only reading
-                      'sbparams':self.sbparams.copy(),
-                      'cbparams':self.cbparams.copy(),
-                      'dbparams':self.dbparams.copy(),
-                      'initial_values':self.initial_values   # if so don't you need a copy() here too?
-                      }
-        with open(pfile,'wb') as fp:
-            pk.dump(all_params,fp)
-        print('dumped params to',pfile)
-    except:
-        print('problem dumping params to ',pfile)
-
-
-def loadparams(self,run_id=''): # Have to add self since this will become a method
-    rname = self.dbparams['run_name']
-    dirnm = os.getcwd()
-
-    if run_id == '':
-        pfile = dirnm+'/params/'+rname+'.pk'
-    else:
-        if run_id != rname:
-            print("warning: changing run_name from ",rname,'to',run_id)
-            self.dbparams['run_name'] = run_id
-        pfile = dirnm+'/params/'+run_id+'.pk'
-    try:
-        with open(pfile,'rb') as fp:
-            all_params = pk.load(fp)
-            print('loaded params from ',pfile,':')
-    except:
-        print("problem loading",pfile)
-        return None
-
-    print('------------',all_params)
-    nms = [x.name for x in self.param_list]
-    try:
-        self.params = all_params['params'].copy()
-        self.parameters = self.params.copy()
-        self.sbparams = all_params['sbparams'].copy()
-        self.cbparams = all_params['cbparams'].copy()
-        self.dbparams = all_params['dbparams'].copy()
-        self.initial_values = all_params['initial_values'] # will get copied properly?
-    except:
-        print('problem loading the params from ',pfile)
-        return None
-    return True
-
-def  print_ode2(self):
-        '''
-        Prints the ode in symbolic form onto the screen/console in actual
-        symbols rather than the word of the symbol.
-        
-        Based on the PyGOM built-in but adapted for Jupyter
-        Corrected by John McCaskill to avoid subscript format error
-        '''
-        A = self.get_ode_eqn()
-        B = sympy.zeros(A.rows,2)
-        for i in range(A.shape[0]):
-            B[i,0] = sympy.symbols('d' + '{' + str(self._stateList[i]) + '}'+ '/dt=')
-            B[i,1] = A[i]
-
-        return B
-        
-OdeClass = DeterministicOde().__class__
-setattr(OdeClass,'dumpparams', dumpparams)
-setattr(OdeClass,'loadparams', loadparams)
-setattr(OdeClass,'print_ode2', print_ode2)
 
 def Float(x):
     try:
@@ -142,52 +47,93 @@ def Float(x):
         rtn = float('NaN')
     return rtn
 
+class ModelFit:
+    """ We collect all information related to a fit between a pygom model and a set of data in this class
+        It has access to the model structure and defines all required parameters and details of fit """
 
-# Jupyter Specifics
-from IPython.display import display, HTML
-from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed
-display(HTML("<style>.container { width:100% !important; }</style>"))
-style = {'description_width': '100px'}
-slider_layout = Layout(width='99%')
+    def dumpparams(self,run_id=''): # Have to add self since this will become a method
+        """stores params in a file './params/Model_Name.pk
+        This stuff needs modules os, sys, pickle as pk.'"""
+        mname = self.modelname
+        country = self.dbparams['country']
+        rname = self.dbparams['run_name']
+        dirnm = os.getcwd()
 
-
-# ## Caution Extensions to SIR Model
-
-# ### SIR model
-
-# #### Equations
-# 
-# \begin{equation}
-# \begin{split}
-# \dot{S} &= -\beta I S\\
-# \dot{I} &= \beta I S - \gamma I - \mu I\\
-# \dot{R} & = \gamma I \\
-# \dot{D} & = \mu I
-# \end{split}
-# \end{equation}
-# 
-# 
-# #### Variables
-# * $S$: Susceptible individuals
-# * $I$: Infected individuals 
-# * $R$: individuals who have recovered from disease and are now immune
-# * $D$: Dead individuals
-# * $N=S+I+R+D$ Total population size (constant)
-# 
-# #### Parameters
-# * $\beta$ rate at which infected individuals contact susceptibles and infect them
-# * $\gamma$ rate at which infected individuals recover from disease and become immune
-# * $\mu$ death rate for infected individuals
-
-# #### Implementation
-# Using PyGOM, we will set up my simple SCIR model ODE system
-# PyGOM – A Python Package for Simplifying Modelling with Systems of Ordinary Differential Equations https://arxiv.org/pdf/1803.06934.pdf
-
-# In[8]:
+        if run_id != '':            # if run_id, turn it into run_name and use it for output filename
+            if run_id != rname:
+                print("warning: changing run_name from ",rname,'to',run_id)
+                self.dbparams['run_name'] = run_id
+            pfile = dirnm+'/params/'+run_id+'.pk'
+        else:                       # construct default run_name from mname and country
+            if country != '':
+                stmp = mname+'_'+country
+            else:
+                stmp = mname
+            pfile = dirnm+'/params/'+stmp+'.pk'
+        
+        try:
+            all_params = {'params':self.params.copy(),           # need copy()? you are only reading
+                          'sbparams':self.sbparams.copy(),
+                          'cbparams':self.cbparams.copy(),
+                          'dbparams':self.dbparams.copy(),
+                          'initial_values':self.initial_values   # if so don't you need a copy() here too?
+                          }
+            with open(pfile,'wb') as fp:
+                pk.dump(all_params,fp)
+            print('dumped params to',pfile)
+        except:
+            print('problem dumping params to ',pfile)
 
 
-# set up the symbolic SIR model, actually SIRD including deaths
+    def loadparams(self,run_id='testfit'): 
+        """loads params from same file.  returns None if any problem finding the file.
+        This stuff needs modules os, sys, pickle as pk."""
+        # rname = self.dbparams['run_name']
+        dirnm = os.getcwd()
+        pfile = dirnm+'/params/'+run_id+'.pk'
+        try:
+            with open(pfile,'rb') as fp:
+                all_params = pk.load(fp)
+                print('loaded params from ',pfile,':')
+        except:
+            print("no file available with this run_id",pfile)
+            return None
+
+        print('------------',all_params)
+        nms = [x.name for x in self.param_list]
+        try:
+            self.params = all_params['params'].copy()
+            self.parameters = self.params.copy()
+            self.sbparams = all_params['sbparams'].copy()
+            self.cbparams = all_params['cbparams'].copy()
+            self.dbparams = all_params['dbparams'].copy()
+            self.initial_values = all_params['initial_values'] # will get copied properly?
+        except:
+            print('problem loading the params from ',pfile)
+            return None
+        return True
+
+    def __init__(self,run_id,modelname,model=None):
+        global make_model
+        self.run_id = run_id
+        self.modelname = modelname
+        if model:
+            self.model = model
+        else:
+            model_d = make_model(modelname)
+            model = model_d['model']
+            if not self.loadparams(run_id):
+                print('using default set of parameters for model type',modelname)
+        self.params = self.model.params.copy()
+        self.cbparams = self.model.cbparams.copy()
+        self.fbparams = self.model.fbparams.copy()
+        self.dbparams = self.model.dbparams.copy()
+        self.initial_values = self.model.initial_values.copy()
+        self.times = self.model.t.copy()
+
+
 def make_model(mod_name):
+    """ make models of types ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']"""
     rtn = {}
     I_0 =  0.00003
 
@@ -933,44 +879,65 @@ def base2ICs(I0,N,smodel,cmodels):
         print('error, initial infectives location out of bounds',model.I_1,'not <',nstates)
     return (x0,t0)
 
+def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
+    """ supply default parameters for those not already defined as arguments 
+        does not check if non None arguments are correctly defined """
+    if not sbparams:      # standard params
+        Exposure=0.25     # Rate coefficient for exposure per individual in contact per day
+        IncubPeriod=5     #Incubation period, days 
+        DurMildInf=10     #Duration of mild infections, days
+        FracMild=0.8      #Fraction of infections that are mild
+        FracSevere=0.15   #Fraction of infections that are severe
+        FracCritical=0.05 #Fraction of infections that are critical
+        CFR=0.02          #Case fatality rate (fraction of infections resulting in death)
+        TimeICUDeath=7    #Time from ICU admission to death, days
+        DurHosp=11        #Duration of hospitalization, days
+        ICUFrac= 0.001    # Fraction of ICUs relative to population size N
+        I0 = 0.00003      # Fraction of population initially infected
+
+        sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
+                   'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
+                   'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'I0':I0}
+    if not cbparams:          # Model extension by John McCaskill to include caution 
+        CautionFactor= 0.3    # Fractional reduction of exposure rate for cautioned individuals
+        CautionRetention= 14. # Duration of cautionary state of susceptibles (4 weeks)
+        CautionICUFrac= 0.25  # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
+        EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
+        EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
+
+    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,
+                'EconomicRetention':EconomicRetention,'EconomicCostOfCaution':EconomicCostOfCaution}
+
+    if not fbparams:        # Model fitting extension to allow for incomplete detection
+        FracConfirmedDet=1.0  # Fraction of recovered individuals measured : plots made with this parameter NYI
+        FracRecoveredDet=FracConfirmedDet # Fraction of recovered individuals measured
+        FracDeathsDet=1.0
+
+        fbparams = {'FracConfirmedDet':FracConfirmedDet,'FracRecoveredDet':FracRecoveredDet,'FracDeathsDet':FracDeathsDet}
+
+    if not dbparams:     # extra data-related params for defining a run, including possible fitting with sliders:
+        dbparams = {'run_name':'testfit','country':'Germany','data_src':'owid'}
+
+    return [sbparams,cbparams,fbparams,dbparams]
+
+def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None)
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
-Exposure=0.25     # Rate coefficient for exposure per individual in contact per day
-IncubPeriod=5     #Incubation period, days 
-DurMildInf=10     #Duration of mild infections, days
-FracMild=0.8      #Fraction of infections that are mild
-FracSevere=0.15   #Fraction of infections that are severe
-FracCritical=0.05 #Fraction of infections that are critical
-CFR=0.02          #Case fatality rate (fraction of infections resulting in death)
-TimeICUDeath=7    #Time from ICU admission to death, days
-DurHosp=11        #Duration of hospitalization, days
-ICUFrac= 0.001    # Fraction of ICUs relative to population size N
-I0 = 0.00003      # Fraction of population initially infected
+    [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
+    dbparams['run_name'] = smodel # default value when no country yet
+    b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
+    fullmodel = make_model(smodel)
+    model = fullmodel['model']
+    params_in=vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel)
+    model.initial_values = base2ICs(I0,N,smodel,cmodels)
+    model.parameters = params_in # sets symbolic name parameters
+    fullmodel.params = params_in    # sets string params
+    fullmodel.sbparams = sbparams
+    fullmodel.cbparams = cbparams
+    fullmodel.fbparams = fbparams
+    fullmodel.dbparams = dbparams
+    modelnm = smodel+'_model'
+    exec(modelnm+" = fullmodel")
 
-sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
-           'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
-           'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'I0':I0}
-
-# Model extension by John McCaskill to include caution 
-CautionFactor= 0.3    # Fractional reduction of exposure rate for cautioned individuals
-CautionRetention= 14. # Duration of cautionary state of susceptibles (4 weeks)
-CautionICUFrac= 0.25  # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
-EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
-EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
-
-cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,
-            'EconomicRetention':EconomicRetention,'EconomicCostOfCaution':EconomicCostOfCaution}
-
-# Model fitting extension to allow for incomplete detection
-FracConfirmedDet=1.0  # Fraction of recovered individuals measured : plots made with this parameter NYI
-FracRecoveredDet=FracConfirmedDet # Fraction of recovered individuals measured
-FracDeathsDet=1.0
-
-fbparams = {'FracConfirmedDet':FracConfirmedDet,'FracRecoveredDet':FracRecoveredDet,'FracDeathsDet':FracDeathsDet}
-
-b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
-
-# extra data-related params for defining a run, including possible fitting with sliders:
-dbparams = {'run_name':'','country':'','data_src':'owid'}
 
 smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']
 

@@ -114,6 +114,18 @@ def loadparams(self,run_id=''): # Have to add self since this will become a meth
         return None
     return True
 
+OdeClass = DeterministicOde().__class__
+setattr(OdeClass,'dumpparams', dumpparams)
+setattr(OdeClass,'loadparams', loadparams)
+
+def Float(x):
+    try:
+        rtn = float(x)
+    except:
+        rtn = float('NaN')
+    return rtn
+
+
 def  print_ode2(self):
         '''
         Prints the ode in symbolic form onto the screen/console in actual
@@ -129,18 +141,6 @@ def  print_ode2(self):
             B[i,1] = A[i]
 
         return B
-        
-OdeClass = DeterministicOde().__class__
-setattr(OdeClass,'dumpparams', dumpparams)
-setattr(OdeClass,'loadparams', loadparams)
-setattr(OdeClass,'print_ode2', print_ode2)
-
-def Float(x):
-    try:
-        rtn = float(x)
-    except:
-        rtn = float('NaN')
-    return rtn
 
 
 # Jupyter Specifics
