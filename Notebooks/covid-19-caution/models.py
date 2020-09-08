@@ -51,50 +51,68 @@ savefigs = False # whether to save specific figures for paper to .../figures dir
 
 def dumpparams(self,run_id=''): # Have to add self since this will become a method
     mname = self.modelname
+    country = self.dbparams['country']
+    rname = self.dbparams['run_name']
     dirnm = os.getcwd()
-    pfile = dirnm+'/params/'+mname+'.pk'
+
+    if run_id != '':            # if run_id, turn it into run_name and use it for output filename
+        if run_id != rname:
+            print("warning: changing run_name from ",rname,'to',run_id)
+            self.dbparams['run_name'] = run_id
+        pfile = dirnm+'/params/'+run_id+'.pk'
+    else:                       # construct default run_name from mname and country
+        if country != '':
+            stmp = mname+'_'+country
+        else:
+            stmp = mname
+        pfile = dirnm+'/params/'+stmp+'.pk'
+    
     try:
-        params = self.params.copy()
+        all_params = {'params':self.params.copy(),
+                      'sbparams':self.sbparams.copy(),
+                      'cbparams':self.cbparams.copy(),
+                      'dbparams':self.dbparams.copy(),
+                      'initial_values':self.initial_values
+                      }
         with open(pfile,'wb') as fp:
-            pk.dump(params,fp,protocol=pk.HIGHEST_PROTOCOL)
+            pk.dump(all_params,fp)
         print('dumped params to',pfile)
-        if run_id != '':
-            pfile2 = dirnm+'/params/'+run_id+'.pk'
-            with open(pfile2,'wb') as fp:
-                pk.dump(params,fp,protocol=pk.HIGHEST_PROTOCOL)
-            print('dumped params to',pfile2)
     except:
         print('problem dumping params to ',pfile)
 
 
 def loadparams(self,run_id=''): # Have to add self since this will become a method
-    mname = self.modelname
+    rname = self.dbparams['run_name']
     dirnm = os.getcwd()
+
     if run_id == '':
-        pfile = dirnm+'/params/'+mname+'.pk'
+        pfile = dirnm+'/params/'+rname+'.pk'
     else:
+        if run_id != rname:
+            print("warning: changing run_name from ",rname,'to',run_id)
+            self.dbparams['run_name'] = run_id
         pfile = dirnm+'/params/'+run_id+'.pk'
     try:
         with open(pfile,'rb') as fp:
-            params = pk.load(fp)
+            all_params = pk.load(fp)
             print('loaded params from ',pfile,':')
     except:
         print("problem loading",pfile)
         return None
 
-
+    print('------------',all_params)
     nms = [x.name for x in self.param_list]
     try:
-        self.params = params.copy()
-        self.parameters = params.copy()
+        self.params = all_params['params'].copy()
+        self.parameters = self.params.copy()
+        self.sbparams = all_params['sbparams'].copy()
+        self.cbparams = all_params['cbparams'].copy()
+        self.dbparams = all_params['dbparams'].copy()
+        self.initial_values = all_params['initial_values'] # will get copied properly?
     except:
-        print('problem loading the params; none loaded')
+        print('problem loading the params from ',pfile)
         return None
     return True
-
-OdeClass = DeterministicOde().__class__
-setattr(OdeClass,'dumpparams', dumpparams)
-setattr(OdeClass,'loadparams', loadparams)
 
 OdeClass = DeterministicOde().__class__
 setattr(OdeClass,'dumpparams', dumpparams)
@@ -950,8 +968,13 @@ FracDeathsDet=1.0
 fbparams = {'FracConfirmedDet':FracConfirmedDet,'FracRecoveredDet':FracRecoveredDet,'FracDeathsDet':FracDeathsDet}
 
 b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
-    
+
+# extra data-related params for defining a run, including possible fitting with sliders:
+dbparams = {'run_name':'','country':'','data_src':'owid'}
+
 smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']
+
+# Initialize all models
 
 cmodels = {}
 fullmodels = {}
@@ -966,6 +989,8 @@ for smodel in smodels:
     cmodels[smodel].sbparams = sbparams
     cmodels[smodel].cbparams = cbparams
     cmodels[smodel].fbparams = fbparams
+    dbparams['run_name'] = smodel # default value when no country yet
+    cmodels[smodel].dbparams = dbparams
     modelnm = smodel+'_model'
     exec(modelnm+" = cmodels[smodel]")
     
