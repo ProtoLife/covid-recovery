@@ -113,15 +113,17 @@ class ModelFit:
             return None
         return True
 
-    def __init__(self,run_id,modelname,model=None):
+    def __init__(self,run_id,modelname,model=None,country='Germany',data_src='cowid'):
         global make_model
         self.run_id = run_id
+        ######################################
+        # set up model
         self.modelname = modelname
         if model:
             self.model = model
         else:
             model_d = make_model(modelname)
-            model = model_d['model']
+            self.model = model_d['model']
             if not self.loadparams(run_id):
                 print('using default set of parameters for model type',modelname)
         self.params = self.model.params.copy()
@@ -130,6 +132,8 @@ class ModelFit:
         self.dbparams = self.model.dbparams.copy()
         self.initial_values = self.model.initial_values.copy()
         self.times = self.model.t.copy()
+        ######################################
+        # set up data
 
 
 def make_model(mod_name):
