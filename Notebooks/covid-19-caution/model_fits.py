@@ -946,6 +946,7 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     fullmodel['cbparams'] = cbparams
     fullmodel['fbparams'] = fbparams
     fullmodel['dbparams'] = dbparams
+    fullmodel['initial_values'] = model.initial_values
     return fullmodel
 
 
