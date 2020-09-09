@@ -278,8 +278,8 @@ deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative')
 tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative')
 stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily')
 covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid}
-countriesow = [x for x in deaths_owid]
-print('done with owid data. Got',len(countriesow)-1,'countries') # -1 for dates
+countries_owid = [x for x in deaths_owid]   # J ?? does this return a list of the keys? Use instead: countries_owid= deaths_owid.keys()
+print('done with owid data. Got',len(countries_owid)-1,'countries') # -1 for dates
 
 # In[61]:
 

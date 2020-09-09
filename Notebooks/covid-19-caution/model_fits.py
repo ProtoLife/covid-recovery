@@ -35,6 +35,7 @@ from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 import pwlf
 import sys
+import copy
 #from IPython.core.display import display, HTML
 #display(HTML("<style>.container { width:100% !important; }</style>"))
 
@@ -117,8 +118,8 @@ class ModelFit:
             return None
         return True
 
-    def __init__(self,run_id,modelname,model=None,country='Germany',data_src='cowid'):
-        global make_model
+    def __init__(self,run_id,modelname,model=None,country='Germany',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None):
+        global make_model,covid_ts,covid_owid_ts
         self.run_id = run_id
         ######################################
         # set up model
@@ -128,20 +129,70 @@ class ModelFit:
             if self.model.modelname != modelname:
                 print("warning:  changing model from",modelname,'to',self.model.modelname)
         else:
-            #model_d = make_model(modelname)
-            model_d = fullmodels[modelname]
+            #model_d = make_model(modelname)                # I still prefer this I think, but 
+            model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
             self.model = model_d['model']
             if not self.loadparams(run_id):
                 print('using default set of parameters for model type',modelname)
-        self.params = self.model['params'].copy()
-        self.cbparams = self.model['cbparams'].copy()
-        self.fbparams = self.model['fbparams'].copy()
-        self.dbparams = self.model['dbparams'].copy()
-        self.initial_values = self.model['initial_values']
-        # self.times = self.model.t.copy() ### not set yet.  must load data, including times
-        ######################################
-        # set up data
-        
+        self.params   = model_d['params']
+        self.cbparams = model_d['cbparams']
+        self.fbparams = model_d['fbparams']
+        self.dbparams = model_d['dbparams']
+        self.initial_values = model_d['initial_values']
+
+        # set up data and times for simulation
+        if data_src == 'jhu':
+            ts = covid_ts
+        elif data_src == 'owid':
+            ts = covid_owid_ts
+        else:
+            print('data_src',data_src,'not yet hooked up: OWID data used instead')
+            ts = covid_owid_ts
+        self.country = country
+
+        fmt_jhu = '%m/%d/%y'
+        dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['confirmed']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
+        firstdate_t =  dates_t[0]
+        lastdate_t =  dates_t[-1]
+        if startdate:
+            startdate_t = datetime.datetime.strptime(startdate,fmt_jhu)
+        else:
+            startdate_t = firstdate_t
+        if stopdate:
+            stopdate_t = datetime.datetime.strptime(stopdate,fmt_jhu)
+            print('stopdate',stopdate) 
+        else:
+            stopdate_t = lastdate_t
+        if (startdate_t - firstdate_t).days < 0:
+            print('start date out of data range, setting to data first date',ts['confirmed']['dates'][0])
+            startdate_t = firstdate_t
+            daystart = 0
+        else:
+            daystart = (startdate_t- firstdate_t).days
+        if (stopdate_t - startdate_t).days > (lastdate_t - startdate_t).days:
+            print('stop date out of data range, setting to data last date',ts['confirmed']['dates'][-1])
+            stopdate_t = lastdate_t
+        datadays = (stopdate_t-startdate_t).days + 1            
+        if simdays: # simdays allowed greater than datadays to enable predictions
+            if simdays < datadays:
+                stopdate_t = startdate_t + datetime.timedelta(days=simdays-1)  # if simulation for shorter time than data, restrict data to this
+                datadays = (stopdate_t-startdate_t).days + 1    
+        else:
+            simdays = datadays
+
+        self.tsim = np.linspace(0, simdays -1, simdays)
+        self.tdata = np.linspace(0, datadays -1, datadays)
+        if datatypes == 'all' or not datatypes:
+            if data_src == 'owid':
+                datatypes = ['confirmed','deaths','tests', 'stringency']
+            else:
+                datatypes = ['confirmed','deaths','recovered']
+        self.data = {}
+        for dt in datatypes:
+            self.data.update({dt:ts[dt][country][daystart:datadays]}) 
+
+        self.startdate = startdate_t.strftime(fmt_jhu)
+        self.stopdate = stopdate_t.strftime(fmt_jhu)
 
 
 def make_model(mod_name):
