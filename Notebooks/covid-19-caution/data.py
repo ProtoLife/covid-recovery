@@ -1,5 +1,13 @@
+import csv
+import numpy as np
+import datetime
 
-
+def Float(x):
+    try:
+        rtn = float(x)
+    except:
+        rtn = float('NaN')
+    return rtn
 
 def get_data(jhu_file):
     dat = []
@@ -169,21 +177,20 @@ print("number of countries listed",len(countries_jhu))
 i=0
 for country in countries_jhu:
     i = i + 1
-print('done.  Got ',i,'countries.')
+print('done with JHU data.  Got ',i,'countries.')
 
 
-def get_data_owid(owid_file,database='owid',datatype='confirmed',dataaccum = 'cumulative'):
+covid_owid = []
+
+def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
     import numpy as np
     import datetime
     import matplotlib.dates as mdates
-    
     global covid_owid
-    if not covid_owid:
-        with open(owid_file, 'r', newline='') as csvfile:
-            myreader = csv.DictReader(csvfile,delimiter=',')
-            for row in myreader:
-                covid_owid.append(row)
-        close(owid_file)
+    with open(owid_file, 'r', newline='') as csvfile:
+        myreader = csv.DictReader(csvfile,delimiter=',')
+        for row in myreader:
+            covid_owid.append(row)
         
     # for key in covid_owid[0].keys():   # to loop through all keys
     
@@ -264,16 +271,15 @@ def get_data_owid(owid_file,database='owid',datatype='confirmed',dataaccum = 'cu
 # In[60]:
 
 print('getting owid data...')
-
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
-confirmed_owid=get_data_owid(owid_file,database='owid',datatype='confirmed',dataaccum = 'cumulative')
+confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative')
 recovered_owid = None
-deaths_owid=get_data_owid(owid_file,database='owid',datatype='deaths',dataaccum = 'cumulative')
-tests_owid=get_data_owid(owid_file,database='owid',datatype='tests',dataaccum = 'cumulative')
-stringency_owid=get_data_owid(owid_file,database='owid',datatype='stringency',dataaccum = 'daily')
+deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative')
+tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative')
+stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily')
 covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid}
 countriesow = [x for x in deaths_owid]
-print('done. Got',len(countriesow)-1,'countries') # -1 for dates
+print('done with owid data. Got',len(countriesow)-1,'countries') # -1 for dates
 
 # In[61]:
 

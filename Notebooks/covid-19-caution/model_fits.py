@@ -38,6 +38,10 @@ import sys
 #from IPython.core.display import display, HTML
 #display(HTML("<style>.container { width:100% !important; }</style>"))
 
+print('loading data.py...')
+from data import *
+print('done with data.py.')
+
 savefigs = False # whether to save specific figures for paper to .../figures directory
 
 def Float(x):
@@ -113,23 +117,31 @@ class ModelFit:
             return None
         return True
 
-    def __init__(self,run_id,modelname,model=None):
+    def __init__(self,run_id,modelname,model=None,country='Germany',data_src='cowid'):
         global make_model
         self.run_id = run_id
+        ######################################
+        # set up model
         self.modelname = modelname
         if model:
             self.model = model
+            if self.model.modelname != modelname:
+                print("warning:  changing model from",modelname,'to',self.model.modelname)
         else:
-            model_d = make_model(modelname)
-            model = model_d['model']
+            #model_d = make_model(modelname)
+            model_d = fullmodels[modelname]
+            self.model = model_d['model']
             if not self.loadparams(run_id):
                 print('using default set of parameters for model type',modelname)
-        self.params = self.model.params.copy()
-        self.cbparams = self.model.cbparams.copy()
-        self.fbparams = self.model.fbparams.copy()
-        self.dbparams = self.model.dbparams.copy()
-        self.initial_values = self.model.initial_values.copy()
-        self.times = self.model.t.copy()
+        self.params = self.model['params'].copy()
+        self.cbparams = self.model['cbparams'].copy()
+        self.fbparams = self.model['fbparams'].copy()
+        self.dbparams = self.model['dbparams'].copy()
+        self.initial_values = self.model['initial_values']
+        # self.times = self.model.t.copy() ### not set yet.  must load data, including times
+        ######################################
+        # set up data
+        
 
 
 def make_model(mod_name):
@@ -866,8 +878,7 @@ def base2params(sbparams,cbparams,fbparams,smodel):
     b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
     return(vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel))
 
-def base2ICs(I0,N,smodel,cmodels):
-    model = cmodels[smodel]
+def base2ICs(I0,N,smodel,model):
     (x0old,t0) = model.initial_values
     nstates = len(x0old)
     x0 = [0.]*nstates
@@ -920,23 +931,23 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
 
     return [sbparams,cbparams,fbparams,dbparams]
 
-def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None)
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
+def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
     dbparams['run_name'] = smodel # default value when no country yet
     b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
     fullmodel = make_model(smodel)
     model = fullmodel['model']
     params_in=vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel)
-    model.initial_values = base2ICs(I0,N,smodel,cmodels)
+    model.initial_values = base2ICs(I0,N,smodel,model)
     model.parameters = params_in # sets symbolic name parameters
-    fullmodel.params = params_in    # sets string params
-    fullmodel.sbparams = sbparams
-    fullmodel.cbparams = cbparams
-    fullmodel.fbparams = fbparams
-    fullmodel.dbparams = dbparams
-    modelnm = smodel+'_model'
-    exec(modelnm+" = fullmodel")
+    fullmodel['params'] = params_in    # sets string params
+    fullmodel['sbparams'] = sbparams
+    fullmodel['cbparams'] = cbparams
+    fullmodel['fbparams'] = fbparams
+    fullmodel['dbparams'] = dbparams
+    fullmodel['initial_values'] = model.initial_values
+    return fullmodel
 
 
 smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']
@@ -945,19 +956,34 @@ smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3
 
 cmodels = {}
 fullmodels = {}
+print('making the models...')
 for smodel in smodels:
-    fullmodels[smodel] = make_model(smodel)
-    cmodels[smodel] = fullmodels[smodel]['model']
-    params_in=vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel)
-    cmodels[smodel].initial_values = base2ICs(I0,N,smodel,cmodels)
-    fullmodels[smodel]['model'].parameters = params_in # sets symbolic name parameters
-    fullmodels[smodel]['model'].params = params_in    # sets string params
-    cmodels[smodel].parameters = params_in
-    cmodels[smodel].sbparams = sbparams
-    cmodels[smodel].cbparams = cbparams
-    cmodels[smodel].fbparams = fbparams
-    dbparams['run_name'] = smodel # default value when no country yet
-    cmodels[smodel].dbparams = dbparams
+    fullmodel = parametrize_model(smodel)
+    fullmodels[smodel] = fullmodel
+    # take fullmodel['model'] so that modelnm is same model as before
+    # for backward compatibility
+    cmodels[smodel] = fullmodel['model']
     modelnm = smodel+'_model'
-    exec(modelnm+" = cmodels[smodel]")
+    exec(modelnm+" = fullmodel['model']")
+    print(smodel)
+            
+            
+    
+    # fullmodels[smodel] = make_model(smodel)
+    # cmodels[smodel] = fullmodels[smodel]['model']
+    # params_in=vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel)
+    # cmodels[smodel].initial_values = base2ICs(I0,N,smodel,cmodels)
+    # fullmodels[smodel]['model'].parameters = params_in # sets symbolic name parameters
+    # fullmodels[smodel]['model'].params = params_in    # sets string params
+    # cmodels[smodel].parameters = params_in
+    # cmodels[smodel].sbparams = sbparams
+    # cmodels[smodel].cbparams = cbparams
+    # cmodels[smodel].fbparams = fbparams
+    # dbparams['run_name'] = smodel # default value when no country yet
+    # cmodels[smodel].dbparams = dbparams
+    # modelnm = smodel+'_model'
+    # exec(modelnm+" = cmodels[smodel]")
+    # print(smodel)
+
+print('done with the models.')
     
