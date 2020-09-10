@@ -77,11 +77,12 @@ class ModelFit:
             pfile = dirnm+'/params/'+stmp+'.pk'
         
         try:
-            all_params = {'params':self.params.copy(),           # need copy()? you are only reading
-                          'sbparams':self.sbparams.copy(),
-                          'cbparams':self.cbparams.copy(),
-                          'dbparams':self.dbparams.copy(),
-                          'initial_values':self.initial_values   # if so don't you need a copy() here too?
+            all_params = {'params':self.params, 
+                          'sbparams':self.sbparams,
+                          'fbparams':self.fbparams,
+                          'cbparams':self.cbparams,
+                          'dbparams':self.dbparams,
+                          'initial_values':self.initial_values 
                           }
             with open(pfile,'wb') as fp:
                 pk.dump(all_params,fp)
@@ -109,7 +110,7 @@ class ModelFit:
         try:
             self.params = all_params['params'].copy()
             self.parameters = self.params.copy()
-            self.sbparams = all_params['sbparams'].copy()
+            self.fbparams = all_params['fbparams'].copy()
             self.cbparams = all_params['cbparams'].copy()
             self.dbparams = all_params['dbparams'].copy()
             self.initial_values = all_params['initial_values'] # will get copied properly?
@@ -329,6 +330,7 @@ class ModelFit:
                 print('using default set of parameters for model type',modelname)
         self.params   = model_d['params']
         self.cbparams = model_d['cbparams']
+        self.sbparams = model_d['sbparams']
         self.fbparams = model_d['fbparams']
         self.dbparams = model_d['dbparams']
         self.initial_values = model_d['initial_values']
