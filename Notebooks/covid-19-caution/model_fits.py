@@ -179,6 +179,8 @@ class ModelFit:
                 datadays = (stopdate_t-startdate_t).days + 1    
         else:
             simdays = datadays
+        self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
+
 
         self.tsim = np.linspace(0, simdays -1, simdays)
         self.tdata = np.linspace(0, datadays -1, datadays)
@@ -193,6 +195,26 @@ class ModelFit:
 
         self.startdate = startdate_t.strftime(fmt_jhu)
         self.stopdate = stopdate_t.strftime(fmt_jhu)
+
+    def plot(self,dtypes=['confirmed','deaths']):
+        if type(dtypes)==str:
+            dtypes = [dtypes]
+        xx = self.dates
+        print(len(xx))
+        print([(x,len(self.data[x])) for x in dtypes])
+
+
+        for dt in dtypes:
+            try:
+                yy = self.data[dt]
+            except:
+                print("data type '"+dt+"' not found.")
+            try:
+                plt.plot(xx,yy)
+            except:
+                print("couldn't plot")
+        plt.show()
+
 
 
 def make_model(mod_name):

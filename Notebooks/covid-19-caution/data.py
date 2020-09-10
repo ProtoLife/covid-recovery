@@ -267,6 +267,56 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
     popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
+def get_data_owid_key(owid_file,key):
+    global covid_owid
+    if not covid_owid:
+        with open(owid_file, 'r', newline='') as csvfile:
+            myreader = csv.DictReader(csvfile,delimiter=',')
+            for row in myreader:
+                covid_owid.append(row)
+        close(owid_file)
+        
+    # for key in covid_owid[0].keys():   # to loop through all keys
+    if key not in covid_owid[0].keys():
+        print('key must be in ',covid_owid[0].keys())
+        return None
+   
+    countries = np.unique(np.array([dd['location'] for dd in covid_owid]))
+    dates = np.unique(np.array([dd['date'] for dd in covid_owid]))
+    dates.sort()
+    fmt = '%Y-%m-%d'
+    dates_t = [datetime.datetime.strptime(dd,fmt) for dd in dates ]
+    firstdate = dates[0]
+    lastdate = dates[-1]
+    firstdate_t =  dates_t[0]
+    lastdate_t =  dates_t[-1]
+
+    daystart = 0
+    daystop = (lastdate_t-firstdate_t).days
+    
+    popkeyed = {country: np.zeros(daystop+1,dtype=float) for country in countries} 
+    
+    for dd in covid_owid:
+        country = dd['location']
+        day = (datetime.datetime.strptime(dd['date'],fmt)-firstdate_t).days
+        popkeyed[country][day] = float(dd[key]) if not dd[key]=='' else 0.0 
+        
+    # popkeyed = {country: np.transpose(np.array([[dd['date'],dd[key]] for dd in covid_owid if dd['location'] == country])) for country in countries}
+    # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
+
+    if datatype == 'tests' and dataaccum == 'cumulative':  # assemble cumulative tests from smooth daily tests
+        for country in countries:
+            data = popkeyed[country]
+            sumdata= np.zeros(len(data))
+            sum = 0.0
+            for i,d in enumerate(data):
+                sum = sum + d
+                sumdata[i] = sum
+            popkeyed.update({country:sumdata})
+
+    fmt_jhu = '%m/%d/%y'
+    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
+    return popkeyed
 
 # In[60]:
 
