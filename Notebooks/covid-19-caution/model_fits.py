@@ -118,6 +118,199 @@ class ModelFit:
             return None
         return True
 
+    def difference(self,datain):
+        dataout = np.zeros(np.shape(datain))
+        for i in range(1,len(datain)):
+            dataout[i,...] = datain[i,...]-datain[i-1,...]
+        return dataout
+        
+    def rolling_average(self,datain,period):
+        (tmax,n) = np.shape(datain)
+        dataout = np.zeros((tmax,n),dtype=float)
+        moving_av = np.zeros(n,dtype=float)
+        for k in range(len(datain)):
+            if k-period >= 0:
+                moving_av[:] = moving_av[:] - datain[k-7,...]
+            moving_av[:] = moving_av[:] + datain[k,...]
+            dataout[k] = moving_av/min(float(period),float(k+1))
+        return dataout
+
+    def plotdata(self,dtypes=['confirmed','deaths']):
+        if type(dtypes)==str:
+            dtypes = [dtypes]
+        xx = np.array(range(len(self.tdata)-1))
+        print(len(xx))
+        print([(x,len(self.data[x])) for x in dtypes])
+
+        for dt in dtypes:
+            try:
+                yy = self.data[dt]
+            except:
+                print("data type '"+dt+"' not found.")
+            try:
+                plt.plot(xx,yy)
+            except:
+                print("couldn't plot xx,yy",xx,yy)
+        plt.show()
+
+    def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axes=None,
+                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None):
+        """
+        solve ODEs and plot for fitmodel indicated
+        
+        species : alternatives 'all', 'EI', 'confirmed', 'deaths', ...
+        tmax : max time for simulation
+        summing: type of summing smoothing options : 'daily', ...
+        averaging : None, 'daily', 'weekly'
+        fitdata : data to fit
+        axes : previous axes to plot on [None]
+        scale : alternative 'linear' or 'log'
+        plottitle : title for plot
+        label : label for curve when called as part of multicurve plot
+        newplot : whether to open new plot True/False
+        gbrcolors : color types to use
+        figsize : size of fig in inches (binary tuple)
+        """
+       
+        # tmax = self.tsim[-1]
+        # tvec=np.arange(0,tmax,1)
+
+        if not isinstance(species,list):
+            lspecies = [species]
+        else:
+            lspecies = species
+
+        dspecies = [dt if dt != 'caution_fraction' else 'stringency' for dt in lspecies]
+        mags = [mag[dt] if dt in mag.keys() else 1 for dt in dspecies]
+
+        tvec = self.tsim
+        tvec1 = tvec[1:]
+        if not self.data is {}:
+            fitdata = np.transpose(np.array([self.data[dt] for dt in dspecies]))
+        else:
+            fitdata = None
+        if not fitdata is None:
+            tmaxf = len(fitdata)
+            if fitdata.ndim != 2:
+                print("error in number of dimensions of array")
+            else:
+                print("fit data ",np.shape(fitdata))
+            tvecf=np.arange(0,tmaxf,1)
+            tvecf1 = tvecf[1:]
+        
+        if newplot:
+            axes = None
+            if (figsize == None):
+                figsize=(8,6)
+            plt.figure(figsize=figsize)
+            # fig, axeslist = plt.subplots(1, nmodels, figsize=(nmodels*8,6))
+               
+        smodel = self.modelname
+        model = self.model
+
+        soln = scipy.integrate.odeint(model.ode, model.initial_values[0], tvec[1::])
+        #Plot
+        # ax = axeslist[nm]
+        if axes == None: 
+            ax = axes = plt.subplot(1,1,1)
+        else:
+            ax = axes
+        if scale == 'log': #Plot on log scale
+            ax.semilogy()
+            ax.set_ylim([0.00000001,1.0])
+            
+        if summing == 'daily':
+            ssoln = self.difference(soln)
+            if not fitdata is None:
+                sfit = self.difference(fitdata)
+        else:
+            ssoln = soln
+            if not fitdata is None:
+                sfit = fitdata
+                
+        if averaging == 'weekly':
+            srsoln = self.rolling_average(ssoln,7)
+            if not fitdata is None:
+                srfit = self.rolling_average(sfit,7)
+        else:
+            srsoln = ssoln
+            if not fitdata is None:
+                srfit = sfit
+                    
+        for ns,species in enumerate(lspecies):
+            if species == 'confirmed':
+                suma = np.sum(srsoln[:,model.confirmed],axis=1)*mags[ns]
+                if not fitdata is None:
+                    ax.plot(tvec1,suma,label=label,color='green')
+                    fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracConfirmedDet']/self.population # confirmed cases data, corrected by FracConfirmedDet
+                    ax.plot(tvecf1,fita,'o',label=label,color='green')
+                else:
+                    ax.plot(tvec1,suma,label=label)
+            if species == 'recovered':
+                suma = np.sum(srsoln[:,model.recovered],axis=1)*mags[ns]  
+                if not fitdata is None:
+                    ax.plot(tvec1,suma,label=label,color='blue')
+                    fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracRecoveredDet']/self.population # recovered cases data, corrected by FracRecoveredDet
+                    ax.plot(tvecf1,fita,'o',label=label,color='blue')
+                else:
+                    ax.plot(tvec1,suma,label=label)
+            elif species == 'deaths':
+                suma = np.sum(srsoln[:,model.deaths],axis=1)*mags[ns]
+                if not fitdata is None:
+                    ax.plot(tvec1,suma,label=label,color='red')
+                    fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracDeathsDet']/self.population # deaths cases data, corrected by FracDeathsDet
+                    ax.plot(tvecf1,fita,'o',label=label,color='red')
+                else:
+                    ax.plot(tvec1,suma,label=label)
+            elif species == 'EI':
+                ax.plot(tvec1,soln[:,model.ei],label=label)
+                # ax.plot(tvec1,soln[:,model.ei],label="%s" % count)
+                if 'I3' in model.modelname: 
+                    plt.legend(("E","I1","I2","I3"))
+                elif 'E' in model.modelname: 
+                    plt.legend(("E","I"))
+                else:
+                    plt.legend(("I"))
+            elif species == 'caution_fraction':
+                #print('model name',model.modelname)
+                susc = soln[:,model.S_c]
+                suma = np.sum(soln[:,model.all_susceptibles],axis=1)
+                old_settings = np.seterr(divide='ignore') #
+                suma = np.divide(susc,suma)
+                np.seterr(**old_settings)  # reset to default
+                if not fitdata is None:
+                    ax.plot(tvec1,suma,label=label,color='green')
+                    fita = srfit[1::,ns]*mags[ns] # caution fraction from data (stringency) with correciton to unit scale via mags
+                    ax.plot(tvecf1,fita,'o',label=label,color='green')
+                else:
+                    ax.plot(tvec1,suma,label=label)               
+            elif species == 'all':
+                ax.plot(tvec1,soln,label=label)
+                if 'I3' in model.modelname:
+                    if 'C3'in model.modelname:
+                        pspecies=("S","E","I1","I2","I3","R","D","Ic","Sc","Ec")
+                    elif 'C' in model.modelname:
+                        pspecies=("S","E","I1","I2","I3","R","D","Sc")
+                    else:
+                        pspecies=("S","E","I1","I2","I3","R","D")
+                elif 'E' in model.modelname:
+                    if 'C3'in model.modelname:
+                        pspecies=("S","E","I","R","D","Ic","Sc","Ec")
+                    else:
+                        pspecies=("S","E","I","R","D","Sc")                
+                else:
+                    if 'C2'in model.modelname:
+                        pspecies=("S","I","R","D","Ic","Sc")
+                    else:
+                        pspecies=("S","I","R","D","Sc")
+                plt.legend(pspecies)
+                
+        plt.xlabel("Time (days)")
+        plt.ylabel("Fraction of population")
+        plt.title(model.modelname +' '+plottitle)
+        self.soln = soln
+        return
+
     def __init__(self,run_id,modelname,model=None,country='Germany',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None):
         global make_model,covid_ts,covid_owid_ts
         self.run_id = run_id
@@ -149,6 +342,7 @@ class ModelFit:
             print('data_src',data_src,'not yet hooked up: OWID data used instead')
             ts = covid_owid_ts
         self.country = country
+        self.population = population_owid[country][0]
 
         fmt_jhu = '%m/%d/%y'
         dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['confirmed']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
@@ -180,10 +374,9 @@ class ModelFit:
         else:
             simdays = datadays
         self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
-
-
         self.tsim = np.linspace(0, simdays -1, simdays)
         self.tdata = np.linspace(0, datadays -1, datadays)
+
         if datatypes == 'all' or not datatypes:
             if data_src == 'owid':
                 datatypes = ['confirmed','deaths','tests', 'stringency']
@@ -195,27 +388,6 @@ class ModelFit:
 
         self.startdate = startdate_t.strftime(fmt_jhu)
         self.stopdate = stopdate_t.strftime(fmt_jhu)
-
-    def plot(self,dtypes=['confirmed','deaths']):
-        if type(dtypes)==str:
-            dtypes = [dtypes]
-        xx = self.dates
-        print(len(xx))
-        print([(x,len(self.data[x])) for x in dtypes])
-
-
-        for dt in dtypes:
-            try:
-                yy = self.data[dt]
-            except:
-                print("data type '"+dt+"' not found.")
-            try:
-                plt.plot(xx,yy)
-            except:
-                print("couldn't plot")
-        plt.show()
-
-
 
 def make_model(mod_name):
     """ make models of types ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']"""
@@ -978,6 +1150,18 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         DurHosp=11        #Duration of hospitalization, days
         ICUFrac= 0.001    # Fraction of ICUs relative to population size N
         I0 = 0.00003      # Fraction of population initially infected
+    if not sbparams:      # standard params set 2 from Germany fit
+        Exposure=0.4     # Rate coefficient for exposure per individual in contact per day
+        IncubPeriod=5     #Incubation period, days 
+        DurMildInf=10     #Duration of mild infections, days
+        FracMild=0.7      #Fraction of infections that are mild
+        FracSevere=0.20   #Fraction of infections that are severe
+        FracCritical=0.1  #Fraction of infections that are critical
+        CFR=0.05          #Case fatality rate (fraction of infections resulting in death)
+        TimeICUDeath=5    #Time from ICU admission to death, days
+        DurHosp=4         #Duration of hospitalization, days
+        ICUFrac= 0.001    # Fraction of ICUs relative to population size N
+        I0 = 0.0000003    # Fraction of population initially infected
 
         sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
                    'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
@@ -988,12 +1172,22 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         CautionICUFrac= 0.25  # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
         EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
         EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
+    if not cbparams:          # Model extension by John McCaskill to include caution  # set 2 
+        CautionFactor= 0.1    # Fractional reduction of exposure rate for cautioned individuals
+        CautionRetention= 1/0.015 # Duration of cautionary state of susceptibles (4 weeks)
+        CautionICUFrac= 0.1   # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
+        EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
+        EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
 
     cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,
                 'EconomicRetention':EconomicRetention,'EconomicCostOfCaution':EconomicCostOfCaution}
 
-    if not fbparams:        # Model fitting extension to allow for incomplete detection
-        FracConfirmedDet=1.0  # Fraction of recovered individuals measured : plots made with this parameter NYI
+    if not fbparams:          # Model fitting extension to allow for incomplete detection
+        FracConfirmedDet=1.0  # Fraction of recovered individuals measured : plots made with this parameter
+        FracRecoveredDet=FracConfirmedDet # Fraction of recovered individuals measured
+        FracDeathsDet=1.0
+    if not fbparams:          # Model fitting extension to allow for incomplete detection
+        FracConfirmedDet=1.0 # Fraction of recovered individuals measured : plots made with this parameter
         FracRecoveredDet=FracConfirmedDet # Fraction of recovered individuals measured
         FracDeathsDet=1.0
 
@@ -1023,7 +1217,8 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     return fullmodel
 
 
-smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']
+# smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
+smodels = ['SEI3R','SC3EI3R','SC3UEI3R']
 
 # Initialize all models
 
