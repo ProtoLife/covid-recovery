@@ -389,16 +389,18 @@ def get_2012_data_ICUs():
     with open(ICU_file,'r',newline='') as fp:
         myreader = csv.reader(fp,delimiter=',')
         for i,row in enumerate(myreader):
-            terms = []
-            for j,elt in enumerate(row):     # assumes nine cols : with data in cols G
-                if j == 0:
-                    terms.append(elt)
-                elif j == 6:
-                    if i != 0:
-                        terms.append(float(elt))
-                    else:
+            if row[0] != '':             # eliminate blank rows in ICU_file (at end)
+                terms = []
+                for j,elt in enumerate(row):     # assumes nine cols : with data in cols G
+                    if j == 0:
                         terms.append(elt)
-            icus_data.append(terms)
+                    elif j == 6:
+                        if i != 0:
+                            terms.append(float(elt))
+                        else:
+                            terms.append(elt)
+                icus_data.append(terms)
+
     # close(ICU_file)
     icu_dict = [{elt[0]:elt[1]} for elt in icus_data[1:]]
     return icu_dict
