@@ -321,7 +321,6 @@ def get_data_owid_key(owid_file,key):
     popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
-# In[60]:
 
 print('getting owid data...')
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
@@ -334,8 +333,6 @@ population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'dai
 covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid}
 countries_owid = [x for x in deaths_owid]   # J ?? does this return a list of the keys? Use instead: countries_owid= deaths_owid.keys()
 print('done with owid data. Got',len(countries_owid)-1,'countries') # -1 for dates
-
-# In[61]:
 
 
 def truncx(xx,daystart,daystop):
@@ -351,3 +348,60 @@ def truncy(xx,yy,daystart,daystop):
     daymin = max(daystart,0)
     daymax = min(daystop,(xx[-1]-xx[0]).days)
     return yy[daymin:daymax+1]
+
+
+def get_WHO_data_acute_beds():
+    """ get acute beds data per 100000 (mostly 2014,  äITA, MKD, ROU, RUS 2013, NLD 2012)"""
+    import os.path
+    from os import path
+    who_file = './acute_WHO_2014.csv'   # note that these are acute care beds: ICUs are estimated at only 3-5% of acute care beds
+    if path.exists(who_file):
+        print('WHO acute file found','dictionary acute_who')
+    else:
+        print('error',who_file, 'not found')
+        return
+    icus_data = []
+    with open(who_file,'r',newline='') as fp:
+        myreader = csv.reader(fp,delimiter=',')
+        for i,row in enumerate(myreader):
+            terms = []
+            for j,elt in enumerate(row):     # assumes three rows : iso_code, country, acute_beds
+                if j == 2 and i != 0:
+                    terms.append(float(elt))
+                else:
+                    terms.append(elt)
+            icus_data.append(terms)
+    # close(who_file)
+    acute_dict = [{elt[1]:elt[2]} for elt in icus_data[1:]]
+    return icus_data
+
+def get_2012_data_ICUs():
+    """ get ICU data 2012 from Intensive Care Med (2012) 38:1647–1653 DOI 10.1007/s00134-012-2627-8 """
+    import os.path
+    from os import path
+    ICU_file = './acute care and ICUs.csv'   # note that these are acute care beds: ICUs are estimated at only 3-5% of acute care beds
+    if path.exists(ICU_file):
+        print('ICU file found','dictionary icus_2012')
+    else:
+        print('error',ICU_file, 'not found')
+        return
+    icus_data = []
+    with open(ICU_file,'r',newline='') as fp:
+        myreader = csv.reader(fp,delimiter=',')
+        for i,row in enumerate(myreader):
+            terms = []
+            for j,elt in enumerate(row):     # assumes nine cols : with data in cols G
+                if j == 0:
+                    terms.append(elt)
+                elif j == 6:
+                    if i != 0:
+                        terms.append(float(elt))
+                    else:
+                        terms.append(elt)
+            icus_data.append(terms)
+    # close(ICU_file)
+    icu_dict = [{elt[0]:elt[1]} for elt in icus_data[1:]]
+    return icu_dict
+
+acute_dict = get_WHO_data_acute_beds()
+icu_dict = get_2012_data_ICUs()
