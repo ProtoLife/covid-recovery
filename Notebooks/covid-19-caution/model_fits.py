@@ -88,7 +88,6 @@ class ModelFit:
             print('dumped params to',pfile)
         except:
             print('problem dumping params to ',pfile)
-
     def loadparams(self,run_id=''): 
         """loads params from same file.  returns None if any problem finding the file.
         This stuff needs modules os, sys, pickle as pk."""
@@ -118,6 +117,8 @@ class ModelFit:
                 newkk = [k for k in all_params[pp]]
                 if newkk != selfkk:
                     print("params don't match when loading the params from ",pfile)
+                    print('old keys:',selfkk)
+                    print('new keys:',newkk)
                     return None
             except:
                 pass            # ok to fail 1st time
