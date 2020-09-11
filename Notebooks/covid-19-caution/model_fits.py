@@ -982,53 +982,7 @@ def param_modify(model,param,value):
     
 # param_modify(SCIR_model,'beta',0.721)  # requires .params to be set (see below)
 
-def vector2params_old(b,a,g,p,u,c,k,N,modelname):
-    """this earlier version of arameter translation routine is kept here for reference
-    allows the construction of model specific parameters for different models from a single set
-    based on SEI3R model with vector b,g,p as well as vector caution c and economics k
-    later modified for better correspondence between SEIR and SEI3R and derivates """
-    if 'I3' in modelname:  # models with hospitalization
-        params = {
-            'beta_1' : b[1],
-            'beta_2' : b[2],
-            'beta_3' : b[3],
-            'alpha' : a,
-            'gamma_1': g[1],
-            'gamma_2': g[2],
-            'gamma_3': g[3],
-            'p_1'    : p[1],
-            'p_2'    : p[2],
-            'mu'    : u}
-    elif 'E' in modelname:
-        params = {
-            'beta' : b[1],  # see above for explanations
-            'alpha' : a, 
-            'gamma': g[1]+g[2]*(p[1]/(g[2]+p[2]))+g[3]*(p[1]/(g[2]+p[2]))*(p[2]/(g[3]+u)),
-            'mu'    : u*(p[1]/(g[2]+p[2])*(p[2]/(g[3]+u)))}    
-    else:
-        params = {
-            'beta' : b[1],  # see above for explanations
-            'gamma': g[1]+g[2]*(p[1]/(g[2]+p[2]))+g[3]*(p[1]/(g[2]+p[2]))*(p[2]/(g[3]+u)),
-            'mu'    : u*(p[1]/(g[2]+p[2])*(p[2]/(g[3]+u)))}
-            
-    if 'C' in modelname: # models with caution  
-        params['c_0'] = c[0]
-        params['c_1'] = c[1]
-        if 'I3' in modelname: # models with hospitalization
-            params['c_2'] = c[2]
-        else:
-            params['c_2'] = c[2]*FracCritical
-        
-    if 'U' in modelname: # models with economic correction to caution  
-        params['k_u'] = k[0]
-        params['k_1'] = k[1]
-        params['k_w'] = k[2]
-        params['kappa'] = k[3]
-        
-    params['N'] = N
-    return params
-
-def vector2params(b,a,g,p,u,c,k,N,FracCritical,modelname):
+def vector2params(b,a,g,p,u,c,k,N,modelname):
     """allows the construction of model specific parameters for different models from a single set
     based on SEI3R model with vector b,g,p as well as vector caution c and economics k"""
     if 'I3' in modelname:  # models with hospitalization
@@ -1066,7 +1020,8 @@ def vector2params(b,a,g,p,u,c,k,N,FracCritical,modelname):
         if 'I3' in modelname: # models with hospitalization
             params['c_2'] = c[2]
         else:
-            params['c_2'] = c[2]*FracCritical
+            # params['c_2'] = c[2]*FracCritical  # this can be calculated explicitly in next line
+            params['c_2'] = c[2]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
         
     if 'U' in modelname: # models with economic correction to caution  
         params['k_u'] = k[0]
@@ -1125,7 +1080,10 @@ def base2vectors(sbparams,cbparams,fbparams):
     CautionFactor = cbparams['CautionFactor']
     CautionRetention = cbparams['CautionRetention']
     CautionICUFrac = cbparams['CautionICUFrac']
+
+    EconomicStriction =  cbparams['EconomicStriction']
     EconomicRetention =  cbparams['EconomicRetention']
+    EconomyRelaxation =  cbparams['EconomyRelaxation']
     EconomicCostOfCaution = cbparams['EconomicCostOfCaution']
     
     FracConfirmedDet = fbparams['FracConfirmedDet']
@@ -1154,48 +1112,48 @@ def base2vectors(sbparams,cbparams,fbparams):
     c[1]=1/CautionRetention
     c[2]=1/(N*ICUFrac*CautionICUFrac)     # this is the rate coefficient giving 1/day at I3 = denominator
 
-    k[0]=1/EconomicRetention              # assumes default rate is same as 1
-    k[1]=1/EconomicRetention              # this is always correct
-    k[2]=1/EconomicRetention              # assumes default rate is same as 1
+    k[0]=1/EconomicStriction              
+    k[1]=1/EconomicRetention            
+    k[2]=1/EconomyRelaxation   
     k[3]=EconomicCostOfCaution
     
-    return(b,a,g,p,u,c,k,N,FracCritical,I0)
+    return(b,a,g,p,u,c,k,N,I0)
 
 def base2params(sbparams,cbparams,fbparams,smodel):
-    b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
-    return(vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel))
+    b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
+    return(vector2params(b,a,g,p,u,c,k,N,smodel))
 
 def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     """ converts vector of parameters back to dictionaries of base parameters
         assumes only one parameter for bvector in the form b*[0,1,0,0]"""
-    Exposure = b[1] # assuming b has structure b[1]*[0,1,0,0]
-    IncubPeriod = a
+    Exposure          = b[1] # assuming b vector has structure b*[0,1,0,0]
+    IncubPeriod       = a
 
-    FracMild = g[1]/(g[1]+p[1])
-    FracSevere = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2]))
-    # FracCritical = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
-    FracCritical = 1 - FracMild -FracSevere         # not independent
-    CFR = (u/(g[3]+u)*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
-    IncubPeriod =1/(g[1]+p[1])
-    DurHosp = 1/(g[2]+p[2])
-    TimeICUDeath = 1/(g(3)+u)
+    FracMild          = g[1]/(g[1]+p[1])
+    FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2]))   # range is 0 to 1-FracMild : could in principle switch to this as independent 
+    # FracCritical       = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
+    FracCritical      = 1 - FracMild -FracSevere                # not independent
+    CFR               = (u/(g[3]+u))*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
+    IncubPeriod       = 1/(g[1]+p[1])
+    DurHosp           = 1/(g[2]+p[2])
+    TimeICUDeath      = 1/(g(3)+u)
 
-    CautionFactor = c[0]
-    CautionRetention = 1/c[1]
-    CautionICUFrac = 1/(N*c[2]*ICUFrac)
+    CautionFactor     = c[0]
+    CautionRetention  = 1/c[1]
+    CautionICUFrac    = 1/(N*c[2]*ICUFrac)
     
-    EconomicStriction =  1/k[0]
-    EconomicRetention =  1/k[1]
-    EconomyRelaxation = 1/k[2]
+    EconomicStriction     =  1/k[0]
+    EconomicRetention     =  1/k[1]
+    EconomyRelaxation     =  1/k[2]
     EconomicCostOfCaution =  k[3]
     
     sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
-                'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
+                'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,    # FracCritical should not be independently varied
                 'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'I0':I0}
-    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,
-                'EconomicRetention':EconomicRetention,'EconomicCostOfCaution':EconomicCostOfCaution}
-  
-    
+    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,            
+                'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
+                'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
+   
     return(sbparams,cbparams)
 
 def base2ICs(I0,N,smodel,model):
@@ -1219,7 +1177,7 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         DurMildInf=10     #Duration of mild infections, days
         FracMild=0.8      #Fraction of infections that are mild
         FracSevere=0.15   #Fraction of infections that are severe
-        FracCritical=0.05 #Fraction of infections that are critical
+        FracCritical=1-FracMild-FracSevere #Fraction of infections that are critical
         CFR=0.02          #Case fatality rate (fraction of infections resulting in death)
         TimeICUDeath=7    #Time from ICU admission to death, days
         DurHosp=11        #Duration of hospitalization, days
@@ -1231,7 +1189,7 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         DurMildInf=10     #Duration of mild infections, days
         FracMild=0.7      #Fraction of infections that are mild
         FracSevere=0.20   #Fraction of infections that are severe
-        FracCritical=0.1  #Fraction of infections that are critical
+        FracCritical=1-FracMild-FracSevere  #Fraction of infections that are critical
         CFR=0.05          #Case fatality rate (fraction of infections resulting in death)
         TimeICUDeath=5    #Time from ICU admission to death, days
         DurHosp=4         #Duration of hospitalization, days
@@ -1241,21 +1199,26 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
                    'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
                    'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'I0':I0}
-    if not cbparams:          # Model extension by John McCaskill to include caution 
+    if not cbparams:          # Model extension by John McCaskill to include caution                     # former values
         CautionFactor= 0.3    # Fractional reduction of exposure rate for cautioned individuals
         CautionRetention= 14. # Duration of cautionary state of susceptibles (4 weeks)
         CautionICUFrac= 0.25  # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
+        EconomicStriction = CautionRetention 
         EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
+        EconomyRelaxation = CautionRetention
         EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
-    if not cbparams:          # Model extension by John McCaskill to include caution  # set 2 
+    if not cbparams:          # Model extension by John McCaskill to include caution                     # set 2 based on Germany fit
         CautionFactor= 0.1    # Fractional reduction of exposure rate for cautioned individuals
         CautionRetention= 1/0.015 # Duration of cautionary state of susceptibles (4 weeks)
         CautionICUFrac= 0.1   # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
+        EconomicStriction = CautionRetention 
         EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
+        EconomyRelaxation = CautionRetention
         EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
 
     cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,
-                'EconomicRetention':EconomicRetention,'EconomicCostOfCaution':EconomicCostOfCaution}
+                'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
+                'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
 
     if not fbparams:          # Model fitting extension to allow for incomplete detection
         FracConfirmedDet=1.0  # Fraction of recovered individuals measured : plots made with this parameter
@@ -1277,10 +1240,10 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
 def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
     dbparams['run_name'] = smodel # default value when no country yet
-    b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
+    b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
     fullmodel = make_model(smodel)
     model = fullmodel['model']
-    params_in=vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel)
+    params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
     model.initial_values = base2ICs(I0,N,smodel,model)
     model.parameters = params_in # sets symbolic name parameters
     fullmodel['params'] = params_in    # sets string params
@@ -1292,8 +1255,8 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     return fullmodel
 
 
-smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
-# smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
+# smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
+smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
  
 # Initialize all models
 
@@ -1314,7 +1277,7 @@ for smodel in smodels:
     
     # fullmodels[smodel] = make_model(smodel)
     # cmodels[smodel] = fullmodels[smodel]['model']
-    # params_in=vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel)
+    # params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
     # cmodels[smodel].initial_values = base2ICs(I0,N,smodel,cmodels)
     # fullmodels[smodel]['model'].parameters = params_in # sets symbolic name parameters
     # fullmodels[smodel]['model'].params = params_in    # sets string params
