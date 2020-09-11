@@ -1165,6 +1165,39 @@ def base2params(sbparams,cbparams,fbparams,smodel):
     b,a,g,p,u,c,k,N,FracCritical,I0 = base2vectors(sbparams,cbparams,fbparams)
     return(vector2params(b,a,g,p,u,c,k,N,FracCritical,smodel))
 
+def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
+    """ converts vector of parameters back to dictionaries of base parameters
+        assumes only one parameter for bvector in the form b*[0,1,0,0]"""
+    Exposure = b[1] # assuming b has structure b[1]*[0,1,0,0]
+    IncubPeriod = a
+
+    FracMild = g[1]/(g[1]+p[1])
+    FracSevere = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2]))
+    # FracCritical = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
+    FracCritical = 1 - FracMild -FracSevere         # not independent
+    CFR = (u/(g[3]+u)*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
+    IncubPeriod =1/(g[1]+p[1])
+    DurHosp = 1/(g[2]+p[2])
+    TimeICUDeath = 1/(g(3)+u)
+
+    CautionFactor = c[0]
+    CautionRetention = 1/c[1]
+    CautionICUFrac = 1/(N*c[2]*ICUFrac)
+    
+    EconomicStriction =  1/k[0]
+    EconomicRetention =  1/k[1]
+    EconomyRelaxation = 1/k[2]
+    EconomicCostOfCaution =  k[3]
+    
+    sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
+                'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
+                'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'I0':I0}
+    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,
+                'EconomicRetention':EconomicRetention,'EconomicCostOfCaution':EconomicCostOfCaution}
+  
+    
+    return(sbparams,cbparams)
+
 def base2ICs(I0,N,smodel,model):
     (x0old,t0) = model.initial_values
     nstates = len(x0old)
@@ -1261,7 +1294,7 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
 
 smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 # smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
-
+ 
 # Initialize all models
 
 cmodels = {}
