@@ -343,17 +343,24 @@ class ModelFit:
         print('dbparams:')
         ppr.pprint(self.dbparams)
 
-    def __init__(self,modelname,model=None,country='Germany',run_id='',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None):
+    def __init__(self,modelname,model=None,country='Germany',run_id='',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
         global make_model,covid_ts,covid_owid_ts
         dirnm = os.getcwd()
-        if run_id == '':                       # construct default run_id from mname and country
-            if country != '':
-                stmp = modelname+'_'+country
-            else:
-                stmp = modelname
-            pfile = dirnm+'/params/'+stmp+'.pk'
-            run_id = stmp
-        self.run_id = run_id
+        # construct default name for file / run_id
+        if country != '':
+            defnm = modelname+'_'+country
+        else:
+            defnm = modelname
+
+        if run_id == '':                         # use default name
+            self.run_id = defnm
+        elif run_id[0]=='_':                     # use run_id as addon to default
+            self.run_id = dfnm+run_id
+        else:
+            self.run_id = run_id                 # use specified name
+
+        pfile = dirnm+'/params/'+self.run_id+'.pk'
+
 
         ######################################
         # set up model
@@ -366,14 +373,23 @@ class ModelFit:
             #model_d = make_model(modelname)                # I still prefer this I think, but 
             model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
             self.model = model_d['model']
-            if not self.loadparams(run_id):
-                print('using default set of parameters for model type',modelname)
-        self.params   = model_d['params']
-        self.cbparams = model_d['cbparams']
-        self.sbparams = model_d['sbparams']
-        self.fbparams = model_d['fbparams']
-        self.dbparams = model_d['dbparams']
-        self.initial_values = model_d['initial_values']
+            if new:
+                    print('using default set of parameters for model type',modelname)
+                    self.params   = model_d['params']
+                    self.cbparams = model_d['cbparams']
+                    self.sbparams = model_d['sbparams']
+                    self.fbparams = model_d['fbparams']
+                    self.dbparams = model_d['dbparams']
+                    self.initial_values = model_d['initial_values']
+            else:
+                if not self.loadparams(run_id):
+                    print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
+                    self.params   = model_d['params']
+                    self.cbparams = model_d['cbparams']
+                    self.sbparams = model_d['sbparams']
+                    self.fbparams = model_d['fbparams']
+                    self.dbparams = model_d['dbparams']
+                    self.initial_values = model_d['initial_values']
 
         # set up data and times for simulation
         if data_src == 'jhu':

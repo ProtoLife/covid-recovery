@@ -372,8 +372,11 @@ def get_WHO_data_acute_beds():
                     terms.append(elt)
             icus_data.append(terms)
     # close(who_file)
-    acute_dict = [{elt[1]:elt[2]} for elt in icus_data[1:]]
-    return icus_data
+    # acute_dict = [{elt[1]:elt[2]} for elt in icus_data[1:]]
+    acute_dict = {elt[1]:elt[2] for elt in icus_data[1:]}
+    iso_dict = {elt[0]:elt[2] for elt in icus_data[1:]}
+    acute_dict.update(iso_dict) # combine dictionary to access either with country name or iso code
+    return acute_dict
 
 def get_2012_data_ICUs():
     """ get ICU data 2012 from Intensive Care Med (2012) 38:1647–1653 DOI 10.1007/s00134-012-2627-8 """
@@ -402,7 +405,7 @@ def get_2012_data_ICUs():
                 icus_data.append(terms)
 
     # close(ICU_file)
-    icu_dict = [{elt[0]:elt[1]} for elt in icus_data[1:]]
+    icu_dict = {elt[0]:elt[1] for elt in icus_data[1:]}
     return icu_dict
 
 acute_dict = get_WHO_data_acute_beds()
