@@ -39,6 +39,9 @@ import copy
 #from IPython.core.display import display, HTML
 #display(HTML("<style>.container { width:100% !important; }</style>"))
 
+import pprint
+ppr = pprint.PrettyPrinter()
+
 print('loading data.py...')
 from data import *
 print('done with data.py.')
@@ -61,21 +64,17 @@ class ModelFit:
         This stuff needs modules os, sys, pickle as pk.'"""
         mname = self.modelname
         country = self.dbparams['country']
-        rname = self.dbparams['run_name']
+        rname = self.run_id
         dirnm = os.getcwd()
 
-        if run_id != '':            # if run_id, turn it into run_name and use it for output filename
+        if run_id != '':            # if run_id, turn it into self.run_id and use it for output filename
             if run_id != rname:
-                print("warning: changing run_name from ",rname,'to',run_id)
-                self.dbparams['run_name'] = run_id
-            pfile = dirnm+'/params/'+run_id+'.pk'
-        else:                       # construct default run_name from mname and country
-            if country != '':
-                stmp = mname+'_'+country
-            else:
-                stmp = mname
-            pfile = dirnm+'/params/'+stmp+'.pk'
-        
+                print("warning: changing run_id from ",rname,'to',run_id)
+                self.run_id = run_id
+        else:
+            run_id = self.run_id # should always be something from __init__
+        pfile = dirnm+'/params/'+run_id+'.pk'
+
         try:
             all_params = {'params':self.params, 
                           'sbparams':self.sbparams,
@@ -90,11 +89,15 @@ class ModelFit:
         except:
             print('problem dumping params to ',pfile)
 
-
-    def loadparams(self,run_id='testfit'): 
+    def loadparams(self,run_id=''): 
         """loads params from same file.  returns None if any problem finding the file.
         This stuff needs modules os, sys, pickle as pk."""
-        # rname = self.dbparams['run_name']
+        if run_id == '':
+            run_id = self.run_id
+        else:
+            print("warning: changing run_id from ",self.run_id,'to',run_id)
+            self.run_id = run_id
+            
         dirnm = os.getcwd()
         pfile = dirnm+'/params/'+run_id+'.pk'
         try:
@@ -105,19 +108,33 @@ class ModelFit:
             print("no file available with this run_id",pfile)
             return None
 
-        print('------------',all_params)
-        nms = [x.name for x in self.param_list]
+        print('-------  params from file:')
+        ppr.pprint(all_params)
+        # check to see that
+        for pp in ['params','sbparams','fbparams','cbparams','dbparams']:
+            try:
+                ppp = eval('self.'+pp) # fail first time when ModelFit doesn't have params.
+                selfkk = [kk for kk in ppp]
+                newkk = [k for k in all_params[pp]]
+                if newkk != selfkk:
+                    print("params don't match when loading the params from ",pfile)
+                    return None
+            except:
+                pass            # ok to fail 1st time
         try:
-            self.params = all_params['params'].copy()
-            self.parameters = self.params.copy()
-            self.fbparams = all_params['fbparams'].copy()
-            self.cbparams = all_params['cbparams'].copy()
-            self.dbparams = all_params['dbparams'].copy()
+            self.params = all_params['params']
+            self.model.parameters = self.params
+            self.sbparams = all_params['sbparams']
+            self.fbparams = all_params['fbparams']
+            self.cbparams = all_params['cbparams']
+            self.dbparams = all_params['dbparams']
             self.initial_values = all_params['initial_values'] # will get copied properly?
         except:
             print('problem loading the params from ',pfile)
             return None
         return True
+
+
 
     def difference(self,datain):
         dataout = np.zeros(np.shape(datain))
@@ -310,11 +327,33 @@ class ModelFit:
         plt.ylabel("Fraction of population")
         plt.title(model.modelname +' '+plottitle)
         self.soln = soln
+        self.dumpparams()       # dump every plot;  could be changed by sliders
         return
 
-    def __init__(self,run_id,modelname,model=None,country='Germany',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None):
+    def prparams(self):
+        print('params:')
+        ppr.pprint(self.params)
+        print('sbparams:')
+        ppr.pprint(self.sbparams)
+        print('pfbarams:')
+        ppr.pprint(self.fbparams)
+        print('cbparams:')
+        ppr.pprint(self.cbparams)
+        print('dbparams:')
+        ppr.pprint(self.dbparams)
+
+    def __init__(self,modelname,model=None,country='Germany',run_id='',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None):
         global make_model,covid_ts,covid_owid_ts
+        dirnm = os.getcwd()
+        if run_id == '':                       # construct default run_id from mname and country
+            if country != '':
+                stmp = modelname+'_'+country
+            else:
+                stmp = modelname
+            pfile = dirnm+'/params/'+stmp+'.pk'
+            run_id = stmp
         self.run_id = run_id
+
         ######################################
         # set up model
         self.modelname = modelname
@@ -1196,7 +1235,7 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         fbparams = {'FracConfirmedDet':FracConfirmedDet,'FracRecoveredDet':FracRecoveredDet,'FracDeathsDet':FracDeathsDet}
 
     if not dbparams:     # extra data-related params for defining a run, including possible fitting with sliders:
-        dbparams = {'run_name':'testfit','country':'Germany','data_src':'owid'}
+        dbparams = {'country':'Germany','data_src':'owid'}
 
     return [sbparams,cbparams,fbparams,dbparams]
 
