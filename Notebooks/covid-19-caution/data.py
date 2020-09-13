@@ -270,8 +270,8 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
     popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
-def get_data_owid_key(owid_file,key):
-    global covid_owid
+def get_data_owid_key(key):
+    global covid_owid, owid_file
     if not covid_owid:
         with open(owid_file, 'r', newline='') as csvfile:
             myreader = csv.DictReader(csvfile,delimiter=',')
@@ -306,16 +306,6 @@ def get_data_owid_key(owid_file,key):
         
     # popkeyed = {country: np.transpose(np.array([[dd['date'],dd[key]] for dd in covid_owid if dd['location'] == country])) for country in countries}
     # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
-
-    if datatype == 'tests' and dataaccum == 'cumulative':  # assemble cumulative tests from smooth daily tests
-        for country in countries:
-            data = popkeyed[country]
-            sumdata= np.zeros(len(data))
-            sum = 0.0
-            for i,d in enumerate(data):
-                sum = sum + d
-                sumdata[i] = sum
-            popkeyed.update({country:sumdata})
 
     fmt_jhu = '%m/%d/%y'
     popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
@@ -410,3 +400,7 @@ def get_2012_data_ICUs():
 
 acute_dict = get_WHO_data_acute_beds()
 icu_dict = get_2012_data_ICUs()
+
+print('---------------------------------')
+print('Done with data.')
+print('---------------------------------')
