@@ -311,6 +311,13 @@ def get_data_owid_key(key):
     popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
+    # popkeyed = {country: np.transpose(np.array([[dd['date'],dd[key]] for dd in covid_owid if dd['location'] == country])) for country in countries}
+    # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
+
+    fmt_jhu = '%m/%d/%y'
+    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
+    return popkeyed
+
 
 print('getting owid data...')
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
