@@ -375,116 +375,116 @@ class ModelFit:
         return rtn
 
 
-def __init__(self,modelname,model=None,country='Germany',run_id='',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
-    """
-    if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
-    if run_id is not '', it is used as self.run_id, used in turn for param filename.
-    except that if run_id starts with character '_', it is appended to the default run_id,
-    i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
-    """
-    global make_model,covid_ts,covid_owid_ts
-    dirnm = os.getcwd()
-    # construct default name for file / run_id
-    if country != '':
-        defnm = modelname+'_'+country
-    else:
-        defnm = modelname
-
-    if run_id == '':                         # use default name
-        self.run_id = defnm
-    elif run_id[0]=='_':                     # use run_id as addon to default
-        self.run_id = defnm+run_id
-    else:
-        self.run_id = run_id                 # use specified name
-    print('=============',self.run_id)
-    pfile = dirnm+'/params/'+self.run_id+'.pk'
-
-
-    ######################################
-    # set up model
-    self.modelname = modelname
-    if model:
-        self.model = model
-        if self.model.modelname != modelname:
-            print("warning:  changing model from",modelname,'to',self.model.modelname)
-            self.modelname = modelname
-    else:
-        #model_d = make_model(modelname)                # I still prefer this I think, but 
-        model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
-        self.model = model_d['model']
-        if new:
-                print('using default set of parameters for model type',modelname)
-                self.params   = model_d['params']
-                self.cbparams = model_d['cbparams']
-                self.sbparams = model_d['sbparams']
-                self.fbparams = model_d['fbparams']
-                self.dbparams = model_d['dbparams']
-                self.initial_values = model_d['initial_values']
+    def __init__(self,modelname,model=None,country='Germany',run_id='',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
+        """
+        if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
+        if run_id is not '', it is used as self.run_id, used in turn for param filename.
+        except that if run_id starts with character '_', it is appended to the default run_id,
+        i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
+        """
+        global make_model,covid_ts,covid_owid_ts
+        dirnm = os.getcwd()
+        # construct default name for file / run_id
+        if country != '':
+            defnm = modelname+'_'+country
         else:
-            if not self.loadparams(self.run_id):
-                print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
-                self.params   = model_d['params']
-                self.cbparams = model_d['cbparams']
-                self.sbparams = model_d['sbparams']
-                self.fbparams = model_d['fbparams']
-                self.dbparams = model_d['dbparams']
-                self.initial_values = model_d['initial_values']
+            defnm = modelname
 
-    # set up data and times for simulation
-    if data_src == 'jhu':
-        ts = covid_ts
-    elif data_src == 'owid':
-        ts = covid_owid_ts
-    else:
-        print('data_src',data_src,'not yet hooked up: OWID data used instead')
-        ts = covid_owid_ts
-    self.country = country
-    self.population = population_owid[country][0]
-
-    fmt_jhu = '%m/%d/%y'
-    dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['confirmed']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
-    firstdate_t =  dates_t[0]
-    lastdate_t =  dates_t[-1]
-    if startdate:
-        startdate_t = datetime.datetime.strptime(startdate,fmt_jhu)
-    else:
-        startdate_t = firstdate_t
-    if stopdate:
-        stopdate_t = datetime.datetime.strptime(stopdate,fmt_jhu)
-        print('stopdate',stopdate) 
-    else:
-        stopdate_t = lastdate_t
-    if (startdate_t - firstdate_t).days < 0:
-        print('start date out of data range, setting to data first date',ts['confirmed']['dates'][0])
-        startdate_t = firstdate_t
-        daystart = 0
-    else:
-        daystart = (startdate_t- firstdate_t).days
-    if (stopdate_t - startdate_t).days > (lastdate_t - startdate_t).days:
-        print('stop date out of data range, setting to data last date',ts['confirmed']['dates'][-1])
-        stopdate_t = lastdate_t
-    datadays = (stopdate_t-startdate_t).days + 1            
-    if simdays: # simdays allowed greater than datadays to enable predictions
-        if simdays < datadays:
-            stopdate_t = startdate_t + datetime.timedelta(days=simdays-1)  # if simulation for shorter time than data, restrict data to this
-            datadays = (stopdate_t-startdate_t).days + 1    
-    else:
-        simdays = datadays
-    self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
-    self.tsim = np.linspace(0, simdays -1, simdays)
-    self.tdata = np.linspace(0, datadays -1, datadays)
-
-    if datatypes == 'all' or not datatypes:
-        if data_src == 'owid':
-            datatypes = ['confirmed','deaths','tests', 'stringency']
+        if run_id == '':                         # use default name
+            self.run_id = defnm
+        elif run_id[0]=='_':                     # use run_id as addon to default
+            self.run_id = defnm+run_id
         else:
-            datatypes = ['confirmed','deaths','recovered']
-    self.data = {}
-    for dt in datatypes:
-        self.data.update({dt:ts[dt][country][daystart:datadays]}) 
+            self.run_id = run_id                 # use specified name
+        print('=============',self.run_id)
+        pfile = dirnm+'/params/'+self.run_id+'.pk'
 
-    self.startdate = startdate_t.strftime(fmt_jhu)
-    self.stopdate = stopdate_t.strftime(fmt_jhu)
+
+        ######################################
+        # set up model
+        self.modelname = modelname
+        if model:
+            self.model = model
+            if self.model.modelname != modelname:
+                print("warning:  changing model from",modelname,'to',self.model.modelname)
+                self.modelname = modelname
+        else:
+            #model_d = make_model(modelname)                # I still prefer this I think, but 
+            model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
+            self.model = model_d['model']
+            if new:
+                    print('using default set of parameters for model type',modelname)
+                    self.params   = model_d['params']
+                    self.cbparams = model_d['cbparams']
+                    self.sbparams = model_d['sbparams']
+                    self.fbparams = model_d['fbparams']
+                    self.dbparams = model_d['dbparams']
+                    self.initial_values = model_d['initial_values']
+            else:
+                if not self.loadparams(self.run_id):
+                    print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
+                    self.params   = model_d['params']
+                    self.cbparams = model_d['cbparams']
+                    self.sbparams = model_d['sbparams']
+                    self.fbparams = model_d['fbparams']
+                    self.dbparams = model_d['dbparams']
+                    self.initial_values = model_d['initial_values']
+
+        # set up data and times for simulation
+        if data_src == 'jhu':
+            ts = covid_ts
+        elif data_src == 'owid':
+            ts = covid_owid_ts
+        else:
+            print('data_src',data_src,'not yet hooked up: OWID data used instead')
+            ts = covid_owid_ts
+        self.country = country
+        self.population = population_owid[country][0]
+
+        fmt_jhu = '%m/%d/%y'
+        dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['confirmed']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
+        firstdate_t =  dates_t[0]
+        lastdate_t =  dates_t[-1]
+        if startdate:
+            startdate_t = datetime.datetime.strptime(startdate,fmt_jhu)
+        else:
+            startdate_t = firstdate_t
+        if stopdate:
+            stopdate_t = datetime.datetime.strptime(stopdate,fmt_jhu)
+            print('stopdate',stopdate) 
+        else:
+            stopdate_t = lastdate_t
+        if (startdate_t - firstdate_t).days < 0:
+            print('start date out of data range, setting to data first date',ts['confirmed']['dates'][0])
+            startdate_t = firstdate_t
+            daystart = 0
+        else:
+            daystart = (startdate_t- firstdate_t).days
+        if (stopdate_t - startdate_t).days > (lastdate_t - startdate_t).days:
+            print('stop date out of data range, setting to data last date',ts['confirmed']['dates'][-1])
+            stopdate_t = lastdate_t
+        datadays = (stopdate_t-startdate_t).days + 1            
+        if simdays: # simdays allowed greater than datadays to enable predictions
+            if simdays < datadays:
+                stopdate_t = startdate_t + datetime.timedelta(days=simdays-1)  # if simulation for shorter time than data, restrict data to this
+                datadays = (stopdate_t-startdate_t).days + 1    
+        else:
+            simdays = datadays
+        self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
+        self.tsim = np.linspace(0, simdays -1, simdays)
+        self.tdata = np.linspace(0, datadays -1, datadays)
+
+        if datatypes == 'all' or not datatypes:
+            if data_src == 'owid':
+                datatypes = ['confirmed','deaths','tests', 'stringency']
+            else:
+                datatypes = ['confirmed','deaths','recovered']
+        self.data = {}
+        for dt in datatypes:
+            self.data.update({dt:ts[dt][country][daystart:datadays]}) 
+
+        self.startdate = startdate_t.strftime(fmt_jhu)
+        self.stopdate = stopdate_t.strftime(fmt_jhu)
 
  
 def make_model(mod_name):
