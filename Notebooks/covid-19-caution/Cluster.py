@@ -238,7 +238,7 @@ def plot_adj(country, data, adj = None, testing=None,  ndays=250, axis = None):
     else:
         ax1 = axis
     ax1.plot(data[country][:ndays]) 
-    if adj:  # already adjusted
+    if adj not None:  # already adjusted
         ax1.plot(adj[country][:ndays])
     ax1.set_title(country)
     ax1.set_ylabel('Cases/million')
@@ -271,12 +271,38 @@ def plot_all(countries,dat,adj=None,testing=None,ndays=250):
     #    ax.label_outer()
     plt.show()
 
+"""
+Compute correlations between clusterings, component by component.  Gather best correlation between each cluster and clusterings of all other 15.
+"""
 
+def corcl(a,b):
+    return len(set(a).intersection(set(b)))/float(len(set(a).union(set(b))))
+    
+def match(a,x):
+    rtn = [i for i in range(len(a)) if a[i] == x]
+    return rtn
+    
+def mxcor(m,n,nclus=3):
+    cx = []
+    for k in range(nclus):
+        m1 = match(m,k)
+        m2 = match(n,k)
+        cx.append(corcl(m1,m2))
+    return max(cx)
 
-#######################################################################
-## ClusterFit class
+# corclasses = np.zeros((len(classes),len(classes)))
+# for i in range(len(classes)-1):
+#     cc = classes[i]
+#     for j in range(i+1,len(classes)):
+#         ccc = classes[j]
+#         cx = []
+#         corclasses[i,j] = mxcor(cc,ccc)
+#         corclasses[j,i] = corclasses[i,j]
 
-
+# for i in range(len(classes)):
+#     corclasses[i,i] = 1.0
+    
+    
 
 #######################################################################
 ## ClusterFit class
@@ -285,7 +311,6 @@ class ClusterFit:
     """
     container class for fitting PCA, clustering
     """
-
     def __init__(self,
                  data,           # could be deaths/cases, raw/adjusted
                  Npca = 10,
@@ -300,11 +325,11 @@ class ClusterFit:
             self.dat[i] = [dd/mx for dd in self.dat[i]]
         self.pca = PCA(Npca)
         self.pca.fit(self.dat)
-        print('explained_variance_ratio:')
-        print('explained_variance_ratio_' in dir(self.pca))
-        print([x for x in dir(self.pca) if '__' not in x])
+        #print('explained_variance_ratio:')
+        #print('explained_variance_ratio_' in dir(self.pca))
+        #print([x for x in dir(self.pca) if '__' not in x])
         #print(self.pca.explained_variance_ratio_)
-        print('singular values:')
+        #print('singular values:')
         #print(self.pca.singular_values_)
 
         self.fitted = self.pca.fit_transform(self.dat)
@@ -334,19 +359,41 @@ class ClusterFit:
             plt.savefig(self.outfile)
         plt.show()
 
-    def umap_cluster(self,random_state=0):
-        self.um_fit = umap.UMAP(random_state=random_state,n_neighbors=5).fit(self.fitted)
+    def umap_cluster(self,random_state=0,min_size=4,diag=True):
+        self.um_fit = umap.UMAP(random_state=random_state,n_neighbors=6).fit(self.fitted)
         self.um_dat = [self.um_fit.embedding_[:,i] for i in range(2)]
         tdat = np.transpose(self.um_dat)
 
-        clusterer = hdbscan.HDBSCAN(min_cluster_size=4)
-        self.labels = clusterer.fit_predict(tdat)
-        print('hdbscan found',len(set(self.labels)),'clusters.')
+        self.clusterer = hdbscan.HDBSCAN(min_cluster_size=min_size)
+        self.clus_labels = self.clusterer.fit_predict(tdat)
+        self.clus_probs = self.clusterer.probabilities_
+        if diag:
+            print('hdbscan found',len(set(self.clus_labels)),'clusters.')
         
-        
+    def umap_best_cluster(self,Nclus=3,Ntries=50,minsize=4,ranstate=0):
+        clusall = []
+        clus = {}
+        clus['probs'] = []
+        clus['idx'] = []
+        for i in range(ranstate,ranstate+Ntries):
+            self.umap_cluster(random_state=i,min_size=minsize,diag=False)
+            if len(set(self.clus_labels)) == Nclus:
+                clus['probs'].append(np.mean(self.clus_probs))
+                clus['idx'].append(i)
+        print('found',len(clus['probs']),'clusters of size',Nclus)
+        if len(clus['probs'])>1:
+            idx = np.argsort(clus['probs'])[-1:][0]
+        elif len(clus['probs']) == 1:
+            idx = 0
+        else:
+            print("Failed to find a cluster with",Nclus,"components")
+            return
+        self.umap_cluster(random_state=clus['idx'][idx],min_size=minsize,diag=False)
+
+    
     
     def plot_umap(self):
-        plt.scatter(self.um_dat[0],self.um_dat[1],c=self.labels)
+        plt.scatter(self.um_dat[0],self.um_dat[1],c=self.clus_labels)
         
     def plot_pcas(self):
         max_cols = 5
@@ -362,5 +409,5 @@ class ClusterFit:
             col = i % max_cols
             #axes[row, col].axis("off")
             axes[row, col].plot(mypca)
-
+            
 
