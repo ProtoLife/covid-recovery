@@ -327,20 +327,22 @@ class ClusterFit:
             self.dat[i] = [dd/mx for dd in self.dat[i]]
         self.pca = PCA(Npca)
         if fft:
-            self.fft = np.fft.rfft(self.dat) # last axis by default
-            nfft = len(self.fft)
-            self.rfft =  np.concatenate((np.real(self.fft),np.imag(self.fft)),axis = 1) # concatenate along 2nd axis
+            self.fftdat = np.fft.rfft(self.dat) # last axis by default
+            self.nfft = len(self.fftdat[0])
+            self.rfft =  np.concatenate((np.real(self.fftdat),np.imag(self.fftdat)),axis = 1) # concatenate along 2nd axis
             self.pca.fit(self.rfft)
             self.rfitted = self.pca.fit_transform(self.rfft)
             self.rsmoothed = self.pca.inverse_transform(self.rfitted)
-            self.fftfitted = np.array([self.rfft[:,i] + self.rfft[:,nfft+i]*1j for i in range(nfft)], dtype=np.cdouble)   
+            self.fftfitted = np.array([self.rfft[:,i] + self.rfft[:,self.nfft+i]*1j for i in range(self.nfft)], dtype=np.cdouble)   
             self.fitted = np.fft.irfft(self.fftfitted)
-            self.fftsmoothed = np.array([self.rsmoothed[:,i] + self.rsmoothed[:,nfft+i]*1j for i in range(nfft)], dtype=np.cdouble) 
+            self.fftsmoothed = np.array([self.rsmoothed[:,i] + self.rsmoothed[:,self.nfft+i]*1j for i in range(self.nfft)], dtype=np.cdouble) 
             self.smoothed = np.fft.irfft(self.fftsmoothed)
+
         else:
             self.pca.fit(self.dat)
             self.fitted = self.pca.fit_transform(self.dat)
             self.smoothed = self.pca.inverse_transform(self.fitted)
+            self.nfft = 0
 
         #print('explained_variance_ratio:')
         #print('explained_variance_ratio_' in dir(self.pca))
@@ -409,7 +411,7 @@ class ClusterFit:
     def plot_umap(self):
         plt.scatter(self.um_dat[0],self.um_dat[1],c=self.clus_labels)
         
-    def plot_pcas(self,fft=False):
+    def plot_pcas(self):
         max_cols = 5
         max_rows = self.Npca // max_cols
         if self.Npca%max_cols>0:
@@ -419,8 +421,9 @@ class ClusterFit:
             foo = np.zeros(10)
             foo[i] = 1
             mypca = self.pca.inverse_transform(foo)
-            if fft:
-                mypca = np.fft.irfft(mypca)
+            if self.nfft:
+                fftmypca = np.array([mypca[k] + mypca[self.nfft+k]*1j for k in range(self.nfft)], dtype=np.cdouble) 
+                mypca = np.fft.irfft(fftmypca)
             row = i // max_cols
             col = i % max_cols
             #axes[row, col].axis("off")
