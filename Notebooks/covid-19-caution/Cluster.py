@@ -314,7 +314,7 @@ class ClusterFit:
     def __init__(self,
                  data,           # could be deaths/cases, raw/adjusted
                  Npca = 10,
-                 fft = False,    # optionally True to do PCA on Fourier transformed data
+                 fft = None,    # optionally True to do PCA on Fourier transformed data
                  outfile = ''):
         self.Npca = Npca
         self.data = data
@@ -326,23 +326,32 @@ class ClusterFit:
             mx = max(self.dat[i])
             self.dat[i] = [dd/mx for dd in self.dat[i]]
         self.pca = PCA(Npca)
-        if fft:
+        if fft == 'fft' or fft == 'powfft':
             self.fftdat = np.fft.rfft(self.dat) # last axis by default
             self.nfft = len(self.fftdat[0])
-            self.rfft =  np.concatenate((np.real(self.fftdat),np.imag(self.fftdat)),axis = 1) # concatenate along 2nd axis
-            self.pca.fit(self.rfft)
-            self.rfitted = self.pca.fit_transform(self.rfft)
-            self.rsmoothed = self.pca.inverse_transform(self.rfitted)
-            self.fftfitted = np.array([self.rfft[:,i] + self.rfft[:,self.nfft+i]*1j for i in range(self.nfft)], dtype=np.cdouble)   
-            self.fitted = np.fft.irfft(self.fftfitted)
-            self.fftsmoothed = np.array([self.rsmoothed[:,i] + self.rsmoothed[:,self.nfft+i]*1j for i in range(self.nfft)], dtype=np.cdouble) 
-            self.smoothed = np.fft.irfft(self.fftsmoothed)
-
+            if fft == 'powfft':
+                self.fftpow = np.square(np.abs(self.fftdat))
+                self.pca.fit(self.fftpow)
+                self.fitted = self.pca.fit_transform(self.fftpow)
+                self.smoothed = self.pca.inverse_transform(self.fitted)
+                self.fft = 'powfft'
+            else:
+                # consider scaling data from all countries to same max freq amplitude per country of fft 
+                self.rfft =  np.concatenate((np.real(self.fftdat),np.imag(self.fftdat)),axis = 1) # concatenate along 2nd axis
+                self.pca.fit(self.rfft)
+                self.rfitted = self.pca.fit_transform(self.rfft)
+                self.rsmoothed = self.pca.inverse_transform(self.rfitted)
+                self.fftfitted = np.array([self.rfft[:,i] + self.rfft[:,self.nfft+i]*1j for i in range(self.nfft)], dtype=np.cdouble)   
+                self.fitted = np.fft.irfft(self.fftfitted)
+                self.fftsmoothed = np.array([self.rsmoothed[:,i] + self.rsmoothed[:,self.nfft+i]*1j for i in range(self.nfft)], dtype=np.cdouble) 
+                self.smoothed = np.fft.irfft(self.fftsmoothed)
+                self.fft = 'fft'
         else:
             self.pca.fit(self.dat)
             self.fitted = self.pca.fit_transform(self.dat)
             self.smoothed = self.pca.inverse_transform(self.fitted)
             self.nfft = 0
+            self.fft = None
 
         #print('explained_variance_ratio:')
         #print('explained_variance_ratio_' in dir(self.pca))
@@ -421,7 +430,7 @@ class ClusterFit:
             foo = np.zeros(10)
             foo[i] = 1
             mypca = self.pca.inverse_transform(foo)
-            if self.nfft:
+            if self.fft == 'fft':
                 fftmypca = np.array([mypca[k] + mypca[self.nfft+k]*1j for k in range(self.nfft)], dtype=np.cdouble) 
                 mypca = np.fft.irfft(fftmypca)
             row = i // max_cols
