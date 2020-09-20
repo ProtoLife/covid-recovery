@@ -238,7 +238,7 @@ def plot_adj(country, data, adj = None, testing=None,  ndays=250, axis = None):
     else:
         ax1 = axis
     ax1.plot(data[country][:ndays]) 
-    if adj not None:  # already adjusted
+    if adj is not None:  # already adjusted
         ax1.plot(adj[country][:ndays])
     ax1.set_title(country)
     ax1.set_ylabel('Cases/million')
@@ -314,26 +314,40 @@ class ClusterFit:
     def __init__(self,
                  data,           # could be deaths/cases, raw/adjusted
                  Npca = 10,
+                 fft = False,    # optionally True to do PCA on Fourier transformed data
                  outfile = ''):
         self.Npca = Npca
         self.data = data
         self.outfile = outfile
         self.dat = np.array([data[cc] for cc in data])
+
         # normalize the data
         for i in range(len(self.dat)):
             mx = max(self.dat[i])
             self.dat[i] = [dd/mx for dd in self.dat[i]]
         self.pca = PCA(Npca)
-        self.pca.fit(self.dat)
+        if fft:
+            self.fft = np.fft.rfft(self.dat) # last axis by default
+            nfft = len(self.fft)
+            self.rfft =  np.concatenate((np.real(self.fft),np.imag(self.fft)),axis = 1) # concatenate along 2nd axis
+            self.pca.fit(self.rfft)
+            self.rfitted = self.pca.fit_transform(self.rfft)
+            self.rsmoothed = self.pca.inverse_transform(self.rfitted)
+            self.fftfitted = np.array([self.rfft[:,i] + self.rfft[:,nfft+i]*1j for i in range(nfft)], dtype=np.cdouble)   
+            self.fitted = np.fft.irfft(self.fftfitted)
+            self.fftsmoothed = np.array([self.rsmoothed[:,i] + self.rsmoothed[:,nfft+i]*1j for i in range(nfft)], dtype=np.cdouble) 
+            self.smoothed = np.fft.irfft(self.fftsmoothed)
+        else:
+            self.pca.fit(self.dat)
+            self.fitted = self.pca.fit_transform(self.dat)
+            self.smoothed = self.pca.inverse_transform(self.fitted)
+
         #print('explained_variance_ratio:')
         #print('explained_variance_ratio_' in dir(self.pca))
         #print([x for x in dir(self.pca) if '__' not in x])
         #print(self.pca.explained_variance_ratio_)
         #print('singular values:')
         #print(self.pca.singular_values_)
-
-        self.fitted = self.pca.fit_transform(self.dat)
-        self.smoothed = self.pca.inverse_transform(self.fitted)
 
     def plot_2components(self):
         plt.scatter(self.fitted[:,0],fitted[:,1]);
@@ -395,7 +409,7 @@ class ClusterFit:
     def plot_umap(self):
         plt.scatter(self.um_dat[0],self.um_dat[1],c=self.clus_labels)
         
-    def plot_pcas(self):
+    def plot_pcas(self,fft=False):
         max_cols = 5
         max_rows = self.Npca // max_cols
         if self.Npca%max_cols>0:
@@ -405,6 +419,8 @@ class ClusterFit:
             foo = np.zeros(10)
             foo[i] = 1
             mypca = self.pca.inverse_transform(foo)
+            if fft:
+                mypca = np.fft.irfft(mypca)
             row = i // max_cols
             col = i % max_cols
             #axes[row, col].axis("off")
