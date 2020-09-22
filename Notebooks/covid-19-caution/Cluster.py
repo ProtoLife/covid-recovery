@@ -30,14 +30,14 @@ import warnings
 import math
 
 #############################################################################
-## DATA
-## from looking at dat data matrix definitions, need following country indexed dicts:
-##
-## longshort_c
-## longshort_cases_c
-## testing
-## first_thresh
-## longshort_cases_adj_c
+# # DATA
+# # from looking at dat data matrix definitions, need following country indexed dicts:
+# #
+# # longshort_c
+# # longshort_cases_c
+# # testing
+# # first_thresh
+# # longshort_cases_adj_c1
 
 ## maybe rationalize:
 ## deaths_raw
@@ -305,7 +305,7 @@ def mxcor(m,n,nclus=3):
     
 
 #######################################################################
-## ClusterFit class
+# # ClusterFit class
 
 class ClusterFit:
     """
@@ -472,3 +472,174 @@ class ClusterFit:
             axes[row, col].plot(mypca)
             
 
+
+""
+
+
+class ClusterFit:
+    """
+    container class for fitting PCA, clustering
+    """
+    def __init__(self,
+                 data,           # could be deaths/cases, raw/adjusted
+                 Npca = 10,
+                 fft = None,    # optionally True to do PCA on Fourier transformed data
+                 outfile = ''):
+        self.Npca = Npca
+        self.data = data
+        self.outfile = outfile
+        self.dat = np.array([data[cc] for cc in data])
+
+        # normalize the data
+        for i in range(len(self.dat)):
+            mx = max(self.dat[i])
+            self.dat[i] = [dd/mx for dd in self.dat[i]]
+        self.pca = PCA(Npca)
+        if fft == 'fft' or fft == 'powfft':
+            self.fftdat = np.fft.rfft(self.dat) # last axis by default
+            self.nfft = len(self.fftdat[0])
+            if fft == 'powfft':
+                self.fftpow = np.square(np.abs(self.fftdat))
+                self.pca.fit(self.fftpow)
+                self.fitted = self.pca.fit_transform(self.fftpow)
+                self.smoothed = self.pca.inverse_transform(self.fitted)
+                self.fft = 'powfft'
+            else:
+                # consider scaling data from all countries to same max freq amplitude per country of fft 
+                self.rfft =  np.concatenate((np.real(self.fftdat),np.imag(self.fftdat)),axis = 1) # concatenate along 2nd axis
+                self.pca.fit(self.rfft)
+                self.rfitted = self.pca.fit_transform(self.rfft)
+                self.rsmoothed = self.pca.inverse_transform(self.rfitted)
+                self.fftfitted = np.array([self.rfft[:,i] + self.rfft[:,self.nfft+i]*1j for i in range(self.nfft)], dtype=np.cdouble)   
+                self.fitted = np.fft.irfft(self.fftfitted)
+                self.fftsmoothed = np.array([self.rsmoothed[:,i] + self.rsmoothed[:,self.nfft+i]*1j for i in range(self.nfft)], dtype=np.cdouble) 
+                self.smoothed = np.fft.irfft(self.fftsmoothed)
+                self.fft = 'fft'
+        else:
+            self.pca.fit(self.dat)
+            self.fitted = self.pca.fit_transform(self.dat)
+            self.smoothed = self.pca.inverse_transform(self.fitted)
+            self.nfft = 0
+            self.fft = None
+
+        #print('explained_variance_ratio:')
+        #print('explained_variance_ratio_' in dir(self.pca))
+        #print([x for x in dir(self.pca) if '__' not in x])
+        #print(self.pca.explained_variance_ratio_)
+        #print('singular values:')
+        #print(self.pca.singular_values_)
+
+    def plot_2components(self):
+        plt.scatter(self.fitted[:,0],fitted[:,1]);
+
+    def plot_all(self):
+        max_cols=6
+        max_rows=int(len(self.dat)/max_cols) + 1
+        fig, axes = plt.subplots(nrows=max_rows, ncols=max_cols, figsize=(20,3.5*max_rows))
+        countries = [cc for cc in self.data]
+        for idx, countrycode  in enumerate(countries):
+            row = idx // max_cols
+            col = idx % max_cols
+            #axes[row, col].axis("off")
+            axes[row, col].plot(self.dat[idx])
+            axes[row, col].plot(self.smoothed[idx])
+            axes[row, col].set_title(countrycode)
+        for idx in range(len(lcountries),max_rows*max_cols):
+            row = idx // max_cols
+            col = idx % max_cols
+            axes[row, col].axis("off")
+        #plt.subplots_adjust(wspace=.05, hspace=.05)
+        if self.outfile != '':
+            plt.savefig(self.outfile)
+        plt.show()
+
+    def hdbscan(self,min_size=4):
+        self.clusterer = hdbscan.HDBSCAN(min_cluster_size=min_size)
+        tdat = self.dat
+        self.clus_labels = self.clusterer.fit_predict(tdat)
+        validity = hdbscan.validity.validity_index(tdat, self.clus_labels)
+        print('cluster validity index =',validity)
+        print('cluster validity of each cluster:')
+        validity = hdbscan.validity.validity_index(tdat, self.clus_labels,per_cluster_scores=True)
+        for i,v in enumerate(validity):
+            print('cluster',self.clus_labels[i],'validity =',validity[i])
+            
+    def hdbscan_pca(self,min_size=4):
+        self.clusterer = hdbscan.HDBSCAN(min_cluster_size=min_size)
+        tdat = self.fitted
+        print('shape of cluster data = ',tdat.shape)
+        self.clus_labels = self.clusterer.fit_predict(tdat)
+        validity = hdbscan.validity.validity_index(tdat, self.clus_labels)
+        print('cluster validity index =',validity)
+        print('cluster validity of each cluster:')
+        validity = hdbscan.validity.validity_index(tdat, self.clus_labels,per_cluster_scores=True)
+        for i,v in enumerate(validity):
+            print('cluster',self.clus_labels[i],'validity =',validity[i])
+
+    def umap(self,random_state=0,n_neighbors=10):
+        self.um_fit = umap.UMAP(random_state=random_state,n_neighbors=n_neighbors).fit(self.fitted)
+        self.um_dat = [self.um_fit.embedding_[:,i] for i in range(2)]
+
+    def umap_cluster(self,random_state=0,min_size=4,diag=True):
+        self.um_fit = umap.UMAP(random_state=random_state,n_neighbors=n_neighbors).fit(self.fitted)
+        self.um_dat = [self.um_fit.embedding_[:,i] for i in range(2)]
+        tdat = np.transpose(self.um_dat)
+
+        self.clusterer = hdbscan.HDBSCAN(min_cluster_size=min_size)
+        self.clus_labels = self.clusterer.fit_predict(tdat)
+        self.clus_probs = self.clusterer.probabilities_
+        if diag:
+            print('hdbscan found',len(set(self.clus_labels)),'clusters.')
+        
+    def umap_best_cluster(self,Nclus=3,Ntries=50,minsize=4,ranstate=0):
+        clusall = []
+        clus = {}
+        clus['probs'] = []
+        clus['idx'] = []
+        for i in range(ranstate,ranstate+Ntries):
+            self.umap_cluster(random_state=i,min_size=minsize,diag=False)
+            if len(set(self.clus_labels)) == Nclus:
+                clus['probs'].append(np.mean(self.clus_probs))
+                clus['idx'].append(i)
+        print('found',len(clus['probs']),'clusters of size',Nclus)
+        if len(clus['probs'])>1:
+            idx = np.argsort(clus['probs'])[-1:][0]
+        elif len(clus['probs']) == 1:
+            idx = 0
+        else:
+            print("Failed to find a cluster with",Nclus,"components")
+            return
+        self.umap_cluster(random_state=clus['idx'][idx],min_size=minsize,diag=False)
+
+    
+    
+    def plot_umap(self):
+        labs = [x for x in self.clus_labels]
+        for i in range(len(labs)):
+            if labs[i]<0:
+                labs[i] = None
+        plt.scatter(self.um_dat[0],self.um_dat[1],c=labs)
+        xx = [self.um_dat[0][i] for i in range(len(labs)) if labs[i]==None]
+        yy = [self.um_dat[0][i] for i in range(len(labs)) if labs[i]==None]
+        print(xx)
+        print(yy)
+        plt.scatter(xx,yy,color='red')                
+        
+    def plot_pcas(self):
+        max_cols = 5
+        max_rows = self.Npca // max_cols
+        if self.Npca%max_cols>0:
+            max_rows = max_rows+1
+        fig, axes = plt.subplots(nrows=max_rows, ncols=max_cols, figsize=(20,max_rows*3.5))
+        for i in range(10):
+            foo = np.zeros(10)
+            foo[i] = 1
+            mypca = self.pca.inverse_transform(foo)
+            if self.fft == 'fft':
+                fftmypca = np.array([mypca[k] + mypca[self.nfft+k]*1j for k in range(self.nfft)], dtype=np.cdouble) 
+                mypca = np.fft.irfft(fftmypca)
+            row = i // max_cols
+            col = i % max_cols
+            #axes[row, col].axis("off")
+            axes[row, col].plot(mypca)
+            
