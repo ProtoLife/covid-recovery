@@ -482,7 +482,6 @@ class ClusterFit:
             print("Failed to find a cluster with",Nclus,"components")
             return
         self.umap_cluster(random_state=clus['idx'][idx],min_size=minsize,diag=False,n_neighbors=n_neighbors)
-
     
     
     def plot_umap(self):
