@@ -53,7 +53,9 @@ from skfda.representation.basis import BSpline, Fourier, Monomial
 ## cases_adj_lin2020
 ## cases_adj_pwlfit
 ## cases_adj_nonlin   ( = old longshort_cases_adj_c)
+## cases_adj_nonlinr
 
+# two key parameters : mindeaths between 100 and 200 and mindays 150 to 160 
 print('Getting data:')
 from data import *
 
@@ -77,7 +79,8 @@ testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'Worl
 print('done.')
 
 td_mx = [max(total_deaths[cc]) for cc in total_deaths]
-countries = [cc for cc in total_deaths if max(total_deaths[cc])>=200]
+mindeaths = 100 
+countries = [cc for cc in total_deaths if max(total_deaths[cc])>=mindeaths]
 
 # get rid of countries with trivially small new_deaths_spm:
 # eliminate Peru and a few other countries because of bad spikes.
@@ -145,7 +148,7 @@ short_testing_c = {cc:short_testing[cc][:short_testing_est] for cc in short_test
 short_reg_testing_c = {cc:short_reg_testing[cc][:short_reg_testing_est] for cc in short_reg_testing} 
 
 # choose subset of time series data that must have at least len mindays=160
-mindays = 160
+mindays = 150 # changed from 160 to include more countries on Sep 24
 longshort = {cc:short_deaths[cc] for cc in short_deaths if (len(short_deaths[cc])>=mindays)};
 longshortest =  min([len(longshort[x]) for x in longshort])
 longshort_c = {cc:longshort[cc][:longshortest] for cc in longshort}
