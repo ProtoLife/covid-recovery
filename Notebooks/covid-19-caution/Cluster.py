@@ -282,6 +282,28 @@ def plot_all(countries,dat,adj=None,testing=None,ndays=250):
     #    ax.label_outer()
     plt.show()
 
+def plot_all2(countries,dat,adj=None,testing=None,ndays=250):
+    max_cols=6
+    max_rows=int(len(countries)/max_cols) + 1
+    fig, axes = plt.subplots(nrows=max_rows, ncols=max_cols, figsize=(24,4*max_rows))
+
+    for idx, country  in enumerate(countries):
+        row = idx // max_cols
+        col = idx % max_cols
+        axes[row,col].plot(dat[country])
+        if adj is not None:
+            ax = axes[row,col].twinx()
+            ax.plot(adj[country]
+    for idx in range(len(countries),max_rows*max_cols):
+        row = idx // max_cols
+        col = idx % max_cols
+        axes[row, col].axis("off")
+    #plt.subplots_adjust(wspace=.05, hspace=.05)
+    fig.tight_layout()
+    #for ax in fig.get_axes():
+    #    ax.label_outer()
+    plt.show()
+
 """
 Compute correlations between clusterings, component by component.  Gather best correlation between each cluster and clusterings of all other 15.
 """
