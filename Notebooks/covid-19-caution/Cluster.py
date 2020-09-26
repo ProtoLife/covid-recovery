@@ -293,7 +293,7 @@ def plot_all2(countries,dat,adj=None,testing=None,ndays=250):
         axes[row,col].plot(dat[country])
         if adj is not None:
             ax = axes[row,col].twinx()
-            ax.plot(adj[country]
+            ax.plot(adj[country])
     for idx in range(len(countries),max_rows*max_cols):
         row = idx // max_cols
         col = idx % max_cols
