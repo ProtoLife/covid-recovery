@@ -224,6 +224,12 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
     elif datatype == 'population':
         print('data for population changes only slowly if at all in OWID database')
         key = 'population'
+    elif datatype == 'population_density':
+        print('data for population density changes only slowly if at all in OWID database')
+        key = 'population_density'
+    elif datatype == 'gdp_per_capita':
+        print('data for gdp per capita changes only slowly if at all in OWID database')
+        key = 'gdp_per_capita'
     elif datatype == 'recovered':
         print('data for recovered cases not available in OWID database')
         key = None
@@ -327,6 +333,8 @@ deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative')
 tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative')
 stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily')
 population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily')
+population_density_owid = get_data_owid(owid_file,datatype='population_density',dataaccum = 'daily')
+gdp_per_capita_owid = get_data_owid(owid_file,datatype='gdp_per_capita',dataaccum = 'daily')
 covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid}
 countries_owid = [x for x in deaths_owid]   # J ?? does this return a list of the keys? Use instead: countries_owid= deaths_owid.keys()
 print('done with owid data. Got',len(countries_owid)-1,'countries') # -1 for dates
