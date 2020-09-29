@@ -177,7 +177,7 @@ print("number of countries listed",len(countries_jhu))
 i=0
 for country in countries_jhu:
     i = i + 1
-print('done with JHU data.  Got ',i,'countries.')
+print('done with JHU data (covid_ts dictionary keys: confirmed, deaths, recovered).  Got ',i,'countries (countries_jhu).')
 
 
 covid_owid = []
@@ -272,7 +272,7 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
                 sumdata[i] = sum
             popkeyed.update({country:sumdata})
 
-    fmt_jhu = '%m/%d/%y'
+    fmt_jhu = '%-m/%-d/%y'
     popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
@@ -313,14 +313,7 @@ def get_data_owid_key(key):
     # popkeyed = {country: np.transpose(np.array([[dd['date'],dd[key]] for dd in covid_owid if dd['location'] == country])) for country in countries}
     # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
 
-    fmt_jhu = '%m/%d/%y'
-    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
-    return popkeyed
-
-    # popkeyed = {country: np.transpose(np.array([[dd['date'],dd[key]] for dd in covid_owid if dd['location'] == country])) for country in countries}
-    # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
-
-    fmt_jhu = '%m/%d/%y'
+    fmt_jhu = '%-m/%-d/%y'
     popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
@@ -335,9 +328,10 @@ stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily
 population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily')
 population_density_owid = get_data_owid(owid_file,datatype='population_density',dataaccum = 'daily')
 gdp_per_capita_owid = get_data_owid(owid_file,datatype='gdp_per_capita',dataaccum = 'daily')
-covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid}
+covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid,
+                 'population_owid':population_owid,'population_density_owid':population_density_owid,'gdp_per_capita_owid':gdp_per_capita_owid}
 countries_owid = [x for x in deaths_owid]   # J ?? does this return a list of the keys? Use instead: countries_owid= deaths_owid.keys()
-print('done with owid data. Got',len(countries_owid)-1,'countries') # -1 for dates
+print('done with owid data (covid_owid_ts dictionary see .keys()) . Got',len(countries_owid)-1,'countries (countries_owid)') # -1 for dates
 
 
 def truncx(xx,daystart,daystop):
