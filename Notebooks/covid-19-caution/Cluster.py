@@ -61,19 +61,19 @@ from data import *
 
 print('Getting deaths, case and testing data...');
 
+# for OWID database
 total_deaths_x = get_data_owid_key('total_deaths')
-total_deaths = {cc:total_deaths_x[cc] for cc in total_deaths_x if cc != 'dates' and cc != 'World'}
 new_deaths_spm_x = get_data_owid_key('new_deaths_smoothed_per_million')
-new_deaths_spm = {cc:new_deaths_spm_x[cc] for cc in new_deaths_spm_x if cc != 'dates' and cc != 'World'}
-
 total_cases_x = get_data_owid_key('total_cases')
-total_cases = {cc:total_cases_x[cc] for cc in total_cases_x if cc != 'dates' and cc != 'World'}
 total_cases_ppm_x = get_data_owid_key('total_cases_per_million')
-total_cases_ppm = {cc:total_cases_ppm_x[cc] for cc in total_cases_ppm_x if cc != 'dates' and cc != 'World'}
 new_cases_spm_x = get_data_owid_key('new_cases_smoothed_per_million')
-new_cases_spm = {cc:new_cases_spm_x[cc] for cc in new_cases_spm_x if cc != 'dates' and cc != 'World'}
-
 testing_x = get_data_owid_key('new_tests_smoothed_per_thousand')
+
+total_deaths = {cc:total_deaths_x[cc] for cc in total_deaths_x if cc != 'dates' and cc != 'World'}
+new_deaths_spm = {cc:new_deaths_spm_x[cc] for cc in new_deaths_spm_x if cc != 'dates' and cc != 'World'}
+total_cases = {cc:total_cases_x[cc] for cc in total_cases_x if cc != 'dates' and cc != 'World'}
+total_cases_ppm = {cc:total_cases_ppm_x[cc] for cc in total_cases_ppm_x if cc != 'dates' and cc != 'World'}
+new_cases_spm = {cc:new_cases_spm_x[cc] for cc in new_cases_spm_x if cc != 'dates' and cc != 'World'}
 testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'World'}
 
 print('done.')
