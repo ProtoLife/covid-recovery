@@ -83,7 +83,33 @@ class ModelFit:
             return None
         return True
 
+    def set_param(self,param,value):
+        plist = [p.name for p in self.model.param_list]
+        if param not in plist:
+            print('Error:  param name',param,'is not a parameter for this',self.modelname,'model.')
+        self.params[param] = value
+        tmp = {param:value}
+        self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
 
+    def set_initial_values(self,ival,t0=None):
+        # consistency check:
+        if len(self.initial_values[0]) != len(self.model.initial_values[0]):
+            print('warning: inconsistent initial values in model.')
+        if len(ival) != len(self.model.initial_values[0]):
+            print('error:  initial value must be of length', len(self.model.initial_values[0]))
+        self.model.initial_values[0] = [x for x in ival]
+        self.initial_values[0] = [x for x in ival]
+        if t0 is not None:
+            self.model.initial_values[1] = t0
+            self.initial_values[1] = t0
+
+    def set_I0(self,logI_0):
+        I0 = 10**logI_0
+        self.model.initial_values[0][0] = 1.0 - I0
+        self.model.initial_values[0][2] = I0
+        self.initial_values[0][0] = 1.0 - I0
+        self.initial_values[0][2] = I0
+        
 
     def difference(self,datain):
         dataout = np.zeros(np.shape(datain))
@@ -169,7 +195,7 @@ class ModelFit:
         return rtn
 
 
-    def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axes=None,
+    def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axis=None,
                    scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None, outfile = None):
         """
         solve ODEs and plot for fitmodel indicated
@@ -215,7 +241,7 @@ class ModelFit:
             tvecf1 = tvecf[1:]
         
         if newplot:
-            axes = None
+            axis = None
             if (figsize == None):
                 figsize=(8,6)
             plt.figure(figsize=figsize)
@@ -227,10 +253,10 @@ class ModelFit:
         self.soln = scipy.integrate.odeint(model.ode, model.initial_values[0], tvec[1::])
         #Plot
         # ax = axeslist[nm]
-        if axes == None: 
-            ax = axes = plt.subplot(1,1,1)
+        if axis == None: 
+            ax = axis = plt.subplot(1,1,1)
         else:
-            ax = axes
+            ax = axis
         if scale == 'log': #Plot on log scale
             ax.semilogy()
             ax.set_ylim([0.00000001,1.0])
@@ -273,9 +299,9 @@ class ModelFit:
             elif species == 'deaths':
                 suma = np.sum(srsoln[:,model.deaths],axis=1)*mags[ns]
                 if not fitdata is None:
-                    ax.plot(tvec1,suma,label=label,color='red')
+                    ax.plot(tvec1,suma,label=label,color='darkred')
                     fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracDeathsDet']/self.population # deaths cases data, corrected by FracDeathsDet
-                    ax.plot(tvecf1,fita,'o',label=label,color='red')
+                    ax.plot(tvecf1,fita,'o',label=label,color='red',alpha=0.2)
                 else:
                     ax.plot(tvec1,suma,label=label)
             elif species == 'EI':
