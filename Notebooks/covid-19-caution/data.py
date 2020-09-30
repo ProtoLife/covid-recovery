@@ -65,6 +65,125 @@ def get_data(jhu_file):
         popkeyed.update({countrytotal:list(total)})
     return popkeyed
 
+def expand_data_jhu(covid_ts):
+    """ expands data in the three direct cumulative raw data types 
+        to both daily (new...) and smoothed daily (new_..._smoothed) types
+        the former is a simple difference between successive days
+        the latter is a seven day rolling average of the difference data
+        in addition we create the reporting glitch corrected versions of the two new datasets above 
+        i.e. new_..._corrected new_..._corrected_smoothed
+    """
+    new_covid_ts = covid_ts.copy()
+    for dtype in covid_ts:
+        data = covid_ts[dtype]
+
+        new_dtype = 'new_'+dtype
+        data_diff = {}
+        n = len(data['dates'])
+        for cc in data:
+            if cc == 'dates':
+                data_diff.update({'dates':data['dates']})
+            else:
+                data_cc = data[cc] 
+                diff_ts = np.zeros(n,dtype=float)
+                for t in range(n):
+                    if t == 0:
+                        diff_ts[t] = data_cc[t]
+                    else:
+                        diff_ts[t] = data_cc[t]-data_cc[t-1]
+                data_diff.update({cc:diff_ts})
+        new_covid_ts.update({new_dtype:data_diff})
+
+        new_dtype_smoothed = new_dtype+'_smoothed'
+        data_sm = {}
+        for cc in data_diff:
+            if cc == 'dates':
+                data_sm.update({'dates':data_diff['dates']})
+            else:
+                data_cc = data_diff[cc] 
+                sm_ts = np.zeros(n,dtype=float)
+                week = 0.
+                for t in range(n):
+                    week = week + data_cc[t]
+                    if t >= 7:
+                        week = week - data_cc[t-7]
+                        nt = 7.
+                    else:
+                        nt = float(t+1)
+                    sm_ts[t] = week/nt
+                data_sm.update({cc:sm_ts})        
+        new_covid_ts.update({new_dtype_smoothed:data_sm})
+
+        new_dtype_corrected = new_dtype+'_corrected'
+        data_cor = {}
+        maxfactor = np.exp(0.5) # maximal exponential increase or decrease per day in data
+        for cc in data_diff:
+            if cc == 'dates':
+                data_cor.update({'dates':data_diff['dates']})
+            else:
+                data_cc = data_diff[cc] 
+                data_ccs = data_sm[cc] 
+                cor_ts = np.zeros(n,dtype=float)
+                week = 0.
+                wvar = 0
+                cor_ts[0] = data_cc[0]
+                for t in range(1,n):
+                    wvar = wvar + data_cc[t-1]*data_cc[t-1]
+                    nt=min(7,t)
+                    if t > 7:
+                        wvar = wvar - data_cc[t-8]*data_cc[t-8]
+                    mean = data_ccs[t-1]
+                    var = wvar/float(nt) - mean*mean
+                    if var >= 0.:
+                        sigma = np.sqrt(var)
+                    elif -var < 0.000001:
+                        sigma = 0.
+                    else:
+                        print('invalid argument var to sqrt',var,'at',dtype,cc,'time',t,'nt mean val var',nt,mean,data_cc[t],var+mean*mean)
+                        sigma = 0.
+                    if sigma > 0.001:
+                        delta = data_cc[t]-mean
+                        deltas = data_ccs[t] - mean
+                        if np.abs(delta) < 2.*sigma or 7*np.abs(deltas) < 2.*sigma: # no correction
+                            cor_ts[t] = data_cc[t]
+                        else:                   # do correction
+                            if delta > 0.:
+                                sign = 1
+                            else:
+                                sign = -1
+                            corr = delta-sign*sigma
+                            print('Correction',dtype,cc,'time',t,'mean',mean,'corr',corr,'sigma',sigma)
+                            cor_ts[t] =  data_cc[t] - corr
+                            tsum = np.sum(cor_ts[max(0,t-31):t-1])   # redistribute over previous month (could also choose 6-8 weeks)
+                            if tsum > 0:
+                                for t1 in range(max(0,t-31),t):
+                                    cor_ts[t1] = cor_ts[t1]*(1. + corr/tsum)
+                    else:
+                        cor_ts[t] = data_cc[t]
+                data_cor.update({cc:cor_ts})        
+        new_covid_ts.update({new_dtype_corrected:data_cor})
+
+        new_dtype_corrected_smoothed = new_dtype+'_corrected_smoothed'
+        data_scm = {}
+        for cc in data_cor:
+            if cc == 'dates':
+                data_scm.update({'dates':data_cor['dates']})
+            else:
+                data_cc = data_cor[cc] 
+                scm_ts = np.zeros(n,dtype=float)
+                week = 0.
+                for t in range(n):
+                    week = week + data_cc[t]
+                    if t >= 7:
+                        week = week - data_cc[t-7]
+                        nt = 7.
+                    else:
+                        nt = float(t+1)
+                    scm_ts[t] = week/nt
+                data_scm.update({cc:scm_ts})        
+        new_covid_ts.update({new_dtype_corrected_smoothed:data_scm})
+
+    return new_covid_ts
 
 # from covid_data_explore-jhu-j
 def get_country_data(country_s='World', datatype='confirmed', firstdate=None, lastdate=None):
@@ -172,6 +291,11 @@ confirmed = get_data(base+'time_series_covid19_confirmed_global.csv')
 deaths = get_data(base+'time_series_covid19_deaths_global.csv')
 recovered = get_data(base+'time_series_covid19_recovered_global.csv')
 covid_ts = {'confirmed':confirmed,'deaths':deaths,'recovered':recovered}
+
+print('expanding JHU data : to new (daily) and 7-day rolling smoothed')
+covid_ts = expand_data_jhu(covid_ts)
+print('expansion done.')
+
 countries_jhu = [(row[0],row[1]) for row in confirmed][1:]
 print("number of countries listed",len(countries_jhu))
 i=0
