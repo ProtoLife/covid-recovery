@@ -78,6 +78,46 @@ testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'Worl
 
 print('done.')
 
+# jhu equivalents
+
+jhu_to_owid_str_country = {
+    'Burma':'Myanmar',
+    'Cabo Verde':'Cape Verde',
+    'Congo (Brazzaville)':'Congo',
+    'Congo (Kinshasa)':'Democratic Republic of Congo',
+    'Czechia':'Czech Republic',
+    'Diamond Princess':'Diamond Princess',
+    'Eswatini':'Swaziland',
+    'Holy See':'Vatican',
+    'Korea, South':'South Korea',
+    'MS Zaandam':'MS Zaandam',
+    'North Macedonia':'Macedonia',
+    'Taiwan*':'Taiwan',
+    'Timor-Leste':'Timor',
+    'US':'United States',
+    'West Bank and Gaza':'Palestine'
+}
+for cc in countries_owid:
+    jhu_to_owid_str_country.update({cc:cc})
+
+countries_jhu_str_totals= [cc[0] for cc in countries_jhu if cc[1] == 'Total']
+countries_jhu_str = [cc[0] for cc in countries_jhu if (cc[0] not in countries_jhu_str_totals and cc[0] is not in ('dates','Diamond Princess', 'MS Zaandam'))]
+countries_jhu_str = countries_jhu_str + countries_jhu_str_totals
+countries_jhu_t_str=[jhu_to_owid_str_country[cc[0]] for cc in countries_jhu_str]
+
+def str_to_jhu_country(cc):
+    global countries_jhu_str_totals
+    if cc in countries_jhu_str_totals:
+        (cc,'Total')
+    else:
+        (cc,'')
+
+
+#deaths_jhu = covid_ts['new_deaths_smoothed']
+deaths_jhu = covid_ts['new_deaths_corrected_smoothed']
+new_deaths_spm_jhu = {cc:deaths_jhu[cc]/population_owid[cc][-1] for cc in deaths_jhu if cc != 'dates' and cc != 'World'}
+
+
 td_mx = [max(total_deaths[cc]) for cc in total_deaths]
 mindeaths = 100 
 countries = [cc for cc in total_deaths if max(total_deaths[cc])>=mindeaths]
