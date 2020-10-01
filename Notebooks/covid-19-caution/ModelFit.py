@@ -389,7 +389,7 @@ class ModelFit:
             rtn[pp] = ppp
         return rtn
 
-    def fit(self,params_init_min_max,fit_method='nelder',fit_target='deaths',diag=True):
+    def fit(self,params_init_min_max,fit_method='leastsq',fit_target='deaths',diag=True):
         if fit_target is not 'deaths':
             print('can only fit deaths for now')
         for pp in params_init_min_max:
