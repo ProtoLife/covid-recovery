@@ -30,7 +30,7 @@ class ModelFit:
                           }
             with open(pfile,'wb') as fp:
                 pk.dump(all_params,fp)
-            print('dumped params to',pfile)
+            #print('dumped params to',pfile)
         except:
             print('problem dumping params to ',pfile)
     def loadparams(self,run_id=''): 
@@ -39,7 +39,7 @@ class ModelFit:
         If run_id is nonempty, it is used to construct the filename, and self.run_id is set to its value."""
         if run_id == '':
             run_id = self.run_id
-        else:
+        elif self.run_id != run_id:
             print("warning: changing run_id from ",self.run_id,'to',run_id)
             self.run_id = run_id
             
@@ -52,7 +52,7 @@ class ModelFit:
                 all_params = pk.load(fp)
                 print('loaded params from ',pfile,':')
         except:
-            print("no file available with this run_id: ",pfile)
+            print("For this run_id, a fresh file: ",pfile)
             return None
 
         #print('-------  params from file:')
@@ -235,8 +235,6 @@ class ModelFit:
             tmaxf = len(fitdata)
             if fitdata.ndim != 2:
                 print("error in number of dimensions of array")
-            else:
-                print("fit data ",np.shape(fitdata))
             tvecf=np.arange(0,tmaxf,1)
             tvecf1 = tvecf[1:]
         
@@ -391,6 +389,71 @@ class ModelFit:
             rtn[pp] = ppp
         return rtn
 
+    def fit(self,params_init_min_max,fit_method='nelder',fit_target='deaths',diag=True):
+        if fit_target is not 'deaths':
+            print('can only fit deaths for now')
+        for pp in params_init_min_max:
+            if pp is not 'logI_0': # add any other special ad hoc params here...
+                if pp not in list(self.model.param_list):
+                    print(pp,':  bad param for',self.model.modelname,'model.')
+                    return
+        for pp in params_init_min_max:
+            if len(params_init_min_max[pp]) != 3:
+                print('params_init_min_max has incorrect form.')
+                print('should be dictionary with each entry as tuple (initial_value,min,max).')
+                return
+        params_lmf = lmfit.Parameters()
+        for pp in params_init_min_max:
+            params_lmf.add(pp,params_init_min_max[pp][0],
+                           min=params_init_min_max[pp][1],
+                           max=params_init_min_max[pp][2])
+        ## set initial params for fit
+        for x in params_lmf:
+                if x in MyModel.params:
+                    self.set_param(x, params_lmf[x].value)
+                if x == 'logI_0': # set other ad hoc params like this
+                    self.set_I0(params_lmf['logI_0'].value)
+
+        ## modify resid here for other optimizations
+        def resid(params_lmf):
+            for x in params_lmf:
+                if x in MyModel.params:
+                    self.set_param(x, params_lmf[x].value)
+            if 'logI_0' in params_lmf:
+                self.set_I0(params_lmf['logI_0'].value)            
+            fittry = self.solvefit(fit_target)
+            res2 = np.array([x*x for x in fittry['deaths']['resid']])
+            sumres2 = np.sqrt(np.sum(res2))
+            #print('resid: ',sumres2)
+            return fittry[fit_target]['resid']
+        ## do the fit
+        try:
+            if diag:
+                start = time()
+                self.residall = []
+                def per_iteration(pars, iteration, resd, *args, **kws):
+                    res2 = np.array([x*x for x in resd])
+                    sumres2 = np.sqrt(np.sum(res2))
+                    self.residall.append(sumres2)
+                outfit = lmfit.minimize(resid, params_lmf, method=fit_method,iter_cb=per_iteration)
+                print('elapsed time = ',time()-start)
+                lmfit.report_fit(outfit)
+            else:
+                outfit = lmfit.minimize(resid, params_lmf, method=fit_method)
+        except Exception as e:
+            print('Problem with fit...')
+            print(e)
+        ## set model params to fitted values, dump to file
+        if 'outfit' in locals():
+            for x in outfit.params:
+                if x in MyModel.params:
+                    self.set_param(x, outfit.params[x].value)
+            self.set_I0(outfit.params['logI_0'].value)
+            ## dump new fitted values.
+            self.dumpparams()
+        else:
+            print('Problem with fit, model params not changed')
+
 
     def __init__(self,modelname,model=None,country='Germany',run_id='',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
         """
@@ -413,7 +476,7 @@ class ModelFit:
             self.run_id = defnm+run_id
         else:
             self.run_id = run_id                 # use specified name
-        print('=============',self.run_id)
+        #print('=============',self.run_id)
         pfile = dirnm+'/params/'+self.run_id+'.pk'
 
 
@@ -430,7 +493,7 @@ class ModelFit:
             model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
             self.model = model_d['model']
             if new:
-                    print('using default set of parameters for model type',modelname)
+                    #print('using default set of parameters for model type',modelname)
                     self.params   = model_d['params']
                     self.cbparams = model_d['cbparams']
                     self.sbparams = model_d['sbparams']
@@ -439,7 +502,7 @@ class ModelFit:
                     self.initial_values = model_d['initial_values']
             else:
                 if not self.loadparams(self.run_id):
-                    print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
+                    #print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
                     self.params   = model_d['params']
                     self.cbparams = model_d['cbparams']
                     self.sbparams = model_d['sbparams']
@@ -456,7 +519,7 @@ class ModelFit:
             print('data_src',data_src,'not yet hooked up: OWID data used instead')
             ts = covid_owid_ts
         self.country = country
-        self.population = population_owid[country][0]
+        self.population = population_owid[country][-2] # -2 seems to get all countries population (no zeros)
 
         fmt_jhu = '%m/%d/%y'
         dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['confirmed']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
