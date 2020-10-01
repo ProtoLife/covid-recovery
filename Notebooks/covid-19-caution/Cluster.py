@@ -62,13 +62,14 @@ from data import *
 print('Constructing common synchronized deaths, case and testing data...');
 
 # database == 'OWID'
-database='JHU'
+database='JHU'     # JHU database: to use OWID database comment this line and use line above
 correct = True     # whether to correct data for clustering
+daysync = 23       # needs to be same as value in data.py
 print('database',database, 'correct active',correct)
 # for OWID database
 # covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid,
 #                 'population':population_owid,'population_density':population_density_owid,'gdp_per_capita':gdp_per_capita_owid}
-daysync = 23
+
 total_deaths_x = get_data_owid_key('total_deaths',daysync)
 new_deaths_spm_x = get_data_owid_key('new_deaths_smoothed_per_million',daysync)
 total_cases_x = get_data_owid_key('total_cases',daysync)

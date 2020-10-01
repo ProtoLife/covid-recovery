@@ -146,22 +146,30 @@ class ModelFit:
                 print("couldn't plot xx,yy",xx,yy)
         plt.show()
 
-    def get_fitdata(self,species=['deaths']):
+    def get_fitdata(self,species=['deaths'],datasets=['new_deaths_corrected_smoothed']):
         if not isinstance(species,list):
             lspecies = [species]
+            ldatasets =[datasets]
         else:
             lspecies = species
+            ldatasets =datasets
+            if not len(datasets)==len(lspecies):
+                print('Error in input to get_fitdata: species and datasets parameters not same length')
         # 
         tvec = self.tsim
         tvec1 = tvec[1:]
         fitdata = {}
         if not self.data is {}:
-            for ls in lspecies:
-                if ls == 'deaths':
-                    datmp = self.data[ls] # confirmed cases data, corrected by FracConfirmedDet
+            for i,ls in enumerate(lspecies):
+                ds = ldatasets[i]
+                if ls == 'confirmed':     # John corrected this Oct 1st, was 'deaths'
+                    datmp = self.data[ds] # confirmed cases data, corrected by FracConfirmedDet
                     fitdata[ls] = [x/self.fbparams['FracConfirmedDet']/self.population for x in datmp]
+                elif ls == 'deaths':
+                    datmp = self.data[ds] # deaths cases data, corrected by FracDeathsDet
+                    fitdata[ls] = [x/self.fbparams['FracDeathsDet']/self.population for x in datmp]
                 else:
-                    fitdata[ls] = np.array(self.data[ls])
+                    fitdata[ls] = np.array(self.data[ds])
 
         else:
             print('missing fit data')
@@ -169,8 +177,8 @@ class ModelFit:
                 fitdata[ls] = None
         return fitdata
 
-    def solvefit(self,species = ['deaths']):
-        fitdata = self.get_fitdata(species)
+    def solvefit(self,species = ['deaths'],datasets=['new_deaths_corrected_smoothed']):
+        fitdata = self.get_fitdata(species,datasets)
         lspecies = [x for x in fitdata]
         tmaxf = len(fitdata[lspecies[0]])            
 
@@ -389,9 +397,9 @@ class ModelFit:
             rtn[pp] = ppp
         return rtn
 
-    def fit(self,params_init_min_max,fit_method='leastsq',fit_target='deaths',diag=True):
-        if fit_target is not 'deaths':
-            print('can only fit deaths for now')
+    def fit(self,params_init_min_max,fit_method='leastsq',fit_target='deaths',fit_data='new_deaths_corrected_smoothed',diag=True):
+        if fit_target not in ['deaths','confirmed']:
+            print('can only fit deaths or confirmed for now')
         for pp in params_init_min_max:
             if pp is not 'logI_0': # add any other special ad hoc params here...
                 if pp not in list(self.model.param_list):
@@ -421,7 +429,7 @@ class ModelFit:
                     self.set_param(x, params_lmf[x].value)
             if 'logI_0' in params_lmf:
                 self.set_I0(params_lmf['logI_0'].value)            
-            fittry = self.solvefit(fit_target)
+            fittry = self.solvefit(fit_target,fit_data)
             res2 = np.array([x*x for x in fittry['deaths']['resid']])
             sumres2 = np.sqrt(np.sum(res2))
             #print('resid: ',sumres2)
@@ -556,9 +564,9 @@ class ModelFit:
 
         if datatypes == 'all' or not datatypes:
             if data_src == 'owid':
-                datatypes = ['confirmed','deaths','tests', 'stringency']
+                datatypes = ['confirmed','deaths','tests', 'stringency','new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed']
             else:
-                datatypes = ['confirmed','deaths','recovered']
+                datatypes = ['confirmed','deaths','recovered','new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed','new_recovered_corrected_smoothed']
         self.data = {}
         for dt in datatypes:
             self.data.update({dt:ts[dt][country][daystart:datadays]}) 
