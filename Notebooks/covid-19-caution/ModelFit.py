@@ -177,7 +177,7 @@ class ModelFit:
                 fitdata[ls] = None
         return fitdata
 
-    def solvefit(self,species = ['deaths'],datasets=['new_deaths_corrected_smoothed']):
+    def solvefit(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
         fitdata = self.get_fitdata(species,datasets)
         lspecies = [x for x in fitdata]
         tmaxf = len(fitdata[lspecies[0]])            
@@ -397,7 +397,7 @@ class ModelFit:
             rtn[pp] = ppp
         return rtn
 
-    def fit(self,params_init_min_max,fit_method='leastsq',fit_target='deaths',fit_data='new_deaths_corrected_smoothed',diag=True):
+    def fit(self,params_init_min_max,fit_method='leastsq',fit_target='deaths',fit_data='deaths_corrected_smoothed',diag=True):
         if fit_target not in ['deaths','confirmed']:
             print('can only fit deaths or confirmed for now')
         for pp in params_init_min_max:
@@ -564,9 +564,9 @@ class ModelFit:
 
         if datatypes == 'all' or not datatypes:
             if data_src == 'owid':
-                datatypes = ['confirmed','deaths','tests', 'stringency','new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed']
+                datatypes = ['confirmed','deaths','tests', 'stringency','deaths_corrected_smoothed','confirmed_corrected_smoothed','new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed']
             else:
-                datatypes = ['confirmed','deaths','recovered','new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed','new_recovered_corrected_smoothed']
+                datatypes = ['confirmed','deaths','recovered','deaths_corrected_smoothed','confirmed_corrected_smoothed','recovered_corrected_smoothed','new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed','new_recovered_corrected_smoothed']
         self.data = {}
         for dt in datatypes:
             self.data.update({dt:ts[dt][country][daystart:datadays]}) 

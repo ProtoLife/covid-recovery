@@ -74,6 +74,7 @@ def expand_data(covid_ts,database='jhu'):
         the latter is a seven day rolling average of the difference data
         in addition we create the reporting glitch corrected versions of the two new datasets above 
         i.e. new_..._corrected and new_..._corrected_smoothed
+        then we produce also cumulative versions of the smoothed and corrected smoothed sets
         works for both JHU and OWID dictionaries
     """
     file =open('data_corrections_'+database+'.csv',"w+")
@@ -122,6 +123,21 @@ def expand_data(covid_ts,database='jhu'):
                     sm_ts[t] = week/nt
                 data_sm.update({cc:sm_ts})        
         new_covid_ts.update({new_dtype_smoothed:data_sm})
+
+        dtype_smoothed = dtype+'_smoothed'
+        data_asm = {}
+        for cc in data_sm:
+            if cc == 'dates':
+                data_asm.update({'dates':data_sm['dates']})
+            else:
+                data_cc = data_sm[cc] 
+                asm_ts = np.zeros(n,dtype=float)
+                sum = 0.
+                for t in range(n):
+                    sum = sum + data_cc[t]
+                    asm_ts[t] = sum
+                data_asm.update({cc:asm_ts})        
+        new_covid_ts.update({dtype_smoothed:data_asm})
 
         new_dtype_corrected = new_dtype+'_corrected'
         data_cor = {}
@@ -193,6 +209,22 @@ def expand_data(covid_ts,database='jhu'):
                     scm_ts[t] = week/nt
                 data_scm.update({cc:scm_ts})        
         new_covid_ts.update({new_dtype_corrected_smoothed:data_scm})
+
+        dtype_corrected_smoothed = dtype+'_corrected_smoothed'
+        data_ascm = {}
+        for cc in data_cor:
+            if cc == 'dates':
+                data_ascm.update({'dates':data_scm['dates']})
+            else:
+                data_cc = data_scm[cc] 
+                ascm_ts = np.zeros(n,dtype=float)
+                sum = 0.
+                for t in range(n):
+                    sum = sum + data_cc[t]
+                    ascm_ts[t] = sum
+                data_ascm.update({cc:ascm_ts})        
+        new_covid_ts.update({dtype_corrected_smoothed:data_ascm})
+
     file.close()
     return new_covid_ts
 
@@ -454,7 +486,7 @@ def get_data_owid_key(key, daysync = 0):
 
 
 print('getting owid data...')
-daysync = 23
+daysync = 23      # needs to be same as value in Cluster.py
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
 confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync=daysync)
 recovered_owid = None                                                         # NB OWID database has no recovered data, substitute with JHU data!
