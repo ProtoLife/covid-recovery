@@ -204,7 +204,7 @@ class ModelFit:
 
 
     def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axis=None,
-                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None, outfile = None):
+                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None, outfile = None,datasets=['confirmed_corrected_smoothed']):
         """
         solve ODEs and plot for fitmodel indicated
         
@@ -227,8 +227,10 @@ class ModelFit:
 
         if not isinstance(species,list):
             lspecies = [species]
+            ldatasets = [datasets]
         else:
             lspecies = species
+            ldatasets = datasets
 
         dspecies = [dt if dt != 'caution_fraction' else 'stringency' for dt in lspecies]
         mags = [mag[dt] if dt in mag.keys() else 1 for dt in dspecies]
@@ -236,7 +238,7 @@ class ModelFit:
         tvec = self.tsim
         tvec1 = tvec[1:]
         if not self.data is {}:
-            fitdata = np.transpose(np.array([self.data[dt] for dt in dspecies]))
+            fitdata = np.transpose(np.array([self.data[dt] for dt in datasets]))
         else:
             fitdata = None
         if not fitdata is None:
