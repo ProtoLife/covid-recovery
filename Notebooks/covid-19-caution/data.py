@@ -65,18 +65,27 @@ def get_data(jhu_file):
         popkeyed.update({countrytotal:list(total)})
     return popkeyed
 
-def expand_data_jhu(covid_ts):
-    """ expands data in the three direct cumulative raw data types 
+def expand_data(covid_ts,database='jhu'):
+    """ input time series dictionary : JHU or OWID
+        expands data in the three direct cumulative raw data types 
+        'deaths','confirmed','recovered'
         to both daily (new...) and smoothed daily (new_..._smoothed) types
         the former is a simple difference between successive days
         the latter is a seven day rolling average of the difference data
         in addition we create the reporting glitch corrected versions of the two new datasets above 
-        i.e. new_..._corrected new_..._corrected_smoothed
+        i.e. new_..._corrected and new_..._corrected_smoothed
+        works for both JHU and OWID dictionaries
     """
-    new_covid_ts = covid_ts.copy()
-    for dtype in covid_ts:
-        data = covid_ts[dtype]
+    file =open('data_corrections_'+database+'.csv',"w+")
+    file.write("dtype,country,day,mean,correction,sigma\n")
 
+    new_covid_ts = covid_ts.copy()
+    if database == 'jhu':
+        basetypes = ['deaths','confirmed','recovered']
+    else:
+        basetypes = ['deaths','confirmed']
+    for dtype in basetypes:
+        data = covid_ts[dtype]
         new_dtype = 'new_'+dtype
         data_diff = {}
         n = len(data['dates'])
@@ -117,6 +126,7 @@ def expand_data_jhu(covid_ts):
         new_dtype_corrected = new_dtype+'_corrected'
         data_cor = {}
         maxfactor = np.exp(0.5) # maximal exponential increase or decrease per day in data
+
         for cc in data_diff:
             if cc == 'dates':
                 data_cor.update({'dates':data_diff['dates']})
@@ -152,7 +162,8 @@ def expand_data_jhu(covid_ts):
                             else:
                                 sign = -1
                             corr = delta-sign*sigma
-                            print('Correction',dtype,cc,'time',t,'mean',mean,'corr',corr,'sigma',sigma)
+                            file.write("%s,\"%s\",%d,%f,%f,%f\n" % (dtype,cc,t,mean,corr,sigma))
+                            # print('Correction',dtype,cc,'time',t,'mean',mean,'correction',corr,'sigma',sigma)
                             cor_ts[t] =  data_cc[t] - corr
                             tsum = np.sum(cor_ts[max(0,t-31):t-1])   # redistribute over previous month (could also choose 6-8 weeks)
                             if tsum > 0:
@@ -182,7 +193,7 @@ def expand_data_jhu(covid_ts):
                     scm_ts[t] = week/nt
                 data_scm.update({cc:scm_ts})        
         new_covid_ts.update({new_dtype_corrected_smoothed:data_scm})
-
+    file.close()
     return new_covid_ts
 
 # from covid_data_explore-jhu-j
@@ -292,8 +303,8 @@ deaths = get_data(base+'time_series_covid19_deaths_global.csv')
 recovered = get_data(base+'time_series_covid19_recovered_global.csv')
 covid_ts = {'confirmed':confirmed,'deaths':deaths,'recovered':recovered}
 
-print('expanding JHU data : to new (daily) and 7-day rolling smoothed')
-covid_ts = expand_data_jhu(covid_ts)
+print('expanding JHU data : to new (daily), 7-day rolling (smoothed), reporting glitch (corrected) and combined')
+covid_ts = expand_data(covid_ts,'jhu')
 print('expansion done.')
 
 countries_jhu = [(row[0],row[1]) for row in confirmed][1:]
@@ -303,10 +314,9 @@ for country in countries_jhu:
     i = i + 1
 print('done with JHU data (covid_ts dictionary keys: confirmed, deaths, recovered).  Got ',i,'countries (countries_jhu).')
 
-
 covid_owid = []
 
-def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
+def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync = 0):
     import numpy as np
     import datetime
     import matplotlib.dates as mdates
@@ -346,13 +356,13 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
     elif datatype =='stringency':
         key = 'stringency_index'
     elif datatype == 'population':
-        print('data for population changes only slowly if at all in OWID database')
+        # print('data for population changes only slowly if at all in OWID database')
         key = 'population'
     elif datatype == 'population_density':
-        print('data for population density changes only slowly if at all in OWID database')
+        # print('data for population density changes only slowly if at all in OWID database')
         key = 'population_density'
     elif datatype == 'gdp_per_capita':
-        print('data for gdp per capita changes only slowly if at all in OWID database')
+        # print('data for gdp per capita changes only slowly if at all in OWID database')
         key = 'gdp_per_capita'
     elif datatype == 'recovered':
         print('data for recovered cases not available in OWID database')
@@ -368,9 +378,9 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
     dates.sort()
     fmt = '%Y-%m-%d'
     dates_t = [datetime.datetime.strptime(dd,fmt) for dd in dates ]
-    firstdate = dates[0]
+    firstdate = dates[daysync]
     lastdate = dates[-1]
-    firstdate_t =  dates_t[0]
+    firstdate_t =  dates_t[daysync]
     lastdate_t =  dates_t[-1]
 
     daystart = 0
@@ -397,10 +407,11 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative'):
             popkeyed.update({country:sumdata})
 
     fmt_jhu = '%-m/%-d/%y'
-    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
+    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t[daysync:]]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
-def get_data_owid_key(key):
+def get_data_owid_key(key, daysync = 0):
+    """ data is synchronized to start at beginning of jhu data set"""
     global covid_owid, owid_file
     if not covid_owid:
         with open(owid_file, 'r', newline='') as csvfile:
@@ -419,9 +430,9 @@ def get_data_owid_key(key):
     dates.sort()
     fmt = '%Y-%m-%d'
     dates_t = [datetime.datetime.strptime(dd,fmt) for dd in dates ]
-    firstdate = dates[0]
+    firstdate = dates[daysync]
     lastdate = dates[-1]
-    firstdate_t =  dates_t[0]
+    firstdate_t =  dates_t[daysync]
     lastdate_t =  dates_t[-1]
 
     daystart = 0
@@ -438,25 +449,27 @@ def get_data_owid_key(key):
     # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
 
     fmt_jhu = '%-m/%-d/%y'
-    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t]})   # dates are set to strings in jhu date format for compatibility
+    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t[daysync:]]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
 
 print('getting owid data...')
+daysync = 23
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
-confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative')
-recovered_owid = None
-deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative')
-tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative')
-stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily')
-population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily')
-population_density_owid = get_data_owid(owid_file,datatype='population_density',dataaccum = 'daily')
-gdp_per_capita_owid = get_data_owid(owid_file,datatype='gdp_per_capita',dataaccum = 'daily')
+confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync=daysync)
+recovered_owid = None                                                         # NB OWID database has no recovered data, substitute with JHU data!
+deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative',daysync=daysync)
+tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative',daysync=daysync)
+stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily',daysync=daysync)
+population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily',daysync=daysync) # NB use [-2] to get non-zero set of populations from 2nd last time point
+population_density_owid = get_data_owid(owid_file,datatype='population_density',dataaccum = 'daily',daysync=daysync)
+gdp_per_capita_owid = get_data_owid(owid_file,datatype='gdp_per_capita',dataaccum = 'daily',daysync=daysync)
 covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid,
-                 'population_owid':population_owid,'population_density_owid':population_density_owid,'gdp_per_capita_owid':gdp_per_capita_owid}
-countries_owid = [x for x in deaths_owid]   # J ?? does this return a list of the keys? Use instead: countries_owid= deaths_owid.keys()
-print('done with owid data (covid_owid_ts dictionary see .keys()) . Got',len(countries_owid)-1,'countries (countries_owid)') # -1 for dates
-
+                 'population':population_owid,'population_density':population_density_owid,'gdp_per_capita':gdp_per_capita_owid}
+countries_owid = [x for x in deaths_owid if x is not 'dates']  
+print('expanding OWID data : to new (daily), 7-day rolling (smoothed), reporting glitch (corrected) and combined')
+covid_owid_ts = expand_data(covid_owid_ts,'owid')
+print('done with OWID data (covid_owid_ts dictionary see .keys()) . Got',len(countries_owid),'countries (countries_owid)')
 
 def truncx(xx,daystart,daystop):
     """truncate array xx to run from daystart to daystop

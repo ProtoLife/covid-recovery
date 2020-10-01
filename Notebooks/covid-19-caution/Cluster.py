@@ -59,17 +59,25 @@ from skfda.representation.basis import BSpline, Fourier, Monomial
 print('Getting data:')
 from data import *
 
-print('Getting deaths, case and testing data...');
+print('Constructing common synchronized deaths, case and testing data...');
 
+# database == 'OWID'
+database='JHU'
+correct = True     # whether to correct data for clustering
+print('database',database, 'correct active',correct)
 # for OWID database
-total_deaths_x = get_data_owid_key('total_deaths')
-new_deaths_spm_x = get_data_owid_key('new_deaths_smoothed_per_million')
-total_cases_x = get_data_owid_key('total_cases')
-total_cases_ppm_x = get_data_owid_key('total_cases_per_million')
-new_cases_spm_x = get_data_owid_key('new_cases_smoothed_per_million')
-testing_x = get_data_owid_key('new_tests_smoothed_per_thousand')
+# covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid,
+#                 'population':population_owid,'population_density':population_density_owid,'gdp_per_capita':gdp_per_capita_owid}
+daysync = 23
+total_deaths_x = get_data_owid_key('total_deaths',daysync)
+new_deaths_spm_x = get_data_owid_key('new_deaths_smoothed_per_million',daysync)
+total_cases_x = get_data_owid_key('total_cases',daysync)
+total_cases_ppm_x = get_data_owid_key('total_cases_per_million',daysync)
+new_cases_spm_x = get_data_owid_key('new_cases_smoothed_per_million',daysync)
+testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync)
 
-total_deaths = {cc:total_deaths_x[cc] for cc in total_deaths_x if cc != 'dates' and cc != 'World'}
+
+total_deaths_owid = {cc:total_deaths_x[cc] for cc in total_deaths_x if cc != 'dates' and cc != 'World'}
 new_deaths_spm = {cc:new_deaths_spm_x[cc] for cc in new_deaths_spm_x if cc != 'dates' and cc != 'World'}
 total_cases = {cc:total_cases_x[cc] for cc in total_cases_x if cc != 'dates' and cc != 'World'}
 total_cases_ppm = {cc:total_cases_ppm_x[cc] for cc in total_cases_ppm_x if cc != 'dates' and cc != 'World'}
@@ -79,8 +87,10 @@ testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'Worl
 print('done.')
 
 # jhu equivalents
-
-jhu_to_owid_str_country = {
+jhu_to_owid_str_country = {}
+for cc in countries_owid:
+    jhu_to_owid_str_country.update({cc:cc})
+jhu_to_owid_str_country.update({
     'Burma':'Myanmar',
     'Cabo Verde':'Cape Verde',
     'Congo (Brazzaville)':'Congo',
@@ -95,46 +105,102 @@ jhu_to_owid_str_country = {
     'Taiwan*':'Taiwan',
     'Timor-Leste':'Timor',
     'US':'United States',
-    'West Bank and Gaza':'Palestine'
-}
+    'West Bank and Gaza':'Palestine',
+    'dates':'dates'
+})
+
+#owid equivalents
+owid_to_jhu_str_country = {}
 for cc in countries_owid:
-    jhu_to_owid_str_country.update({cc:cc})
+    owid_to_jhu_str_country.update({cc:cc})
+owid_to_jhu_str_country.update({
+    'Myanmar':'Burma',
+    'Cape Verde':'Cabo Verde',
+    'Congo':'Congo (Brazzaville)',
+    'Democratic Republic of Congo':'Congo (Kinshasa)',
+    'Czech Republic':'Czechia',
+    'Diamond Princess':'Diamond Princess',
+    'Swaziland':'Eswatini',
+    'Vatican':'Holy See',
+    'South Korea':'Korea, South',
+    'MS Zaandam':'MS Zaandam',
+    'Macedonia':'North Macedonia',
+    'Taiwan':'Taiwan*',
+    'Timor':'Timor-Leste',
+    'United States':'US',
+    'Palestine':'West Bank and Gaza',
+    'dates':'dates'
+})
 
-countries_jhu_str_totals= [cc[0] for cc in countries_jhu if cc[1] == 'Total']
-countries_jhu_str = [cc[0] for cc in countries_jhu if (cc[0] not in countries_jhu_str_totals and cc[0] is not in ('dates','Diamond Princess', 'MS Zaandam'))]
-countries_jhu_str = countries_jhu_str + countries_jhu_str_totals
-countries_jhu_t_str=[jhu_to_owid_str_country[cc[0]] for cc in countries_jhu_str]
 
-def str_to_jhu_country(cc):
-    global countries_jhu_str_totals
-    if cc in countries_jhu_str_totals:
-        (cc,'Total')
+countries_jhu_str_total = [cc[0] for cc in countries_jhu if cc[1] == 'Total']
+
+def owid_to_jhu_country(cc):
+    global countries_jhu_str_total
+    global owid_to_jhu_str_country
+    cc_j = owid_to_jhu_str_country[cc]
+    if cc_j in countries_jhu_str_total:
+        return (cc_j,'Total')
     else:
-        (cc,'')
+        return (cc_j,'')
 
+countries_jhu_total= [cc for cc in countries_jhu if cc[1] == 'Total']
+countries_jhu_non_total = [cc for cc in countries_jhu if ((cc[0] not in countries_jhu_str_total) and (cc[0] not in ['Diamond Princess', 'MS Zaandam']))]
+countries_jhu_4_owid = countries_jhu_non_total + countries_jhu_total
+countries_jhu_2_owid=[jhu_to_owid_str_country[cc[0]] for cc in countries_jhu_4_owid ]
+countries_owid_to_jhu=[owid_to_jhu_country(cc) for cc in countries_jhu_2_owid]
 
-#deaths_jhu = covid_ts['new_deaths_smoothed']
-deaths_jhu = covid_ts['new_deaths_corrected_smoothed']
-new_deaths_spm_jhu = {cc:deaths_jhu[cc]/population_owid[cc][-1] for cc in deaths_jhu if cc != 'dates' and cc != 'World'}
+countries_common_x = [cc for cc in countries_jhu_2_owid if cc not in ['dates','World']] + ['dates','World']
+countries_common = [cc for cc in countries_common_x if cc not in ['dates','World']]
 
+total_deaths_jhu = {cc:covid_ts['deaths'][owid_to_jhu_country(cc)] for cc in countries_common}
+total_deaths_owid = {cc:covid_owid_ts['deaths'][cc][daysync:] for cc in countries_common}
 
-td_mx = [max(total_deaths[cc]) for cc in total_deaths]
+new_deaths_spm_jhu = {cc:covid_ts['new_deaths_corrected_smoothed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_deaths_spm_jhu.update({'dates':covid_ts['new_deaths_corrected_smoothed']['dates']})  # add dates to dictionary
+new_cases_spm_jhu = {cc:covid_ts['new_confirmed_corrected_smoothed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_cases_spm_jhu.update({'dates':covid_ts['new_confirmed_corrected_smoothed']['dates']})  # add dates to dictionary
+
+new_deaths_spm_owid = {cc:covid_owid_ts['new_deaths_corrected_smoothed'][cc][daysync:]*1000000./population_owid[cc][-2] for cc in countries_common}   
+new_deaths_spm_owid.update({'dates':covid_owid_ts['new_deaths_corrected_smoothed']['dates'][daysync:]})  # add dates to dictionary
+new_cases_spm_owid = {cc:covid_owid_ts['new_confirmed_corrected_smoothed'][cc][daysync:]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_cases_spm_owid.update({'dates':covid_owid_ts['new_confirmed_corrected_smoothed']['dates'][daysync:]})  # add dates to dictionary
+
+# td_mx = [max(total_deaths[cc]) for cc in total_deaths]
 mindeaths = 100 
-countries = [cc for cc in total_deaths if max(total_deaths[cc])>=mindeaths]
+if database == 'OWID':
+    total_deaths = total_deaths_owid
+else:
+    total_deaths = total_deaths_jhu
+bcountries_1 = [cc for cc in countries_common if max(total_deaths[cc])>=mindeaths]
 
-# get rid of countries with trivially small new_deaths_spm:
-# eliminate Peru and a few other countries because of bad spikes.
-badspikes = ['Peru','Bolivia','Chile','China','Equador','Kyrgystan']                                             
-mid = {cc:new_deaths_spm[cc] for cc in countries if max(new_deaths_spm[cc])>0.5 and max(new_deaths_spm[cc])<= 1} # note that several important countries between 0.5 and 1 per million
+# badspikes = ['Peru','Bolivia','Chile','China','Equador','Kyrgystan']   # eliminate Peru and a few other countries because of bad spikes.
+badspikes = []   # badspikes not ntted with corrected deaths
+
+# mid = {cc:new_deaths_spm[cc] for cc in bcountries_1 if max(new_deaths_spm[cc])>0.5 and max(new_deaths_spm[cc])<= 1} # note that several important countries between 0.5 and 1 per million
 #print(len(mid))
 #print(mid.keys())
-big = {cc:new_deaths_spm[cc] for cc in countries if max(new_deaths_spm[cc])>0.5 and cc not in badspikes} # To Do:  replace badspike data with JHU.
-bcountries = big.keys()
-big_cases = {cc:new_cases_spm[cc] for cc in bcountries} #  bcountries filters  max(new_deaths_spm[cc])>=0.5 and cc not in badspikes}
+
+if database == 'OWID' and not correct:           #use OWID data (uncorrected)
+    big = {cc:new_deaths_spm[cc] for cc in bcountries_1 if max(new_deaths_spm[cc])>0.5 and cc not in badspikes}
+    bcountries = big.keys()
+    big_cases = {cc:new_cases_spm[cc] for cc in bcountries} #  bcountries filters  max(new_deaths_spm[cc])>=0.5 and cc not in badspikes}
+elif database == 'OWID' and correct:             # use OWID data (corrected)
+    big = {cc:new_deaths_spm_owid[cc] for cc in bcountries_1 if max(new_deaths_spm_owid[cc])>0.5 and cc not in badspikes}
+    bcountries = big.keys()
+    big_cases = {cc:new_cases_spm_owid[cc] for cc in bcountries} #  bcountries filters  max(new_deaths_spm[cc])>=0.5 and cc not in badspikes}
+
+elif database == 'JHU' and correct:               # use JHU data (corrected)
+    big = {cc:new_deaths_spm_jhu[cc] for cc in bcountries_1 if max(new_deaths_spm_jhu[cc])>0.5 and cc not in badspikes}
+    bcountries = big.keys()
+    big_cases = {cc:new_cases_spm_jhu[cc] for cc in bcountries} #  bcountries filters  max(new_deaths_spm[cc])>=0.5 and cc not in badspikes}
+else:
+    print('ERROR: combination of database and correct mode not implemented',database,correct)
+
 #print(len(big))
 #print(big.keys())
 
-scaled = {cc:new_deaths_spm[cc]/max(new_deaths_spm[cc]) for cc in countries}
+# scaled = {cc:new_deaths_spm[cc]/max(new_deaths_spm[cc]) for cc in bcountries}
 
 # reg_testing calculated from testing below : using piecewise linear approximation
 # note first_thresh defined below needed to use testing in connection with synced data such as big
@@ -169,7 +235,7 @@ short_reg_testing = {}
 first_thresh = {}
 thresh = 10   # better to use day when #total_deaths (ie cumulative) absolute first reaches 10 or perhaps 30 absolute as sync point & keep entire rest of trace
 for cc in bcountries:
-    tdates = len(total_deaths_x['dates'])
+    tdates = len(total_deaths['Germany'])  # changed to a particular common country to get database indept (formerly using 'dates' entry in total_Deaths_x)
     for i in range(tdates):
         if total_deaths[cc][i] >= thresh:
             short_deaths[cc] = [big[cc][j] for j in range(i,len(big[cc]))]
