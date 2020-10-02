@@ -1,3 +1,5 @@
+import lmfit
+
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
@@ -200,6 +202,44 @@ class ModelFit:
             rtn[ls]['soln'] = self.soln[:,slices[ls]][:,0]
             rtn[ls]['resid'] = rtn[ls]['soln']-rtn[ls]['data']
 
+        return rtn
+
+
+    def solvefitlog(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
+        """
+        like solvefit() but take log of data and soln before computing residual.
+        """
+        fitdata = self.get_fitdata(species,datasets)
+        lspecies = [x for x in fitdata]
+        tmaxf = len(fitdata[lspecies[0]])            
+
+        tvec = self.tsim
+        tvecf=np.arange(0,tmaxf,1)
+        tvecf1 = tvecf[1:]
+        self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
+        rtn = {}
+        slices = {}
+        for ls in lspecies:
+            if ls == 'deaths':
+                slices['deaths'] = self.model.deaths
+            if ls == 'confirmed':
+                slices['confirmed'] = self.model.confirmed
+
+        for ls in lspecies:
+            rtn[ls] = {}
+            rtn[ls]['data'] = np.array(fitdata[ls])
+            rtn[ls]['soln'] = self.soln[:,slices[ls]][:,0]
+
+            mn = min([x for x in fitdata[ls] if x>0])
+            fdat = [x if x > 0 else mn for x in fitdata[ls]]
+            lfdat = np.array([np.log(x) for x in fdat])
+
+            sdata = rtn[ls]['soln']
+            mn = min([x for x in sdata if x>0])
+            sdat = [x if x > 0 else mn for x in sdata]
+            lsdat = np.array([np.log(x) for x in sdat])
+            rtn[ls]['resid'] = lsdat - lfdat
+            self.logresid = [sdat,lsdat,fdat,lfdat,lsdat-lfdat]
         return rtn
 
 
@@ -419,7 +459,7 @@ class ModelFit:
                            max=params_init_min_max[pp][2])
         ## set initial params for fit
         for x in params_lmf:
-                if x in MyModel.params:
+                if x in self.params:
                     self.set_param(x, params_lmf[x].value)
                 if x == 'logI_0': # set other ad hoc params like this
                     self.set_I0(params_lmf['logI_0'].value)
@@ -427,13 +467,13 @@ class ModelFit:
         ## modify resid here for other optimizations
         def resid(params_lmf):
             for x in params_lmf:
-                if x in MyModel.params:
+                if x in self.params:
                     self.set_param(x, params_lmf[x].value)
             if 'logI_0' in params_lmf:
                 self.set_I0(params_lmf['logI_0'].value)            
-            fittry = self.solvefit(fit_target,fit_data)
-            res2 = np.array([x*x for x in fittry['deaths']['resid']])
-            sumres2 = np.sqrt(np.sum(res2))
+            fittry = self.solvefit(fit_target,fit_data) # use solvefitlog to get residuals as log(soln)-log(data)
+            #res2 = np.array([x*x for x in fittry['deaths']['resid']])
+            #sumres2 = np.sqrt(np.sum(res2))
             #print('resid: ',sumres2)
             return fittry[fit_target]['resid']
         ## do the fit
@@ -441,11 +481,14 @@ class ModelFit:
             if diag:
                 start = time()
                 self.residall = []
+                self.paramall = []
                 def per_iteration(pars, iteration, resd, *args, **kws):
                     res2 = np.array([x*x for x in resd])
                     sumres2 = np.sqrt(np.sum(res2))
-                    self.residall.append(sumres2)
+                    self.residall.append(sumres2)                    
+                    self.paramall.append(pars.copy())
                 outfit = lmfit.minimize(resid, params_lmf, method=fit_method,iter_cb=per_iteration)
+
                 print('elapsed time = ',time()-start)
                 lmfit.report_fit(outfit)
             else:
@@ -456,7 +499,7 @@ class ModelFit:
         ## set model params to fitted values, dump to file
         if 'outfit' in locals():
             for x in outfit.params:
-                if x in MyModel.params:
+                if x in self.params:
                     self.set_param(x, outfit.params[x].value)
             self.set_I0(outfit.params['logI_0'].value)
             ## dump new fitted values.
