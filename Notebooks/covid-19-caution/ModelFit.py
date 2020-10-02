@@ -148,7 +148,7 @@ class ModelFit:
                 print("couldn't plot xx,yy",xx,yy)
         plt.show()
 
-    def get_fitdata(self,species=['deaths'],datasets=['new_deaths_corrected_smoothed']):
+    def get_fitdata(self,species=['deaths'],datasets=['deaths_corrected_smoothed']):
         if not isinstance(species,list):
             lspecies = [species]
             ldatasets =[datasets]
