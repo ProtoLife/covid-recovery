@@ -149,7 +149,8 @@ class ModelFit:
         plt.show()
 
     def get_fitdata(self,species=['deaths'],datasets=['deaths_corrected_smoothed']):
-        if not isinstance(species,list):
+        # NB species is same as fit_targets and datasets the same as fit_data
+        if not isinstance(species,list):    # this correction only reqd if get_fitdata or solvefit called externally
             lspecies = [species]
             ldatasets =[datasets]
         else:
@@ -279,6 +280,10 @@ class ModelFit:
         tvec1 = tvec[1:]
         if not self.data is {}:
             fitdata = np.transpose(np.array([self.data[dt] for dt in datasets]))
+            fitsmoothed = False
+            for dt in datasets:
+                if 'smoothed' in dt:
+                    fitsmoothed = True
         else:
             fitdata = None
         if not fitdata is None:
@@ -321,7 +326,10 @@ class ModelFit:
         if averaging == 'weekly':
             srsoln = self.rolling_average(ssoln,7)
             if not fitdata is None:
-                srfit = self.rolling_average(sfit,7)
+                if not fitsmoothed:               
+                    srfit = self.rolling_average(sfit,7)
+                else:
+                    srfit = sfit
         else:
             srsoln = ssoln
             if not fitdata is None:
@@ -439,9 +447,29 @@ class ModelFit:
             rtn[pp] = ppp
         return rtn
 
-    def fit(self,params_init_min_max,fit_method='leastsq',fit_target='deaths',fit_data='deaths_corrected_smoothed',diag=True):
-        if fit_target not in ['deaths','confirmed']:
-            print('can only fit deaths or confirmed for now')
+    def fit(self,params_init_min_max,fit_method='leastsq',fit_targets='default',fit_data='default',diag=True):
+        if fit_targets == 'default':
+            fit_targets = self.fit_targets
+        elif isinstance(fit_targets, str):
+            fit_targets = [fit_targets]
+        if len(set(fit_targets).difference(['deaths','confirmed'])) != 0:
+            fit_targets = list(set(fit_targets).intersection(['deaths','confirmed']))
+            if len(fit_targets) == 0:
+                fit_targets = ['deaths']
+            print('can only fit deaths or confirmed for now, proceeding with',fit_targets)
+        self.fit_targets = fit_targets
+
+        if fit_data == 'default':
+            self.fit_data = fit_data = [fit_target+'_corrected_smoothed' for fit_target in fit_targets]
+        elif isinstance(fit_data, str):
+            fit_data = [fit_data]
+        if len(fit_data) == len(fit_targets):
+            self.fit_data = fit_data
+        else:
+            print('fit_targets and fit_data must have same length',len(fit_targets),len(fit_data))
+            print('proceeding with default')
+            self.fit_data = fit_data = [fit_target+'_corrected_smoothed' for fit_target in fit_targets]
+
         for pp in params_init_min_max:
             if pp is not 'logI_0': # add any other special ad hoc params here...
                 if pp not in list(self.model.param_list):
@@ -470,12 +498,13 @@ class ModelFit:
                 if x in self.params:
                     self.set_param(x, params_lmf[x].value)
             if 'logI_0' in params_lmf:
-                self.set_I0(params_lmf['logI_0'].value)            
-            fittry = self.solvefit(fit_target,fit_data) # use solvefitlog to get residuals as log(soln)-log(data)
+                self.set_I0(params_lmf['logI_0'].value)    
+
+            fittry = self.solvefit(self.fit_targets,self.fit_data) # use solvefitlog to get residuals as log(soln)-log(data)
             #res2 = np.array([x*x for x in fittry['deaths']['resid']])
             #sumres2 = np.sqrt(np.sum(res2))
             #print('resid: ',sumres2)
-            return fittry[fit_target]['resid']
+            return [fittry[fit_target]['resid'] for fit_target in self.fit_targets]    # John modified this to deal with list fit_targets
         ## do the fit
         try:
             if diag:
@@ -618,4 +647,7 @@ class ModelFit:
 
         self.startdate = startdate_t.strftime(fmt_jhu)
         self.stopdate = stopdate_t.strftime(fmt_jhu)
+
+        self.fit_targets = ['deaths']
+        self.fit_data = 'default'
 
