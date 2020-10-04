@@ -600,8 +600,21 @@ class ModelFit:
         else:
             print('data_src',data_src,'not yet hooked up: OWID data used instead')
             ts = covid_owid_ts
-        self.country = country
-        self.population = population_owid[country][-2] # -2 seems to get all countries population (no zeros)
+
+        self.country_str = country
+        if data_src == 'owid':
+            self.country = country
+        elif data_src == 'jhu':
+            if country in ['Australia', 'China', 'Denmark', 'France', 'Netherlands', 'United Kingdom']:
+                self.country = country = (country_str,'Total')
+            else:
+                self.country = country = (country_str,'')
+        else:
+            print('data_src not yet implemented, using default owid')
+            data_src = 'owid'
+            self.country = country
+
+        self.population = population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
 
         fmt_jhu = '%m/%d/%y'
         dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['confirmed']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
