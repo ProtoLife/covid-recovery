@@ -59,11 +59,14 @@ def Float(x):
 
 exec(open('ModelFit.py','r').read())
 
- 
+C_2s = 1000.   # scaling factor for c_2, to allow fit parameter c_2 to be of commensurate magnitude to other parameters
+
 def make_model(mod_name):
     """ make models of types ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']"""
+    global C_2s           # scaling factor for c_2
     rtn = {}
     I_0 =  0.00003
+    c_2s = '%f*' % C_2s   # string equation substitute scaled constant
 
     if mod_name == 'SIR':
         state = ['S', 'I', 'R', 'D']
@@ -99,7 +102,7 @@ def make_model(mod_name):
         transition = [
             Transition(origin='S', destination='I', equation='beta*I*S',
                        transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation='c_2*I*S',
+            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I*S',
                        transition_type=TransitionType.T),
             Transition(origin='S_c', destination='S', equation='c_1*S_c',
                        transition_type=TransitionType.T),
@@ -137,7 +140,7 @@ def make_model(mod_name):
         transition = [
             Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S',
                        transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation='c_2*(I+I_c)*S',
+            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',
                        transition_type=TransitionType.T),
             Transition(origin='S_c', destination='S', equation='c_1*S_c',
                        transition_type=TransitionType.T),
@@ -147,7 +150,7 @@ def make_model(mod_name):
                        transition_type=TransitionType.T),
             Transition(origin='I', destination='D', equation='mu*I',
                        transition_type=TransitionType.T),
-            Transition(origin='I', destination='I_c', equation='c_2*(I+I_c)*I',
+            Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I',
                        transition_type=TransitionType.T),
             Transition(origin='I_c', destination='R', equation='gamma*I_c',
                        transition_type=TransitionType.T),
@@ -212,7 +215,7 @@ def make_model(mod_name):
         transition = [
             Transition(origin='S', destination='E', equation='beta*I*S',
                        transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation='c_2*I*S',
+            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I*S',
                        transition_type=TransitionType.T),
             Transition(origin='S_c', destination='S', equation='c_1*S_c',
                        transition_type=TransitionType.T),
@@ -249,7 +252,7 @@ def make_model(mod_name):
         transition = [
             Transition(origin='S', destination='E', equation='beta*(I+c_0*I_c)*S',
                        transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation='c_2*(I+I_c)*S',
+            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',
                        transition_type=TransitionType.T),
             Transition(origin='S_c', destination='S', equation='c_1*S_c',
                        transition_type=TransitionType.T),
@@ -257,7 +260,7 @@ def make_model(mod_name):
                        transition_type=TransitionType.T),
             Transition(origin='E', destination='I', equation='alpha*E',
                        transition_type=TransitionType.T),
-            Transition(origin='E', destination='E_c', equation='c_2*(I+I_c)*E',
+            Transition(origin='E', destination='E_c', equation=c_2s+'c_2*(I+I_c)*E',
                        transition_type=TransitionType.T),
             Transition(origin='E_c', destination='I_c', equation='alpha*E_c',
                        transition_type=TransitionType.T),
@@ -265,7 +268,7 @@ def make_model(mod_name):
                        transition_type=TransitionType.T),
             Transition(origin='I', destination='R', equation='gamma*I',
                        transition_type=TransitionType.T),
-            Transition(origin='I', destination='I_c', equation='c_2*(I+I_c)*I',
+            Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I',
                        transition_type=TransitionType.T),
             Transition(origin='I', destination='D', equation='mu*I',
                        transition_type=TransitionType.T),
@@ -342,7 +345,7 @@ def make_model(mod_name):
         transition = [
             Transition(origin='S', destination='E', equation='(beta_1*I_1+beta_2*I_2+beta_3*I_3)*S',
                        transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation='c_2*I_3*S',
+            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I_3*S',
                        transition_type=TransitionType.T),
             Transition(origin='S_c', destination='S', equation='c_1*S_c',
                        transition_type=TransitionType.T),
@@ -392,13 +395,13 @@ def make_model(mod_name):
                        transition_type=TransitionType.T),
             Transition(origin='S_c', destination='E_c', equation='c_0*(beta_1*I_1+beta_2*I_2+beta_3*I_3+c_0*beta_1*I_c)*S_c',
                        transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation='c_2*I_3*S',
+            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I_3*S',
                        transition_type=TransitionType.T),
             Transition(origin='S_c', destination='S', equation='c_1*S_c',
                        transition_type=TransitionType.T),
             Transition(origin='E', destination='I_1', equation='alpha*E',
                        transition_type=TransitionType.T),
-            Transition(origin='E', destination='E_c', equation='c_2*I_3*E',
+            Transition(origin='E', destination='E_c', equation=c_2s+'c_2*I_3*E',
                        transition_type=TransitionType.T),
             Transition(origin='E_c', destination='I_c', equation='alpha*E_c',
                        transition_type=TransitionType.T),
@@ -406,7 +409,7 @@ def make_model(mod_name):
                        transition_type=TransitionType.T),
             Transition(origin='I_1', destination='R', equation='gamma_1*I_1',
                        transition_type=TransitionType.T),
-            Transition(origin='I_1', destination='I_c', equation='c_2*I_3*I_1',  # error corrected I_1, mistakenly was I_c 
+            Transition(origin='I_1', destination='I_c', equation=c_2s+'c_2*I_3*I_1',  # error corrected I_1, mistakenly was I_c 
                        transition_type=TransitionType.T),    
             Transition(origin='I_c', destination='R', equation='gamma_1*I_c',
                        transition_type=TransitionType.T),
@@ -449,11 +452,11 @@ def make_model(mod_name):
         param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
 
         transition = [
-            Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u'),
-            Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+c_2*(I+I_c)*S-k_u*(1-W)*S_c'),
+            Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-%f*c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
+            Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+%f*c_2*(I+I_c)*S-k_u*(1-W)*S_c' % C_2s),
             Transition(origin='S_u', equation='-beta*(I+c_0*I_c)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
-            Transition(origin='I', equation='beta*(I+c_0*I_c)*S-gamma*I-mu*I+c_1*I_c-c_2*(I+I_c)*I'),
-            Transition(origin='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c-gamma*I_c-mu*I_c-c_1*I_c+c_2*(I+I_c)*I'),
+            Transition(origin='I', equation='beta*(I+c_0*I_c)*S-gamma*I-mu*I+c_1*I_c-%f*c_2*(I+I_c)*I' % C_2s),
+            Transition(origin='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c-gamma*I_c-mu*I_c-c_1*I_c+%f*c_2*(I+I_c)*I' % C_2s),
             Transition(origin='R', equation='gamma*(I+I_c)'),
             Transition(origin='D', equation='mu*(I+I_c)'),
             Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)')
@@ -482,14 +485,14 @@ def make_model(mod_name):
 
         transition = [
             Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S', transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation='c_2*(I+I_c)*S', transition_type=TransitionType.T),
+            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S', transition_type=TransitionType.T),
             Transition(origin='S', destination='S_u', equation='k_u*(1-W)*S', transition_type=TransitionType.T),
             Transition(origin='S_c', destination='S', equation='c_1*S_c', transition_type=TransitionType.T),
             Transition(origin='S_c', destination='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c', transition_type=TransitionType.T),
             Transition(origin='S_c', destination='S_u', equation='k_u*(1-W)*S_c', transition_type=TransitionType.T),
             Transition(origin='S_u', destination='S', equation='k_1*S_u', transition_type=TransitionType.T),   
             Transition(origin='S_u', destination='I', equation='beta*(I+c_0*I_c)*S_u', transition_type=TransitionType.T),    
-            Transition(origin='I', destination='I_c', equation='c_2*(I+I_c)*I', transition_type=TransitionType.T),    
+            Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I', transition_type=TransitionType.T),    
             Transition(origin='I', destination='R', equation='gamma*I', transition_type=TransitionType.T), 
             Transition(origin='I', destination='D', equation='mu*I', transition_type=TransitionType.T), 
             Transition(origin='I_c', destination='I', equation='c_1*I_c', transition_type=TransitionType.T),
@@ -522,13 +525,13 @@ def make_model(mod_name):
         param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
 
         transition = [
-            Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u'),
-            Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+c_2*(I+I_c)*S-k_u*(1-W)*S_c'),
+            Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-%f*c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
+            Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+%f*c_2*(I+I_c)*S-k_u*(1-W)*S_c' % C_2s),
             Transition(origin='S_u', equation='-beta*(I+c_0*I_c)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
-            Transition(origin='E', equation='beta*(I+c_0*I_c)*(S+S_u)-alpha*E+c_1*E_c-c_2*(I+I_c)*E'),
-            Transition(origin='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c-alpha*E_c-c_1*E_c+c_2*(I+I_c)*E'),
-            Transition(origin='I', equation='alpha*E-gamma*I-mu*I+c_1*I_c-c_2*(I+I_c)*I'),
-            Transition(origin='I_c', equation='alpha*E_c-gamma*I_c-mu*I_c-c_1*I_c+c_2*(I+I_c)*I'),
+            Transition(origin='E', equation='beta*(I+c_0*I_c)*(S+S_u)-alpha*E+c_1*E_c-%f*c_2*(I+I_c)*E' % C_2s),
+            Transition(origin='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c-alpha*E_c-c_1*E_c+%f*c_2*(I+I_c)*E' % C_2s),
+            Transition(origin='I', equation='alpha*E-gamma*I-mu*I+c_1*I_c-%f*c_2*(I+I_c)*I' % C_2s),
+            Transition(origin='I_c', equation='alpha*E_c-gamma*I_c-mu*I_c-c_1*I_c+%f*c_2*(I+I_c)*I' % C_2s),
             Transition(origin='R', equation='gamma*(I+I_c)'),
             Transition(origin='D', equation='mu*(I+I_c)'),
             Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)')
@@ -557,14 +560,14 @@ def make_model(mod_name):
                       'gamma_1', 'gamma_2', 'gamma_3','mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w', 'kappa', 'N'] # order also important
 
         transition = [
-            Transition(origin='S', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S+c_1*S_c-c_2*(I_3)*S-k_u*(1-W)*S+k_1*S_u'),
-            Transition(origin='S_c', equation='-c_0*(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_c-c_1*S_c+c_2*(I_3)*S-k_u*(1-W)*S_c'),
+            Transition(origin='S', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S+c_1*S_c-%f*c_2*(I_3)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
+            Transition(origin='S_c', equation='-c_0*(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_c-c_1*S_c+%f*c_2*(I_3)*S-k_u*(1-W)*S_c' % C_2s),
             Transition(origin='S_u', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
             Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)'),
-            Transition(origin='E', equation='beta_1*(I_1+c_0*I_c)*(S+S_u)-alpha*E-c_2*(I_3)*E+c_1*E_c'),
-            Transition(origin='E_c', equation='c_0*beta_1*(I_1+c_0*I_c)*S_c-alpha*E_c+c_2*(I_3)*E-c_1*E_c'),
-            Transition(origin='I_1', equation='alpha*E-gamma_1*I_1-p_1*I_1-c_2*(I_3)*I_1+c_1*I_c'),
-            Transition(origin='I_c', equation='alpha*E_c-gamma_1*I_c-p_1*I_c+c_2*(I_3)*I_1-c_1*I_c'), # changed to I_c, prints better
+            Transition(origin='E', equation='beta_1*(I_1+c_0*I_c)*(S+S_u)-alpha*E-%f*c_2*(I_3)*E+c_1*E_c' % C_2s),
+            Transition(origin='E_c', equation='c_0*beta_1*(I_1+c_0*I_c)*S_c-alpha*E_c+%f*c_2*(I_3)*E-c_1*E_c' % C_2s),
+            Transition(origin='I_1', equation='alpha*E-gamma_1*I_1-p_1*I_1-%f*c_2*(I_3)*I_1+c_1*I_c' % C_2s),
+            Transition(origin='I_c', equation='alpha*E_c-gamma_1*I_c-p_1*I_c+%f*c_2*(I_3)*I_1-c_1*I_c' % C_2s), # changed to I_c, prints better
             Transition(origin='I_2', equation='p_1*(I_1+I_c)-gamma_2*I_2-p_2*I_2'),
             Transition(origin='I_3', equation='p_2*I_2-gamma_3*I_3-mu*I_3'),     # error corrected, this is equation for I_3 not I_2
             Transition(origin='R', equation='gamma_1*(I_1+I_c)+gamma_2*I_2+gamma_3*I_3'),
@@ -693,7 +696,8 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
     return (b,a,g,p,u,c,k,N)
 
 def base2vectors(sbparams,cbparams,fbparams):
-    """ converts dictionary of bae parameters to vector of parameters and then to pygom simulation parameters"""
+    """ converts dictionary of base parameters to vector of parameters and then to pygom simulation parameters"""
+    global C_2s
     Exposure =sbparams['Exposure']
     IncubPeriod = sbparams['IncubPeriod']
     DurMildInf = sbparams['DurMildInf']
@@ -739,7 +743,7 @@ def base2vectors(sbparams,cbparams,fbparams):
 
     c[0]=CautionFactor
     c[1]=1/CautionRetention
-    c[2]=1/(N*ICUFrac*CautionICUFrac)     # this is the rate coefficient giving 1/day at I3 = denominator
+    c[2]=1/(N*(ICUFrac*C_2s)*CautionICUFrac)     # this is the rate coefficient giving 1/day at I3 = denominator
 
     k[0]=1/EconomicStriction              
     k[1]=1/EconomicRetention            
@@ -755,6 +759,7 @@ def base2params(sbparams,cbparams,fbparams,smodel):
 def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     """ converts vector of parameters back to dictionaries of base parameters
         assumes only one parameter for bvector in the form b*[0,1,0,0]"""
+    global C_2s
     Exposure          = b[1] # assuming b vector has structure b*[0,1,0,0]
     IncubPeriod       = a
 
@@ -769,7 +774,7 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
 
     CautionFactor     = c[0]
     CautionRetention  = 1/c[1]
-    CautionICUFrac    = 1/(N*c[2]*ICUFrac)
+    CautionICUFrac    = 1/(N*c[2]*(C_2s*ICUFrac))
     
     EconomicStriction     =  1/k[0]
     EconomicRetention     =  1/k[1]

@@ -109,9 +109,10 @@ class ModelFit:
     def set_I0(self,logI_0):
         I0 = 10**logI_0
         self.model.initial_values[0][0] = 1.0 - I0
-        self.model.initial_values[0][2] = I0
+        self.model.initial_values[0][self.model.I_1] = I0    # use model specific position of initial infective compartment
         self.initial_values[0][0] = 1.0 - I0
-        self.initial_values[0][2] = I0
+        self.initial_values[0][self.model.I_1] = I0
+        # print('Setting I0 value at index',self.model.I_1,'to',I0)
         
 
     def difference(self,datain):
@@ -305,6 +306,7 @@ class ModelFit:
         model = self.model
 
         self.soln = scipy.integrate.odeint(model.ode, model.initial_values[0], tvec[1::])
+        # print('debug, calling scipy integrate on self.model with IC', model.initial_values[0])
         #Plot
         # ax = axeslist[nm]
         if axis == None: 
@@ -477,9 +479,10 @@ class ModelFit:
                     print(pp,':  bad param for',self.model.modelname,'model.')
                     return
         for pp in params_init_min_max:
-            if len(params_init_min_max[pp]) != 3:
+            if len(params_init_min_max[pp]) < 3:
                 print('params_init_min_max has incorrect form.')
                 print('should be dictionary with each entry as tuple (initial_value,min,max).')
+                print('or dictionary with each entry as tuple (initial_value,min,max,step).')
                 return
         params_lmf = lmfit.Parameters()
         for pp in params_init_min_max:
@@ -505,7 +508,7 @@ class ModelFit:
             #res2 = np.array([x*x for x in fittry['deaths']['resid']])
             #sumres2 = np.sqrt(np.sum(res2))
             #print('resid: ',sumres2)
-            return [fittry[fit_target]['resid'] for fit_target in self.fit_targets]    # John modified this to deal with list fit_targets
+            return [fittry[fit_target]['resid'] for fit_target in self.fit_targets]
         ## do the fit
         try:
             if diag:
