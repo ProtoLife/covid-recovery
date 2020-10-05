@@ -607,9 +607,9 @@ class ModelFit:
             self.country = country
         elif data_src == 'jhu':
             if country in ['Australia', 'China', 'Denmark', 'France', 'Netherlands', 'United Kingdom']:
-                self.country = country = (country_str,'Total')
+                self.country = country = (self.country_str,'Total')
             else:
-                self.country = country = (country_str,'')
+                self.country = country = (self.country_str,'')
         else:
             print('data_src not yet implemented, using default owid')
             data_src = 'owid'
