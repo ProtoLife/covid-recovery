@@ -1,4 +1,5 @@
 import lmfit
+from time import time
 
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
