@@ -602,7 +602,7 @@ class ModelFit:
             print('data_src',data_src,'not yet hooked up: OWID data used instead')
             ts = covid_owid_ts
 
-        self.country_str = country
+        self.country_str = country_str = country
         if data_src == 'owid':
             self.country = country
         elif data_src == 'jhu':
