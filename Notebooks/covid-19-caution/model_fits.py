@@ -879,6 +879,7 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     model = fullmodel['model']
     params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
     model.initial_values = base2ICs(I0,N,smodel,model)
+    # model.baseparams = list(sbparams)+list(cbparams)+list(fbparams)
     model.parameters = params_in # sets symbolic name parameters
     fullmodel['params'] = params_in    # sets string params
     fullmodel['sbparams'] = sbparams

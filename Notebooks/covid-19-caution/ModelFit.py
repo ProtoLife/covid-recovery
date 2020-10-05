@@ -94,6 +94,23 @@ class ModelFit:
         tmp = {param:value}
         self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
 
+    def set_base_param(self,param,value):
+        """sets base parameter and converts to ode parameters for simulation
+           note that this process is pretty inefficient, operating one by one on parameters
+        """
+        plist = [p.name for p in self.model.param_list]
+        if param not in self.baseparams:
+            print('Error:  param name',param,'is not a base parameter for this',self.modelname,'model.')
+        if param in list(self.sbparams):
+            self.sbparams[param] = value
+        elif param in list(self.cbparams):
+            self.cbparams[param] = value  
+        elif param in list(self.fbparams):
+            self.fbparams[param] = value 
+        b,a,g,p,u,c,k,N,I0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)
+        params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
+        self.model.parameters = params_in # pygom magic sets the right parameter in the model.parameters dictionary.
+
     def set_initial_values(self,ival,t0=None):
         # consistency check:
         if len(self.initial_values[0]) != len(self.model.initial_values[0]):
@@ -450,7 +467,10 @@ class ModelFit:
             rtn[pp] = ppp
         return rtn
 
-    def fit(self,params_init_min_max,fit_method='leastsq',fit_targets='default',fit_data='default',diag=True):
+    def fit(self,params_init_min_max,param_class='ode',fit_method='leastsq',fit_targets='default',fit_data='default',diag=True):
+        if param_class not in ['ode','base']:
+            print('parameters must be either all in class ode or base currently, not',param_class) # logI_0 is in both classes
+            return
         if fit_targets == 'default':
             fit_targets = self.fit_targets
         elif isinstance(fit_targets, str):
@@ -475,15 +495,21 @@ class ModelFit:
 
         for pp in params_init_min_max:
             if pp is not 'logI_0': # add any other special ad hoc params here...
-                if pp not in list(self.model.param_list):
-                    print(pp,':  bad param for',self.model.modelname,'model.')
-                    return
+                if param_class == 'ode':
+                    if pp not in list(self.model.param_list):
+                        print(pp,':  bad param for',self.model.modelname,'model.')
+                        return
+                elif param_class == 'base':
+                    if pp not in self.baseparams:
+                        print(pp,':  bad base param for',self.model.modelname,'model.')
+                        return
         for pp in params_init_min_max:
-            if len(params_init_min_max[pp]) < 3:
+            if len(params_init_min_max[pp]) < 3: # length may be 3 or 4 (including set data for sliders)
                 print('params_init_min_max has incorrect form.')
                 print('should be dictionary with each entry as tuple (initial_value,min,max).')
                 print('or dictionary with each entry as tuple (initial_value,min,max,step).')
                 return
+
         params_lmf = lmfit.Parameters()
         for pp in params_init_min_max:
             params_lmf.add(pp,params_init_min_max[pp][0],
@@ -491,16 +517,20 @@ class ModelFit:
                            max=params_init_min_max[pp][2])
         ## set initial params for fit
         for x in params_lmf:
-                if x in self.params:
-                    self.set_param(x, params_lmf[x].value)
-                if x == 'logI_0': # set other ad hoc params like this
-                    self.set_I0(params_lmf['logI_0'].value)
+            if x in self.params:
+                self.set_param(x, params_lmf[x].value)
+            elif x in self.baseparams:
+                self.set_base_param(x, params_lmf[x].value)
+        if 'logI_0' in params_lmf: # set other ad hoc params like this
+                self.set_I0(params_lmf['logI_0'].value) 
 
         ## modify resid here for other optimizations
         def resid(params_lmf):
             for x in params_lmf:
                 if x in self.params:
                     self.set_param(x, params_lmf[x].value)
+                elif x in self.baseparams:
+                    self.set_base_param(x, params_lmf[x].value)
             if 'logI_0' in params_lmf:
                 self.set_I0(params_lmf['logI_0'].value)    
 
@@ -595,7 +625,8 @@ class ModelFit:
                     self.fbparams = model_d['fbparams']
                     self.dbparams = model_d['dbparams']
                     self.initial_values = model_d['initial_values']
-
+                    
+        self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams)
         # set up data and times for simulation
         if data_src == 'jhu':
             ts = covid_ts
