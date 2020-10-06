@@ -170,6 +170,65 @@ class ModelFit:
                 print("couldn't plot xx,yy",xx,yy)
         plt.show()
 
+    def slidefitplot(self,param_class='ode',**myparams):
+        """
+        perform plot of confirmed cases and deaths with current values of slider parameters
+        stored in teh dictionary myparams
+        note currently deaths are here magnified by x10
+        """
+        for pm in myparams:
+            if pm is 'logI_0':
+                self.set_I0(myparams[pm])
+            else:
+                if param_class == 'ode':
+                    if pm not in self.params:
+                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
+                        return
+                    else:
+                        self.set_param(pm,myparams[pm])
+                elif param_class == 'base':
+                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
+                        print('Error:  this',self.modelname,'does not have base parameter',pm)
+                        return
+                    else:
+                        self.set_base_param(pm,myparams[pm])
+        self.solveplot(species=['deaths','confirmed'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = (15,15))
+
+    def allsliderparams(self,params_init_min_max={}):
+        """
+            construct dictionary of slider widgets corresponding to 
+            input params_init_min_max is the dictionary of tuples for parameter optimization (3 or 4-tuples)
+            pimm is short name for params_init_min_max
+        """
+        pimm = params_init_min_max
+        if pimm == {}:
+            print('missing non empty dictionary params_init_min_max')
+            return
+        elif len(pimm[list(pimm.keys())[0]]) != 4:
+            print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
+            return
+        slidedict = {}
+        for pm in pimm:
+            slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
+                                style=style,layout=slider_layout,continuous_update=False,readout_format='.3f')})
+        return slidedict 
+
+    def transfer_fit_to_params_init(self,params_init_min_max):
+        """ used to transfer current fit parameters as initial parameter values to an existing
+            initialization structure params_init_min_max
+            only those parameters in params_init_min_max will have initial values updated
+        """
+        plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        for ptype in plist:
+            for p in ptype:
+                if p in params_init_min_max:
+                    pv = params_init_min_max[p]
+                    if len(pv) == 4:
+                        params_init_min_max[p] = (ptype[p],pv[1],pv[2],pv[3])
+                    else:
+                        params_init_min_max[p] = (ptype[p],pv[1],pv[2])
+        return params_init_min_max
+
     def get_fitdata(self,species=['deaths'],datasets=['deaths_corrected_smoothed']):
         # NB species is same as fit_targets and datasets the same as fit_data
         if not isinstance(species,list):    # this correction only reqd if get_fitdata or solvefit called externally
