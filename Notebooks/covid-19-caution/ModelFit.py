@@ -470,9 +470,17 @@ class ModelFit:
         return rtn
 
     def fit(self,params_init_min_max,param_class='ode',fit_method='leastsq',fit_targets='default',fit_data='default',diag=True):
+        """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
+            from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
+            to data specified in fit_data, with option of diagnosis output diag
+        """
+        # process input parameters ------------------------------------------------------------------------------------------
+        # 1. param_class
         if param_class not in ['ode','base']:
             print('parameters must be either all in class ode or base currently, not',param_class) # logI_0 is in both classes
             return
+        
+        # 2. fit_targets    
         if fit_targets == 'default':
             fit_targets = self.fit_targets
         elif isinstance(fit_targets, str):
@@ -483,7 +491,8 @@ class ModelFit:
                 fit_targets = ['deaths']
             print('can only fit deaths or confirmed for now, proceeding with',fit_targets)
         self.fit_targets = fit_targets
-
+        
+        # 3. fit_data
         if fit_data == 'default':
             self.fit_data = fit_data = [fit_target+'_corrected_smoothed' for fit_target in fit_targets]
         elif isinstance(fit_data, str):
@@ -494,7 +503,8 @@ class ModelFit:
             print('fit_targets and fit_data must have same length',len(fit_targets),len(fit_data))
             print('proceeding with default')
             self.fit_data = fit_data = [fit_target+'_corrected_smoothed' for fit_target in fit_targets]
-
+        
+        # 4. params_init_min_max
         for pp in params_init_min_max:
             if pp is not 'logI_0': # add any other special ad hoc params here...
                 if param_class == 'ode':
@@ -512,21 +522,23 @@ class ModelFit:
                 print('or dictionary with each entry as tuple (initial_value,min,max,step).')
                 return
 
+        # prepare parameters for lmfit ------------------------------------------------------------------------------------
         params_lmf = lmfit.Parameters()
         for pp in params_init_min_max:
             params_lmf.add(pp,params_init_min_max[pp][0],
                            min=params_init_min_max[pp][1],
                            max=params_init_min_max[pp][2])
+
         ## set initial params for fit
         for x in params_lmf:
             if x in self.params:
                 self.set_param(x, params_lmf[x].value)
             elif x in self.baseparams:
                 self.set_base_param(x, params_lmf[x].value)
-        if 'logI_0' in params_lmf: # set other ad hoc params like this
+        if 'logI_0' in params_lmf: # set other ad hoc params in both sets like this
                 self.set_I0(params_lmf['logI_0'].value) 
 
-        ## modify resid here for other optimizations
+        ## modify resid here for other optimizations -----------------------------------------------------------------------
         def resid(params_lmf):
             for x in params_lmf:
                 if x in self.params:
@@ -541,7 +553,8 @@ class ModelFit:
             #sumres2 = np.sqrt(np.sum(res2))
             #print('resid: ',sumres2)
             return [fittry[fit_target]['resid'] for fit_target in self.fit_targets]
-        ## do the fit
+
+        ## do the fit -------------------------------------------------------------------------------------------------------
         try:
             if diag:
                 start = time()
@@ -561,7 +574,8 @@ class ModelFit:
         except Exception as e:
             print('Problem with fit...')
             print(e)
-        ## set model params to fitted values, dump to file
+
+        ## set model params to fitted values, dump to file --------------------------------------------------------------------
         if 'outfit' in locals():
             for x in outfit.params:
                 if x in self.params:
@@ -569,8 +583,8 @@ class ModelFit:
                 elif 'logI_0' in outfit.params:
                     self.set_I0(outfit.params['logI_0'].value)
                 elif 'I0' in outfit.params:
-                    logI0 = np.log10(outfit.params['I0'])
-                    self.set_I0(logI0)                    
+                    logI_0 = np.log10(outfit.params['I0'])
+                    self.set_I0(logI_0)                    
                     
             ## dump new fitted values.
             self.outfit = outfit

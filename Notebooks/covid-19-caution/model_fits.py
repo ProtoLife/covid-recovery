@@ -670,24 +670,31 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
     p = [None,None,None]
     c = [None,None,None]
     k = [None,None,None,None]
+
+    a=params['alpha']
+
     b[0]=0.0
     b[1]=params['beta_1']
     b[2]=params['beta_2']
     b[3]=params['beta_3']
+
     g[0]=0.0
     g[1]=params['gamma_1']
     g[2]=params['gamma_2']
     g[3]=params['gamma_3']
+
     p[0]=0.0
     p[1]=params['p_1']
     p[2]=params['p_2']
-    a=params['alpha']
-    u=params['mu']
+    u=params['mu']       # equivalent to p[3]
+
     N=params['N']
+
     if 'C' in modelname: # models with caution 
         c[0]=params['c_1']
         c[1]=params['c_2']
         c[2]=params['c_3']
+
     if 'U' in modelname: # models with economic correction to caution  
         k[0] = params['k_u']
         k[1] = params['k_1']
@@ -708,7 +715,7 @@ def base2vectors(sbparams,cbparams,fbparams):
     TimeICUDeath = sbparams['TimeICUDeath']
     DurHosp = sbparams['DurHosp']
     ICUFrac = sbparams['ICUFrac']
-    I0 = sbparams['I0']
+    I0 = 10**sbparams['logI_0']
 
     CautionFactor = cbparams['CautionFactor']
     CautionRetention = cbparams['CautionRetention']
@@ -760,7 +767,7 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     """ converts vector of parameters back to dictionaries of base parameters
         assumes only one parameter for bvector in the form b*[0,1,0,0]"""
     global C_2s
-    Exposure          = b[1] # assuming b vector has structure b*[0,1,0,0]
+    Exposure          = b[1]*N # assuming b vector has structure b*[0,1,0,0]
     IncubPeriod       = a
 
     FracMild          = g[1]/(g[1]+p[1])
@@ -783,7 +790,7 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     
     sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
                 'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,    # FracCritical should not be independently varied
-                'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'I0':I0}
+                'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':np.log10(I0)}
     cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,            
                 'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
                 'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
@@ -805,6 +812,7 @@ def base2ICs(I0,N,smodel,model):
 def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     """ supply default parameters for those not already defined as arguments 
         does not check if non None arguments are correctly defined """
+    """    
     if not sbparams:      # standard params
         Exposure=0.25     # Rate coefficient for exposure per individual in contact per day
         IncubPeriod=5     #Incubation period, days 
@@ -816,7 +824,8 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         TimeICUDeath=7    #Time from ICU admission to death, days
         DurHosp=11        #Duration of hospitalization, days
         ICUFrac= 0.001    # Fraction of ICUs relative to population size N
-        I0 = 0.00003      # Fraction of population initially infected
+        logI_0 = np.log10(0.0000003)      # Fraction of population initially infected
+    """
     if not sbparams:      # standard params set 2 from Germany fit
         Exposure=0.4     # Rate coefficient for exposure per individual in contact per day
         IncubPeriod=5     #Incubation period, days 
@@ -828,11 +837,11 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         TimeICUDeath=5    #Time from ICU admission to death, days
         DurHosp=4         #Duration of hospitalization, days
         ICUFrac= 0.001    # Fraction of ICUs relative to population size N
-        I0 = 0.0000003    # Fraction of population initially infected
+        logI_0 = np.log10(0.0000003)  # Fraction of population initially infected
 
         sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
                    'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
-                   'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'I0':I0}
+                   'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':logI_0}
     if not cbparams:          # Model extension by John McCaskill to include caution                     # former values
         CautionFactor= 0.3    # Fractional reduction of exposure rate for cautioned individuals
         CautionRetention= 14. # Duration of cautionary state of susceptibles (4 weeks)
