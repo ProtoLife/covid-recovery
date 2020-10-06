@@ -709,8 +709,8 @@ def base2vectors(sbparams,cbparams,fbparams):
     IncubPeriod = sbparams['IncubPeriod']
     DurMildInf = sbparams['DurMildInf']
     FracMild = sbparams['FracMild']
-    FracSevere = sbparams['FracSevere']
     FracCritical = sbparams['FracCritical']
+    FracSevere=1-FracMild-FracCritical
     CFR = sbparams['CFR']
     TimeICUDeath = sbparams['TimeICUDeath']
     DurHosp = sbparams['DurHosp']
@@ -719,7 +719,7 @@ def base2vectors(sbparams,cbparams,fbparams):
 
     CautionFactor = cbparams['CautionFactor']
     CautionRetention = cbparams['CautionRetention']
-    CautionICUFrac = cbparams['CautionICUFrac']
+    CautionExposure = cbparams['CautionExposure']
 
     EconomicStriction =  cbparams['EconomicStriction']
     EconomicRetention =  cbparams['EconomicRetention']
@@ -727,7 +727,7 @@ def base2vectors(sbparams,cbparams,fbparams):
     EconomicCostOfCaution = cbparams['EconomicCostOfCaution']
     
     FracConfirmedDet = fbparams['FracConfirmedDet']
-    FracRecoveredDet = fbparams['FracRecoveredDet']
+    FracRecoveredDet = FracConfirmedDet
     FracDeathsDet = fbparams['FracDeathsDet']
     
     N=1
@@ -742,7 +742,7 @@ def base2vectors(sbparams,cbparams,fbparams):
     u=(1/TimeICUDeath)*(CFR/FracCritical) # death rate from ICU
     g[3]=(1/TimeICUDeath)-u               # recovery rate
 
-    p[2]=(1/DurHosp)*(FracCritical/(FracCritical+FracSevere))
+    p[2]=(1/DurHosp)*(FracCritical/(1-FracMild))
     g[2]=(1/DurHosp)-p[2]
 
     g[1]=(1/DurMildInf)*FracMild
@@ -750,7 +750,7 @@ def base2vectors(sbparams,cbparams,fbparams):
 
     c[0]=CautionFactor
     c[1]=1/CautionRetention
-    c[2]=1/(N*(ICUFrac*C_2s)*CautionICUFrac)     # this is the rate coefficient giving 1/day at I3 = denominator
+    c[2]=1/(N*(ICUFrac*C_2s)*CautionExposure)     # this is the rate coefficient giving 1/day at I3 = denominator
 
     k[0]=1/EconomicStriction              
     k[1]=1/EconomicRetention            
@@ -771,9 +771,9 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     IncubPeriod       = a
 
     FracMild          = g[1]/(g[1]+p[1])
-    FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2]))   # range is 0 to 1-FracMild : could in principle switch to this as independent 
-    # FracCritical       = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
-    FracCritical      = 1 - FracMild -FracSevere                # not independent
+    #FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2]))   
+    FracCritical       = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
+    FracSevere        = 1 - FracMild -FracCritical                # not independent
     CFR               = (u/(g[3]+u))*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
     IncubPeriod       = 1/(g[1]+p[1])
     DurHosp           = 1/(g[2]+p[2])
@@ -781,7 +781,7 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
 
     CautionFactor     = c[0]
     CautionRetention  = 1/c[1]
-    CautionICUFrac    = 1/(N*c[2]*(C_2s*ICUFrac))
+    CautionExposure    = 1/(N*c[2]*(C_2s*ICUFrac))
     
     EconomicStriction     =  1/k[0]
     EconomicRetention     =  1/k[1]
@@ -789,9 +789,9 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     EconomicCostOfCaution =  k[3]
     
     sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
-                'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,    # FracCritical should not be independently varied
-                'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':np.log10(I0)}
-    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,            
+                'FracMild':FracMild,'FracCritical':FracCritical,'CFR':CFR,
+                'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':np.log10(I0)}
+    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionExposure':CautionExposure,            
                 'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
                 'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
    
@@ -812,27 +812,13 @@ def base2ICs(I0,N,smodel,model):
 def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     """ supply default parameters for those not already defined as arguments 
         does not check if non None arguments are correctly defined """
-    """    
-    if not sbparams:      # standard params
-        Exposure=0.25     # Rate coefficient for exposure per individual in contact per day
-        IncubPeriod=5     #Incubation period, days 
-        DurMildInf=10     #Duration of mild infections, days
-        FracMild=0.8      #Fraction of infections that are mild
-        FracSevere=0.15   #Fraction of infections that are severe
-        FracCritical=1-FracMild-FracSevere #Fraction of infections that are critical
-        CFR=0.02          #Case fatality rate (fraction of infections resulting in death)
-        TimeICUDeath=7    #Time from ICU admission to death, days
-        DurHosp=11        #Duration of hospitalization, days
-        ICUFrac= 0.001    # Fraction of ICUs relative to population size N
-        logI_0 = np.log10(0.0000003)      # Fraction of population initially infected
-    """
+
     if not sbparams:      # standard params set 2 from Germany fit
         Exposure=0.4     # Rate coefficient for exposure per individual in contact per day
         IncubPeriod=5     #Incubation period, days 
         DurMildInf=10     #Duration of mild infections, days
         FracMild=0.7      #Fraction of infections that are mild
-        FracSevere=0.20   #Fraction of infections that are severe
-        FracCritical=1-FracMild-FracSevere  #Fraction of infections that are critical
+        FracCritical=0.10   #Fraction of infections that are critical
         CFR=0.05          #Case fatality rate (fraction of infections resulting in death)
         TimeICUDeath=5    #Time from ICU admission to death, days
         DurHosp=4         #Duration of hospitalization, days
@@ -840,39 +826,28 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         logI_0 = np.log10(0.0000003)  # Fraction of population initially infected
 
         sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
-                   'FracMild':FracMild,'FracSevere':FracSevere,'FracCritical':FracCritical,
-                   'CFR':CFR,'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':logI_0}
-    if not cbparams:          # Model extension by John McCaskill to include caution                     # former values
-        CautionFactor= 0.3    # Fractional reduction of exposure rate for cautioned individuals
-        CautionRetention= 14. # Duration of cautionary state of susceptibles (4 weeks)
-        CautionICUFrac= 0.25  # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
-        EconomicStriction = CautionRetention 
-        EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
-        EconomyRelaxation = CautionRetention
-        EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
+                   'FracMild':FracMild,'FracCritical':FracCritical,'CFR':CFR,
+                   'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':logI_0}
+
     if not cbparams:          # Model extension by John McCaskill to include caution                     # set 2 based on Germany fit
         CautionFactor= 0.1    # Fractional reduction of exposure rate for cautioned individuals
-        CautionRetention= 1/0.015 # Duration of cautionary state of susceptibles (4 weeks)
-        CautionICUFrac= 0.1   # Fraction of ICUs occupied leading to 90% of susceptibles in caution 
-        EconomicStriction = CautionRetention 
-        EconomicRetention = CautionRetention # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
-        EconomyRelaxation = CautionRetention
+        CautionRetention= 60. # Duration of cautionary state of susceptibles (8 weeks)
+        CautionExposure= 0.1  # Rate of transition to caution per (individual per ICU) per day
+        EconomicStriction = 30.
+        EconomicRetention = 60. # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
+        EconomyRelaxation = 60.
         EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
 
-    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionICUFrac':CautionICUFrac,
+        cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionExposure':CautionExposure,
                 'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
                 'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
 
-    if not fbparams:          # Model fitting extension to allow for incomplete detection
-        FracConfirmedDet=1.0  # Fraction of recovered individuals measured : plots made with this parameter
-        FracRecoveredDet=FracConfirmedDet # Fraction of recovered individuals measured
-        FracDeathsDet=1.0
     if not fbparams:          # Model fitting extension to allow for incomplete detection
         FracConfirmedDet=1.0 # Fraction of recovered individuals measured : plots made with this parameter
         FracRecoveredDet=FracConfirmedDet # Fraction of recovered individuals measured
         FracDeathsDet=1.0
 
-        fbparams = {'FracConfirmedDet':FracConfirmedDet,'FracRecoveredDet':FracRecoveredDet,'FracDeathsDet':FracDeathsDet}
+        fbparams = {'FracConfirmedDet':FracConfirmedDet,'FracDeathsDet':FracDeathsDet}
 
     if not dbparams:     # extra data-related params for defining a run, including possible fitting with sliders:
         dbparams = {'country':'Germany','data_src':'owid'}
