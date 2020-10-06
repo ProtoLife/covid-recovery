@@ -109,7 +109,9 @@ class ModelFit:
             self.fbparams[param] = value 
         b,a,g,p,u,c,k,N,I0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)
         params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
-        self.model.parameters = params_in # pygom magic sets the right parameter in the model.parameters dictionary.
+        for pm in self.params:
+            self.params[pm] = params_in[pm] # NB: vector2params returns all params including for U model
+        self.model.parameters = self.params # pygom magic sets the right parameter in the model.parameters dictionary.
 
     def set_initial_values(self,ival,t0=None):
         # consistency check:
@@ -564,8 +566,14 @@ class ModelFit:
             for x in outfit.params:
                 if x in self.params:
                     self.set_param(x, outfit.params[x].value)
-            self.set_I0(outfit.params['logI_0'].value)
+                elif 'logI_0' in outfit.params:
+                    self.set_I0(outfit.params['logI_0'].value)
+                elif 'I0' in outfit.params:
+                    logI0 = np.log10(outfit.params['I0'])
+                    self.set_I0(logI0)                    
+                    
             ## dump new fitted values.
+            self.outfit = outfit
             self.dumpparams()
         else:
             print('Problem with fit, model params not changed')
