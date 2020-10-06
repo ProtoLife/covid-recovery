@@ -770,10 +770,10 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     Exposure          = b[1]*N # assuming b vector has structure b*[0,1,0,0]
     IncubPeriod       = a
 
-    FracMild          = g[1]/(g[1]+p[1])
-    #FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2]))   
+    FracMild          = g[1]/(g[1]+p[1])  
     FracCritical       = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
-    FracSevere        = 1 - FracMild -FracCritical                # not independent
+    #FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2])) 
+    FracSevere        = 1 - FracMild -FracCritical            
     CFR               = (u/(g[3]+u))*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
     IncubPeriod       = 1/(g[1]+p[1])
     DurHosp           = 1/(g[2]+p[2])

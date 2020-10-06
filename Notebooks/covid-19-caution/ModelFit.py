@@ -97,6 +97,7 @@ class ModelFit:
     def set_base_param(self,param,value):
         """sets base parameter and converts to ode parameters for simulation
            note that this process is pretty inefficient, operating one by one on parameters
+           initial condition logI_0 is not set by this routine
         """
         plist = [p.name for p in self.model.param_list]
         if param not in self.baseparams:
