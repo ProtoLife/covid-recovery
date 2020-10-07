@@ -132,6 +132,7 @@ class ModelFit:
             self.initial_values[1] = t0
 
     def set_I0(self,logI_0):
+        self.sbparams['logI_0']=logI_0
         I0 = 10**logI_0
         self.model.initial_values[0][0] = 1.0 - I0
         self.model.initial_values[0][self.model.I_1] = I0    # use model specific position of initial infective compartment
