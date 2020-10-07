@@ -1,4 +1,5 @@
 import lmfit
+from time import time
 
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
@@ -452,17 +453,17 @@ class ModelFit:
                 print('params_init_min_max has incorrect form.')
                 print('should be dictionary with each entry as tuple (initial_value,min,max).')
                 return
-        params_lmf = lmfit.Parameters()
+        self.params_lmf = lmfit.Parameters()
         for pp in params_init_min_max:
-            params_lmf.add(pp,params_init_min_max[pp][0],
+            self.params_lmf.add(pp,params_init_min_max[pp][0],
                            min=params_init_min_max[pp][1],
                            max=params_init_min_max[pp][2])
         ## set initial params for fit
-        for x in params_lmf:
+        for x in self.params_lmf:
                 if x in self.params:
-                    self.set_param(x, params_lmf[x].value)
+                    self.set_param(x, self.params_lmf[x].value)
                 if x == 'logI_0': # set other ad hoc params like this
-                    self.set_I0(params_lmf['logI_0'].value)
+                    self.set_I0(self.params_lmf['logI_0'].value)
 
         ## modify resid here for other optimizations
         def resid(params_lmf):
@@ -487,12 +488,12 @@ class ModelFit:
                     sumres2 = np.sqrt(np.sum(res2))
                     self.residall.append(sumres2)                    
                     self.paramall.append(pars.copy())
-                outfit = lmfit.minimize(resid, params_lmf, method=fit_method,iter_cb=per_iteration)
+                outfit = lmfit.minimize(resid, self.params_lmf, method=fit_method,iter_cb=per_iteration)
 
                 print('elapsed time = ',time()-start)
                 lmfit.report_fit(outfit)
             else:
-                outfit = lmfit.minimize(resid, params_lmf, method=fit_method)
+                outfit = lmfit.minimize(resid, self.params_lmf, method=fit_method)
         except Exception as e:
             print('Problem with fit...')
             print(e)
