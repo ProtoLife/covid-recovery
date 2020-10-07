@@ -87,19 +87,24 @@ class ModelFit:
         return True
 
     def set_param(self,param,value):
-        plist = [p.name for p in self.model.param_list]
+        # print('--------------------------- new set param call ----------------------------------')
+        # print('In set_param with param',param,'with value',value,'self',self)
+        # print('self.model.parameters',self.model.parameters)
+        # print('---------------------------------------------------------------------------------')
+        plist = [p.name for p in list(self.model.param_list)]
         if param not in plist:
             print('Error:  param name',param,'is not a parameter for this',self.modelname,'model.')
         self.params[param] = value
-        tmp = {param:value}
-        self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
+        #tmp = {param:value}
+        #self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
+        self.model.parameters =self.params
+
 
     def set_base_param(self,param,value):
         """sets base parameter and converts to ode parameters for simulation
            note that this process is pretty inefficient, operating one by one on parameters
            initial condition logI_0 is not set by this routine
         """
-        plist = [p.name for p in self.model.param_list]
         if param not in self.baseparams:
             print('Error:  param name',param,'is not a base parameter for this',self.modelname,'model.')
         if param in list(self.sbparams):
@@ -228,102 +233,6 @@ class ModelFit:
                     else:
                         params_init_min_max[p] = (ptype[p],pv[1],pv[2])
         return params_init_min_max
-
-    def get_fitdata(self,species=['deaths'],datasets=['deaths_corrected_smoothed']):
-        # NB species is same as fit_targets and datasets the same as fit_data
-        if not isinstance(species,list):    # this correction only reqd if get_fitdata or solvefit called externally
-            lspecies = [species]
-            ldatasets =[datasets]
-        else:
-            lspecies = species
-            ldatasets =datasets
-            if not len(datasets)==len(lspecies):
-                print('Error in input to get_fitdata: species and datasets parameters not same length')
-        # 
-        tvec = self.tsim
-        tvec1 = tvec[1:]
-        fitdata = {}
-        if not self.data is {}:
-            for i,ls in enumerate(lspecies):
-                ds = ldatasets[i]
-                if ls == 'confirmed':     # John corrected this Oct 1st, was 'deaths'
-                    datmp = self.data[ds] # confirmed cases data, corrected by FracConfirmedDet
-                    fitdata[ls] = [x/self.fbparams['FracConfirmedDet']/self.population for x in datmp]
-                elif ls == 'deaths':
-                    datmp = self.data[ds] # deaths cases data, corrected by FracDeathsDet
-                    fitdata[ls] = [x/self.fbparams['FracDeathsDet']/self.population for x in datmp]
-                else:
-                    fitdata[ls] = np.array(self.data[ds])
-
-        else:
-            print('missing fit data')
-            for ls in lspecies:
-                fitdata[ls] = None
-        return fitdata
-
-    def solvefit(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
-        fitdata = self.get_fitdata(species,datasets)
-        lspecies = [x for x in fitdata]
-        tmaxf = len(fitdata[lspecies[0]])            
-
-        tvec = self.tsim
-        tvecf=np.arange(0,tmaxf,1)
-        tvecf1 = tvecf[1:]
-        self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
-        rtn = {}
-        slices = {}
-        for ls in lspecies:
-            if ls == 'deaths':
-                slices['deaths'] = self.model.deaths
-            if ls == 'confirmed':
-                slices['confirmed'] = self.model.confirmed
-
-        for ls in lspecies:
-            rtn[ls] = {}
-            rtn[ls]['data'] = np.array(fitdata[ls])
-            rtn[ls]['soln'] = self.soln[:,slices[ls]][:,0]
-            rtn[ls]['resid'] = rtn[ls]['soln']-rtn[ls]['data']
-
-        return rtn
-
-
-    def solvefitlog(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
-        """
-        like solvefit() but take log of data and soln before computing residual.
-        """
-        fitdata = self.get_fitdata(species,datasets)
-        lspecies = [x for x in fitdata]
-        tmaxf = len(fitdata[lspecies[0]])            
-
-        tvec = self.tsim
-        tvecf=np.arange(0,tmaxf,1)
-        tvecf1 = tvecf[1:]
-        self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
-        rtn = {}
-        slices = {}
-        for ls in lspecies:
-            if ls == 'deaths':
-                slices['deaths'] = self.model.deaths
-            if ls == 'confirmed':
-                slices['confirmed'] = self.model.confirmed
-
-        for ls in lspecies:
-            rtn[ls] = {}
-            rtn[ls]['data'] = np.array(fitdata[ls])
-            rtn[ls]['soln'] = self.soln[:,slices[ls]][:,0]
-
-            mn = min([x for x in fitdata[ls] if x>0])
-            fdat = [x if x > 0 else mn for x in fitdata[ls]]
-            lfdat = np.array([np.log(x) for x in fdat])
-
-            sdata = rtn[ls]['soln']
-            mn = min([x for x in sdata if x>0])
-            sdat = [x if x > 0 else mn for x in sdata]
-            lsdat = np.array([np.log(x) for x in sdat])
-            rtn[ls]['resid'] = lsdat - lfdat
-            self.logresid = [sdat,lsdat,fdat,lfdat,lsdat-lfdat]
-        return rtn
-
 
     def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axis=None,
                    scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None, outfile = None,datasets=['confirmed_corrected_smoothed']):
@@ -529,7 +438,106 @@ class ModelFit:
             rtn[pp] = ppp
         return rtn
 
-    def fit(self,params_init_min_max,param_class='ode',fit_method='leastsq',fit_targets='default',fit_data='default',diag=True):
+    def get_fitdata(self,species=['deaths'],datasets=['deaths_corrected_smoothed']):
+        # NB species is same as fit_targets and datasets the same as fit_data
+        if not isinstance(species,list):    # this correction only reqd if get_fitdata or solve4fit called externally
+            lspecies = [species]
+            ldatasets =[datasets]
+        else:
+            lspecies = species
+            ldatasets =datasets
+            if not len(datasets)==len(lspecies):
+                print('Error in input to get_fitdata: species and datasets parameters not same length')
+        # 
+        tvec = self.tsim
+        tvec1 = tvec[1:]
+        fitdata = {}
+        if not self.data is {}:
+            for i,ls in enumerate(lspecies):
+                ds = ldatasets[i]
+                if ls == 'confirmed':     
+                    datmp = self.data[ds] # confirmed cases data, corrected by FracConfirmedDet
+                    fitdata[ls] = [x/self.fbparams['FracConfirmedDet']/self.population for x in datmp]
+                elif ls == 'deaths':
+                    datmp = self.data[ds] # deaths cases data, corrected by FracDeathsDet
+                    fitdata[ls] = [x/self.fbparams['FracDeathsDet']/self.population for x in datmp]
+                else:
+                    fitdata[ls] = np.array(self.data[ds])
+
+        else:
+            print('missing fit data')
+            for ls in lspecies:
+                fitdata[ls] = None
+        return fitdata
+
+    def solve4fit(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
+        fitdata = self.get_fitdata(species,datasets)
+        lspecies = [x for x in fitdata]
+        tmaxf = len(fitdata[lspecies[0]])            
+
+        tvec = self.tsim
+        tvecf=np.arange(0,tmaxf,1)
+        tvecf1 = tvecf[1:]
+        # print('In solve4fit debug, self', self,'self.model.parameters:',self.model.parameters)
+        self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
+        rtn = {}
+        slices = {}
+        for ls in lspecies:
+            if ls == 'deaths':
+                slices['deaths'] = self.model.deaths
+            if ls == 'confirmed':
+                slices['confirmed'] = self.model.confirmed
+
+        for ls in lspecies:
+            if ls == 'deaths':
+                weight = 30.    # slightly overweight deaths (expect 20x for Germany) compared with 'confirmed', to give more weight to deaths
+            else:
+                weight = 1.
+            rtn[ls] = {}
+            rtn[ls]['data'] = weight*np.array(fitdata[ls])
+            rtn[ls]['soln'] = weight*np.sum(self.soln[:,slices[ls]],axis=1) #  sum over all species in 'confirmed' or only one species for 'deaths'
+            rtn[ls]['resid'] = rtn[ls]['soln']-rtn[ls]['data']
+
+        return rtn
+
+    def solve4fitlog(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
+        """
+        like solve4fit() but take log of data and soln before computing residual.
+        """
+        fitdata = self.get_fitdata(species,datasets)
+        lspecies = [x for x in fitdata]
+        tmaxf = len(fitdata[lspecies[0]])            
+
+        tvec = self.tsim
+        tvecf=np.arange(0,tmaxf,1)
+        tvecf1 = tvecf[1:]
+        self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
+        rtn = {}
+        slices = {}
+        for ls in lspecies:
+            if ls == 'deaths':
+                slices['deaths'] = self.model.deaths
+            if ls == 'confirmed':
+                slices['confirmed'] = self.model.confirmed
+
+        for ls in lspecies:
+            rtn[ls] = {}
+            rtn[ls]['data'] = np.array(fitdata[ls])
+            rtn[ls]['soln'] = self.soln[:,slices[ls]][:,0]
+
+            mn = min([x for x in fitdata[ls] if x>0])
+            fdat = [x if x > 0 else mn for x in fitdata[ls]]
+            lfdat = np.array([np.log(x) for x in fdat])
+
+            sdata = rtn[ls]['soln']
+            mn = min([x for x in sdata if x>0])
+            sdat = [x if x > 0 else mn for x in sdata]
+            lsdat = np.array([np.log(x) for x in sdat])
+            rtn[ls]['resid'] = lsdat - lfdat
+            self.logresid = [sdat,lsdat,fdat,lfdat,lsdat-lfdat]
+        return rtn
+
+    def fit(self,params_init_min_max,param_class='ode',fit_method='leastsq',fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
         """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
             from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
             to data specified in fit_data, with option of diagnosis output diag
@@ -592,27 +600,45 @@ class ModelFit:
         ## set initial params for fit
         for x in params_lmf:
             if x in self.params:
+            # if x in list(self.model.param_list):
                 self.set_param(x, params_lmf[x].value)
-            elif x in self.baseparams:
+            elif x != 'logI_0' and x in self.baseparams:
                 self.set_base_param(x, params_lmf[x].value)
         if 'logI_0' in params_lmf: # set other ad hoc params in both sets like this
                 self.set_I0(params_lmf['logI_0'].value) 
 
         ## modify resid here for other optimizations -----------------------------------------------------------------------
-        def resid(params_lmf):
-            for x in params_lmf:
-                if x in self.params:
-                    self.set_param(x, params_lmf[x].value)
-                elif x in self.baseparams:
-                    self.set_base_param(x, params_lmf[x].value)
+        def resid(pars,*args):
+            # print('------------------------------- new resid call ------------------------------------')
+            if args:
+                modelfit = args[0]
+            else:
+                print('Error in resid args, is not tuple containing modelfit instance',args)
+                return
+            parvals = pars.valuesdict()
+            for x in parvals:
+                if x in modelfit.params:
+                    modelfit.set_param(x, parvals[x])
+                    # print('in resid setting parameter',x,parvals[x])
+                elif x != 'logI_0' and x in modelfit.baseparams:
+                    modelfit.set_base_param(x, parvals[x])
+                    # print('in resid setting base parameter',x,parvals[x])
+            # print('')
             if 'logI_0' in params_lmf:
-                self.set_I0(params_lmf['logI_0'].value)    
+                modelfit.set_I0(parvals['logI_0'])    
 
-            fittry = self.solvefit(self.fit_targets,self.fit_data) # use solvefitlog to get residuals as log(soln)-log(data)
-            #res2 = np.array([x*x for x in fittry['deaths']['resid']])
-            #sumres2 = np.sqrt(np.sum(res2))
-            #print('resid: ',sumres2)
-            return [fittry[fit_target]['resid'] for fit_target in self.fit_targets]
+            fittry = modelfit.solve4fit(modelfit.fit_targets,modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
+            #rmsres2 = np.sqrt(np.sum(np.square(resd)))
+            #print('resid: ',rmsres2)
+            fitresid = np.concatenate([fittry[fit_target]['resid'] for fit_target in modelfit.fit_targets])
+            return fitresid
+            # return [fittry[fit_target]['resid'] for fit_target in modelfit.fit_targets]
+
+        def lsq(diffs):
+            """
+            scalar function to minimize in lmfit.minimize() specified by reduce_fcn parameter
+            """
+            return np.sqrt(np.square(diffs))
 
         ## do the fit -------------------------------------------------------------------------------------------------------
         try:
@@ -621,16 +647,29 @@ class ModelFit:
                 self.residall = []
                 self.paramall = []
                 def per_iteration(pars, iteration, resd, *args, **kws):
-                    res2 = np.array([x*x for x in resd])
-                    sumres2 = np.sqrt(np.sum(res2))
-                    self.residall.append(sumres2)                    
+                    rmsres2 = np.sqrt(np.sum(np.square(resd)))
+                    self.residall.append(rmsres2)                    
                     self.paramall.append(pars.copy())
-                outfit = lmfit.minimize(resid, params_lmf, method=fit_method,iter_cb=per_iteration)
+                outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
+                # outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)
 
                 print('elapsed time = ',time()-start)
                 lmfit.report_fit(outfit)
+            elif report:
+                # outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
+                if (fit_method == 'leastsq') and conf_interval:
+                    mini = lmfit.Minimizer(resid, params_lmf, fcn_args=(self,),**fit_kws)
+                    outfit = mini.minimize()
+                    lmfit.report_fit(outfit)
+                    print('calculating Confidence Intervals')
+                    ci = lmfit.conf_interval(mini, outfit)
+                    print('Confidence Intervals')
+                    lmfit.printfuncs.report_ci(ci)
+                else:
+                    outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
+                    lmfit.report_fit(outfit)
             else:
-                outfit = lmfit.minimize(resid, params_lmf, method=fit_method)
+                outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
         except Exception as e:
             print('Problem with fit...')
             print(e)
