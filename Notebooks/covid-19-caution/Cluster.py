@@ -61,11 +61,15 @@ from data import *
 
 print('Constructing common synchronized deaths, case and testing data...');
 
-# database == 'OWID'
+# database == 'OWID' # OWID database: to use JHU database comment this line and use line below
 database='JHU'     # JHU database: to use OWID database comment this line and use line above
-correct = True     # whether to correct data for clustering
+report_correct = True     # whether to use reporting spike corrected data for clustering
 daysync = 23       # needs to be same as value in data.py
-print('database',database, 'correct active',correct)
+
+"""
+# We don't need most of this any more 
+print('database',database, 'correct active',report_correct)
+
 # for OWID database
 # covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid,
 #                 'population':population_owid,'population_density':population_density_owid,'gdp_per_capita':gdp_per_capita_owid}
@@ -77,7 +81,6 @@ total_cases_ppm_x = get_data_owid_key('total_cases_per_million',daysync)
 new_cases_spm_x = get_data_owid_key('new_cases_smoothed_per_million',daysync)
 testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync)
 
-
 total_deaths_owid = {cc:total_deaths_x[cc] for cc in total_deaths_x if cc != 'dates' and cc != 'World'}
 new_deaths_spm = {cc:new_deaths_spm_x[cc] for cc in new_deaths_spm_x if cc != 'dates' and cc != 'World'}
 total_cases = {cc:total_cases_x[cc] for cc in total_cases_x if cc != 'dates' and cc != 'World'}
@@ -86,149 +89,35 @@ new_cases_spm = {cc:new_cases_spm_x[cc] for cc in new_cases_spm_x if cc != 'date
 testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'World'}
 
 print('done.')
+"""
 
-# jhu equivalents
-jhu_to_owid_str_country = {}
-for cc in countries_owid:
-    jhu_to_owid_str_country.update({cc:cc})
-jhu_to_owid_str_country.update({
-    'Burma':'Myanmar',
-    'Cabo Verde':'Cape Verde',
-    'Congo (Brazzaville)':'Congo',
-    'Congo (Kinshasa)':'Democratic Republic of Congo',
-    'Czechia':'Czech Republic',
-    'Diamond Princess':'Diamond Princess',
-    'Eswatini':'Swaziland',
-    'Holy See':'Vatican',
-    'Korea, South':'South Korea',
-    'MS Zaandam':'MS Zaandam',
-    'North Macedonia':'Macedonia',
-    'Taiwan*':'Taiwan',
-    'Timor-Leste':'Timor',
-    'US':'United States',
-    'West Bank and Gaza':'Palestine',
-    'dates':'dates'
-})
-
-#owid equivalents
-owid_to_jhu_str_country = {}
-for cc in countries_owid:
-    owid_to_jhu_str_country.update({cc:cc})
-owid_to_jhu_str_country.update({
-    'Myanmar':'Burma',
-    'Cape Verde':'Cabo Verde',
-    'Congo':'Congo (Brazzaville)',
-    'Democratic Republic of Congo':'Congo (Kinshasa)',
-    'Czech Republic':'Czechia',
-    'Diamond Princess':'Diamond Princess',
-    'Swaziland':'Eswatini',
-    'Vatican':'Holy See',
-    'South Korea':'Korea, South',
-    'MS Zaandam':'MS Zaandam',
-    'Macedonia':'North Macedonia',
-    'Taiwan':'Taiwan*',
-    'Timor':'Timor-Leste',
-    'United States':'US',
-    'Palestine':'West Bank and Gaza',
-    'dates':'dates'
-})
-
-
-countries_jhu_str_total = [cc[0] for cc in countries_jhu if cc[1] == 'Total']
-
-def owid_to_jhu_country(cc):
-    global countries_jhu_str_total
-    global owid_to_jhu_str_country
-    cc_j = owid_to_jhu_str_country[cc]
-    if cc_j in countries_jhu_str_total:
-        return (cc_j,'Total')
-    else:
-        return (cc_j,'')
-
-countries_jhu_total= [cc for cc in countries_jhu if cc[1] == 'Total']
-countries_jhu_non_total = [cc for cc in countries_jhu if ((cc[0] not in countries_jhu_str_total) and (cc[0] not in ['Diamond Princess', 'MS Zaandam']))]
-countries_jhu_4_owid = countries_jhu_non_total + countries_jhu_total
-countries_jhu_2_owid=[jhu_to_owid_str_country[cc[0]] for cc in countries_jhu_4_owid ]
-countries_owid_to_jhu=[owid_to_jhu_country(cc) for cc in countries_jhu_2_owid]
-
-countries_common_x = [cc for cc in countries_jhu_2_owid if cc not in ['dates','World']] + ['dates','World']
-countries_common = [cc for cc in countries_common_x if cc not in ['dates','World']]
-
-total_deaths_jhu = {cc:covid_ts['deaths'][owid_to_jhu_country(cc)] for cc in countries_common}
-total_deaths_owid = {cc:covid_owid_ts['deaths'][cc][daysync:] for cc in countries_common}
-
-new_deaths_spm_jhu = {cc:covid_ts['new_deaths_corrected_smoothed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
-new_deaths_spm_jhu.update({'dates':covid_ts['new_deaths_corrected_smoothed']['dates']})  # add dates to dictionary
-new_cases_spm_jhu = {cc:covid_ts['new_confirmed_corrected_smoothed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
-new_cases_spm_jhu.update({'dates':covid_ts['new_confirmed_corrected_smoothed']['dates']})  # add dates to dictionary
-
-new_deaths_spm_owid = {cc:covid_owid_ts['new_deaths_corrected_smoothed'][cc][daysync:]*1000000./population_owid[cc][-2] for cc in countries_common}   
-new_deaths_spm_owid.update({'dates':covid_owid_ts['new_deaths_corrected_smoothed']['dates'][daysync:]})  # add dates to dictionary
-new_cases_spm_owid = {cc:covid_owid_ts['new_confirmed_corrected_smoothed'][cc][daysync:]*1000000./population_owid[cc][-2] for cc in countries_common}
-new_cases_spm_owid.update({'dates':covid_owid_ts['new_confirmed_corrected_smoothed']['dates'][daysync:]})  # add dates to dictionary
-
-# td_mx = [max(total_deaths[cc]) for cc in total_deaths]
-mindeaths = 100 
 if database == 'OWID':
-    total_deaths = total_deaths_owid
-else:
-    total_deaths = total_deaths_jhu
-bcountries_1 = [cc for cc in countries_common if max(total_deaths[cc])>=mindeaths]
+    if report_correct:
+        total_deaths = total_deaths_cs_owid
+        new_deaths_spm = new_deaths_c_spm_owid
+        new_cases_spm = new_cases_c_spm_owid
+    else:
+        total_deaths = total_deaths_s_owid
+        new_deaths_spm = new_deaths_spm_owid
+        new_cases_spm = new_cases_spm_owid
+elif database == 'JHU':
+    if report_correct:
+        total_deaths = total_deaths_cs_jhu     
+        new_deaths_spm = new_deaths_c_spm_jhu
+        new_cases_spm = new_cases_c_spm_jhu
+    else:
+        total_deaths = total_deaths_s_jhu
+        new_deaths_spm = new_deaths_spm_jhu
+        new_cases_spm = new_cases_spm_jhu
+
+
+big = {cc:new_deaths_spm[cc] for cc in bcountries}
+big_cases = {cc:new_cases_spm[cc] for cc in bcountries}
 
 # badspikes = ['Peru','Bolivia','Chile','China','Equador','Kyrgystan']   # eliminate Peru and a few other countries because of bad spikes.
-badspikes = []   # badspikes not ntted with corrected deaths
-
-# mid = {cc:new_deaths_spm[cc] for cc in bcountries_1 if max(new_deaths_spm[cc])>0.5 and max(new_deaths_spm[cc])<= 1} # note that several important countries between 0.5 and 1 per million
-#print(len(mid))
-#print(mid.keys())
-
-if database == 'OWID' and not correct:           #use OWID data (uncorrected)
-    big = {cc:new_deaths_spm[cc] for cc in bcountries_1 if max(new_deaths_spm[cc])>0.5 and cc not in badspikes}
-    bcountries = big.keys()
-    big_cases = {cc:new_cases_spm[cc] for cc in bcountries} #  bcountries filters  max(new_deaths_spm[cc])>=0.5 and cc not in badspikes}
-elif database == 'OWID' and correct:             # use OWID data (corrected)
-    big = {cc:new_deaths_spm_owid[cc] for cc in bcountries_1 if max(new_deaths_spm_owid[cc])>0.5 and cc not in badspikes}
-    bcountries = big.keys()
-    big_cases = {cc:new_cases_spm_owid[cc] for cc in bcountries} #  bcountries filters  max(new_deaths_spm[cc])>=0.5 and cc not in badspikes}
-
-elif database == 'JHU' and correct:               # use JHU data (corrected)
-    big = {cc:new_deaths_spm_jhu[cc] for cc in bcountries_1 if max(new_deaths_spm_jhu[cc])>0.5 and cc not in badspikes}
-    bcountries = big.keys()
-    big_cases = {cc:new_cases_spm_jhu[cc] for cc in bcountries} #  bcountries filters  max(new_deaths_spm[cc])>=0.5 and cc not in badspikes}
-else:
-    print('ERROR: combination of database and correct mode not implemented',database,correct)
-
-#print(len(big))
-#print(big.keys())
-
-# scaled = {cc:new_deaths_spm[cc]/max(new_deaths_spm[cc]) for cc in bcountries}
-
-# reg_testing calculated from testing below : using piecewise linear approximation
-# note first_thresh defined below needed to use testing in connection with synced data such as big
-print('doing piecwise linear fits to testing data ...');
-warnings.simplefilter('ignore')
-reg_testing={}
-for i,cc in enumerate(bcountries):
-    # testing_cap = np.array([max(t,0.1) for t in testing[cc]])
-    testing_cap = testing[cc][50:] # we assume international common starting day 50 of begin of preparation of testing (linear ramp to first recorded data) 
-    xxi = range(len(testing_cap))
-    xHat=np.linspace(min(xxi), max(xxi), num=len(testing_cap))
-    yyf = [Float(y) for y in testing_cap]
-    if i<1000:
-        my_pwlf = pwlf.PiecewiseLinFit(xxi, yyf)
-        res = my_pwlf.fit(2,[0.],[0.1]) # force fit to go through point (0,0.1)
-        # breaks = my_pwlf.fit(2,[0.],[0.1])
-        slopes = my_pwlf.calc_slopes()
-        pred = my_pwlf.predict(xHat)
-        yHat = np.concatenate((np.array([0.1]*50),pred))
-        yHat = np.array([max(t,0.1) for t in yHat])
-        for i,y in enumerate(yHat):
-            if i>0 and y<yHat[i-1]:
-                yHat[i]=yHat[i-1]
-        reg_testing.update({cc:yHat.copy()})    
-print('done.')
 
 # synchronization method : by threshold on total deaths
+print('synchronizing and trimming time series to common length...')
 short_deaths = {}
 short_cases = {}
 short_testing = {}
@@ -293,47 +182,9 @@ dat = np.array([longshort_cases_c[cc]/reg_testing_lc[cc] for cc in lcountries])
 cases_adj_pwlfit = {lcountries[i]:dat[i] for i in range(len(dat))}
 
 
-def regtests(testing,country,trampday1=50):
-    Ntests = [tt for tt in testing[country]]
-    tests = 0
-    for i,tt in enumerate(testing[country]):
-        if tt:
-            break        
-    tday1 = i
-    if tday1 > trampday1:
-        line = np.linspace(0.01,max(0.01,tt),i+1-trampday1)
-    else:
-        line = [tt]
-    Ntests = [line[i-trampday1] if (i<tday1 and i>=trampday1) else tt for i,tt in enumerate(testing[country])]
-    return Ntests
-
-
-# for nonlinear testing adjustment:
-def CaCo (Co, Nt, K=2):  # cases_actual / cases_observed given Nt=testing
-    K1 = 25*(K-1)/(5.0-K)
-    K2 = K1/5
-    if Co > 0:
-        rt = 1000*Nt/Co
-        return (K1+rt)/(K2+rt)
-    else:
-        return 1
-
-def make_cases_adj_nonlin(testing,K=2):
-    global cases_adj_nonlin
-    cases_adj_nonlin={}
-    testing_0p1_c = testing_0p1 = {cc: [0.1 if math.isnan(t) else t for t in testing[cc]] for cc in testing}
-    # testing_0p1_c = {cc:testing_0p1[cc][-clusdata_len:] for cc in testing_0p1}
-    cases_adj_nonlin = {cc:[CaCo(longshort_cases_c[cc][i],regtests(testing_0p1_c,cc)[i],2)*longshort_cases_c[cc][i] for i in range(len(longshort_cases_c[cc]))] for cc in longshort_cases_c}
-    try:
-        clusdata_all['cases_nonlin'] = {cc:cases_adj_nonlin[cc] for cc in cases_adj_nonlin}
-    except:
-        pass
-    return cases_adj_nonlin
-
-
 print('making cases with nonlinear testing adjustment...')
-cases_adj_nonlin = make_cases_adj_nonlin(longshort_testing_c)
-cases_adj_nonlinr = make_cases_adj_nonlin(longshort_reg_testing_c)              
+cases_adj_nonlin = make_cases_adj_nonlin(longshort_testing_c,longshort_cases_c,K=2)
+cases_adj_nonlinr = make_cases_adj_nonlin(longshort_reg_testing_c,longshort_cases_c,K=2)              
 print('done.')
 print('to change the nonlinear correction function, call make_cases_adj_nonlin(K), K=2 by default')
 

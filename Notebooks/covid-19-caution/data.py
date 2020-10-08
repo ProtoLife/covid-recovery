@@ -1,6 +1,9 @@
 import csv
 import numpy as np
 import datetime
+import warnings
+import math
+import pwlf
 
 def Float(x):
     try:
@@ -19,37 +22,38 @@ def get_data(jhu_file):
             if i != 0:
                 poplist = []
                 j = 0
-                for elt in row:
+                for elt in row[:-1]: # delete last day from dated data to allow same length data as for owid 
                     if j >= 4:
                         poplist.append(int(elt))
                     elif j == 0:
                         poplist.append(elt)
                     elif j == 1:
-                        poplist[0]=(elt,poplist[0])
+                        poplist[0]=(elt,poplist[0]) # delete last day from dates to allow same length data as for owid 
                     j = j+1
                 popdat.append(poplist)
             else:
-                popdat.append(row)
+                popdat.append(row[:-1]) 
             # print(popdat[i])
             i = i + 1;
     # dates
     popdat0=['dates']
-    for elt in popdat[0][4:]:
+    for elt in popdat[0][4:]:  
         popdat0.append(elt)
     popdat[0] = [pop for pop in popdat0]
     # print('popdat[0]',popdat[0])
     # totals over all countries
-    totals = np.zeros(len(popdat[0])-1,dtype=int)
+    totals = np.zeros(len(popdat[0])-1,dtype=int)  
+    # print('debug length of totals is',len(totals))
     for row in popdat[1:]:
-        totals = totals + np.array(row[1:])
+        totals = totals + np.array(row[1:]) 
     totals = list(np.asarray(totals))
     # print(totals)
-    popkeyed = {poplist[0]: poplist[1:] for poplist in popdat}
-    popkeyed.update({'dates':popdat[0][1:]})
+    popkeyed = {poplist[0]: poplist[1:] for poplist in popdat} 
+    popkeyed.update({'dates':popdat[0][1:]}) 
     popkeyed.update({('World',''):totals})
     # del popkeyed[('d','a')]
     # assemble totals for countries with multiple regions
-    total = np.zeros(len(popkeyed['dates']),dtype=int)
+    total = np.zeros(len(popkeyed['dates']),dtype=int)      
     poptotkeyed = {}
     for country,tseries in popkeyed.items():
         if country!='dates' and country[1] != '': # it seems that UK is single exception with both '' and non '' regions, UK total is then UK overseas
@@ -58,12 +62,15 @@ def get_data(jhu_file):
                 # print(country,popkeyed[country],poptotkeyed[countrytotal])
                 total = np.array(tseries)[:]+np.array(poptotkeyed[countrytotal])[:]
             else:
-                total =  np.array(tseries)                        
+                total =  np.array(tseries)[:]                        
             poptotkeyed.update({countrytotal:list(total)})
     for countrytotal,tseries in poptotkeyed.items():
         total = np.array(tseries)
         popkeyed.update({countrytotal:list(total)})
+    # print('First four dates:',popkeyed['dates'][0:4])
     return popkeyed
+
+
 
 def expand_data(covid_ts,database='jhu'):
     """ input time series dictionary : JHU or OWID
@@ -340,11 +347,11 @@ covid_ts = expand_data(covid_ts,'jhu')
 print('expansion done.')
 
 countries_jhu = [(row[0],row[1]) for row in confirmed][1:]
-print("number of countries listed",len(countries_jhu))
+print("number of countries listed in JHU database",len(countries_jhu))
 i=0
 for country in countries_jhu:
     i = i + 1
-print('done with JHU data (covid_ts dictionary keys: confirmed, deaths, recovered).  Got ',i,'countries (countries_jhu).')
+print('done with JHU data (covid_ts dictionary keys: confirmed, deaths, recovered).')
 
 covid_owid = []
 
@@ -501,7 +508,8 @@ covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':reco
 countries_owid = [x for x in deaths_owid if x is not 'dates']  
 print('expanding OWID data : to new (daily), 7-day rolling (smoothed), reporting glitch (corrected) and combined')
 covid_owid_ts = expand_data(covid_owid_ts,'owid')
-print('done with OWID data (covid_owid_ts dictionary see .keys()) . Got',len(countries_owid),'countries (countries_owid)')
+print("number of countries listed in OWID database",len(countries_owid))
+print('done with OWID data (covid_owid_ts dictionary see .keys()) .')
 
 def truncx(xx,daystart,daystop):
     """truncate array xx to run from daystart to daystop
@@ -517,6 +525,74 @@ def truncy(xx,yy,daystart,daystop):
     daymax = min(daystop,(xx[-1]-xx[0]).days)
     return yy[daymin:daymax+1]
 
+print('mapping country names between JHU and OWID and extracting common countries...')
+# jhu equivalents
+jhu_to_owid_str_country = {}
+for cc in countries_owid:
+    jhu_to_owid_str_country.update({cc:cc})
+jhu_to_owid_str_country.update({
+    'Burma':'Myanmar',
+    'Cabo Verde':'Cape Verde',
+    'Congo (Brazzaville)':'Congo',
+    'Congo (Kinshasa)':'Democratic Republic of Congo',
+    'Czechia':'Czech Republic',
+    'Diamond Princess':'Diamond Princess',
+    'Eswatini':'Swaziland',
+    'Holy See':'Vatican',
+    'Korea, South':'South Korea',
+    'MS Zaandam':'MS Zaandam',
+    'North Macedonia':'Macedonia',
+    'Taiwan*':'Taiwan',
+    'Timor-Leste':'Timor',
+    'US':'United States',
+    'West Bank and Gaza':'Palestine',
+    'dates':'dates'
+})
+
+#owid equivalents
+owid_to_jhu_str_country = {}
+for cc in countries_owid:
+    owid_to_jhu_str_country.update({cc:cc})
+owid_to_jhu_str_country.update({
+    'Myanmar':'Burma',
+    'Cape Verde':'Cabo Verde',
+    'Congo':'Congo (Brazzaville)',
+    'Democratic Republic of Congo':'Congo (Kinshasa)',
+    'Czech Republic':'Czechia',
+    'Diamond Princess':'Diamond Princess',
+    'Swaziland':'Eswatini',
+    'Vatican':'Holy See',
+    'South Korea':'Korea, South',
+    'MS Zaandam':'MS Zaandam',
+    'Macedonia':'North Macedonia',
+    'Taiwan':'Taiwan*',
+    'Timor':'Timor-Leste',
+    'United States':'US',
+    'Palestine':'West Bank and Gaza',
+    'dates':'dates'
+})
+
+countries_jhu_str_total = [cc[0] for cc in countries_jhu if cc[1] == 'Total']
+
+def owid_to_jhu_country(cc):
+    global countries_jhu_str_total
+    global owid_to_jhu_str_country
+    cc_j = owid_to_jhu_str_country[cc]
+    if cc_j in countries_jhu_str_total:
+        return (cc_j,'Total')
+    else:
+        return (cc_j,'')
+
+countries_jhu_total= [cc for cc in countries_jhu if cc[1] == 'Total']
+countries_jhu_non_total = [cc for cc in countries_jhu if ((cc[0] not in countries_jhu_str_total) and (cc[0] not in ['Diamond Princess', 'MS Zaandam']))]
+countries_jhu_4_owid = countries_jhu_non_total + countries_jhu_total
+countries_jhu_2_owid=[jhu_to_owid_str_country[cc[0]] for cc in countries_jhu_4_owid ]
+countries_owid_to_jhu=[owid_to_jhu_country(cc) for cc in countries_jhu_2_owid]
+
+countries_common_x = [cc for cc in countries_jhu_2_owid if cc not in ['dates','World']] + ['dates','World']
+countries_common = [cc for cc in countries_common_x if cc not in ['dates','World']]
+
+print('getting ICU and acute care data icus_2012 and WHO ...')
 
 def get_WHO_data_acute_beds():
     """ get acute beds data per 100000 (mostly 2014,  äITA, MKD, ROU, RUS 2013, NLD 2012)"""
@@ -579,6 +655,188 @@ def get_2012_data_ICUs():
 acute_dict = get_WHO_data_acute_beds()
 icu_dict = get_2012_data_ICUs()
 
+print('extracting data sets for common countries both databases...')
+# JHU
+# raw
+total_deaths_jhu = {cc:covid_ts['deaths'][owid_to_jhu_country(cc)] for cc in countries_common}
+total_deaths_s_jhu = {cc:covid_ts['deaths_smoothed'][owid_to_jhu_country(cc)] for cc in countries_common}
+total_deaths_cs_jhu = {cc:covid_ts['deaths_corrected_smoothed'][owid_to_jhu_country(cc)] for cc in countries_common}
+
+new_deaths_pm_jhu = {cc:covid_ts['new_deaths'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_deaths_pm_jhu.update({'dates':covid_ts['new_deaths']['dates']})  # add dates to dictionary
+new_cases_pm_jhu = {cc:covid_ts['new_confirmed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_cases_pm_jhu.update({'dates':covid_ts['new_confirmed']['dates']})  # add dates to dictionary
+# smoothed
+new_deaths_spm_jhu = {cc:covid_ts['new_deaths_smoothed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_deaths_spm_jhu.update({'dates':covid_ts['new_deaths_smoothed']['dates']})  # add dates to dictionary
+new_cases_spm_jhu = {cc:covid_ts['new_confirmed_smoothed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_cases_spm_jhu.update({'dates':covid_ts['new_confirmed_smoothed']['dates']})  # add dates to dictionary
+# corrected smoothed
+new_deaths_c_spm_jhu = {cc:covid_ts['new_deaths_corrected_smoothed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_deaths_c_spm_jhu.update({'dates':covid_ts['new_deaths_corrected_smoothed']['dates']})  # add dates to dictionary
+new_cases_c_spm_jhu = {cc:covid_ts['new_confirmed_corrected_smoothed'][owid_to_jhu_country(cc)]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_cases_c_spm_jhu.update({'dates':covid_ts['new_confirmed_corrected_smoothed']['dates']})  # add dates to dictionary
+
+# OWID
+# raw
+total_deaths_owid = {cc:covid_owid_ts['deaths'][cc] for cc in countries_common}
+total_deaths_s_owid = {cc:covid_owid_ts['deaths_smoothed'][cc] for cc in countries_common}
+total_deaths_cs_owid = {cc:covid_owid_ts['deaths_corrected_smoothed'][cc] for cc in countries_common}
+
+new_deaths_pm_owid = {cc:covid_owid_ts['new_deaths'][cc]*1000000./population_owid[cc][-2] for cc in countries_common}   
+new_deaths_pm_owid.update({'dates':covid_owid_ts['new_deaths']['dates']})  # add dates to dictionary
+new_cases_pm_owid = {cc:covid_owid_ts['new_confirmed'][cc]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_cases_pm_owid.update({'dates':covid_owid_ts['new_confirmed']['dates']})  # add dates to dictionary
+# smoothed
+new_deaths_spm_owid = {cc:covid_owid_ts['new_deaths_smoothed'][cc]*1000000./population_owid[cc][-2] for cc in countries_common}   
+new_deaths_spm_owid.update({'dates':covid_owid_ts['new_deaths_smoothed']['dates']})  # add dates to dictionary
+new_cases_spm_owid = {cc:covid_owid_ts['new_confirmed_smoothed'][cc]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_cases_spm_owid.update({'dates':covid_owid_ts['new_confirmed_smoothed']['dates']})  # add dates to dictionary
+# corrected smoothed
+new_deaths_c_spm_owid = {cc:covid_owid_ts['new_deaths_corrected_smoothed'][cc]*1000000./population_owid[cc][-2] for cc in countries_common}   
+new_deaths_c_spm_owid.update({'dates':covid_owid_ts['new_deaths_corrected_smoothed']['dates']})  # add dates to dictionary
+new_cases_c_spm_owid = {cc:covid_owid_ts['new_confirmed_corrected_smoothed'][cc]*1000000./population_owid[cc][-2] for cc in countries_common}
+new_cases_c_spm_owid.update({'dates':covid_owid_ts['new_confirmed_corrected_smoothed']['dates']})  # add dates to dictionary
+
+# common big epidemic countries (common to both jhu and owid databases)
+mindeaths = 100
+mindeathspm = 0.5 
+bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
+bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
+print('No of big common countries is',len(bcountries))
 print('---------------------------------')
+
+# reg_testing calculated from testing below : using piecewise linear approximation
+# note first_thresh defined below needed to use testing in connection with synced data such as big
+print('extracting testing data from OWID database')
+testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync) 
+testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'World'}
+print('doing piecewise linear fits to testing data ... reg_testing');
+warnings.simplefilter('ignore')
+
+
+def pwlf_testing(testing,trampday1=50):
+    reg_testing={}
+    for i,cc in enumerate(countries_common):   # was bcountries in cluster.py
+        # testing_cap = np.array([max(t,0.1) for t in testing[cc]])
+        testing_cap = testing[cc][trampday1:] # we assume international common starting day 50 of begin of preparation of testing (linear ramp to first recorded data) 
+        xxi = range(len(testing_cap))
+        xHat=np.linspace(min(xxi), max(xxi), num=len(testing_cap))
+        yyf = [Float(y) for y in testing_cap]
+        if i<1000:
+            my_pwlf = pwlf.PiecewiseLinFit(xxi, yyf)
+            res = my_pwlf.fit(2,[0.],[0.1]) # force fit to go through point (0,0.1)
+            # breaks = my_pwlf.fit(2,[0.],[0.1])
+            slopes = my_pwlf.calc_slopes()
+            pred = my_pwlf.predict(xHat)
+            yHat = np.concatenate((np.array([0.1]*trampday1),pred))
+            yHat = np.array([max(t,0.1) for t in yHat])
+            for i,y in enumerate(yHat):
+                if i>0 and y<yHat[i-1]:
+                    yHat[i]=yHat[i-1]
+            reg_testing.update({cc:yHat.copy()})
+    return reg_testing    
+reg_testing=pwlf_testing(testing,trampday1=50)
+
+# print('debugging lengths testing',len(testing['Germany']),'reg_testing',len(reg_testing['Germany']),
+#      'new_cases_c_spm_jhu',len(new_cases_c_spm_jhu['Germany']),'new_cases_c_spm_owid',len(new_cases_c_spm_owid['Germany']))
+
+# corrected adjusted (linr: corresponding to pwlf) smoothed data  : corrected for testing limitations
+new_cases_c_linr_spm_jhu = {cc:new_cases_c_spm_jhu[cc]/reg_testing[cc] for cc in countries_common}
+new_cases_c_linr_spm_jhu.update({'dates':new_cases_c_spm_jhu['dates']})  # add dates to dictionary
+covid_ts.update({'new_confirmed_linr_corrected_smoothed':new_cases_c_linr_spm_jhu})
+
+cases_c_linr_jhu = {cc:np.cumsum(new_cases_c_linr_spm_jhu[cc])*population_owid[cc][-2]/1000000. for cc in countries_common} 
+cases_c_linr_jhu.update({'dates':new_cases_c_linr_spm_jhu['dates']})  # add dates to dictionary
+covid_ts.update({'confirmed_linr_corrected_smoothed':cases_c_linr_jhu})
+
+new_cases_c_linr_spm_owid = {cc:new_cases_c_spm_owid[cc]/reg_testing[cc] for cc in countries_common}
+new_cases_c_linr_spm_owid.update({'dates':new_cases_c_spm_owid['dates']})  # add dates to dictionary
+covid_owid_ts.update({'new_confirmed_linr_corrected_smoothed':new_cases_c_linr_spm_owid})
+
+cases_c_linr_owid = {cc:np.cumsum(new_cases_c_linr_spm_owid[cc])*population_owid[cc][-2]/1000000. for cc in countries_common} 
+cases_c_linr_owid.update({'dates':new_cases_c_linr_spm_owid['dates']})  # add dates to dictionary
+covid_owid_ts.update({'confirmed_linr_corrected_smoothed':cases_c_linr_owid})
+
+print('completed regularization of testing by pwlf and linear adjustment to confirmed cases (linr).')
+
+print('constructing nonlinear adjustment to confirmed cases based on pwlf testing (nonlin and nonlinr ...')
+def regtests(testing,country,trampday1=50):
+    """ regularize testing data by ramping up linearly to first reported testing
+        from common trampday1
+    """
+    Ntests = [tt for tt in testing[country]]
+    tests = 0
+    for i,tt in enumerate(testing[country]):
+        if tt:
+            break        
+    tday1 = i
+    if tday1 > trampday1:
+        line = np.linspace(0.01,max(0.01,tt),i+1-trampday1)
+    else:
+        line = [tt]
+    Ntests = [line[i-trampday1] if (i<tday1 and i>=trampday1) else tt for i,tt in enumerate(testing[country])]
+    return Ntests
+
+# for nonlinear testing adjustment:
+def CaCo (Co, Nt, K=2):  # cases_actual / cases_observed given Nt=testing
+    K1 = 25*(K-1)/(5.0-K)
+    K2 = K1/5
+    if Co > 0:
+        rt = 1000*Nt/Co
+        return (K1+rt)/(K2+rt)
+    else:
+        return 1
+
+def make_cases_adj_nonlin(testing,cases,K=2):
+    cases_adj_nonlin={}
+    testing_0p1_c = testing_0p1 = {cc: [0.1 if math.isnan(t) else t for t in testing[cc]] for cc in testing}
+    cases_adj_nonlin = {cc:[CaCo(cases[cc][i],regtests(testing_0p1_c,cc)[i],2)*cases[cc][i] for i in range(len(cases[cc]))] for cc in cases if cc != 'dates'}
+    """
+    try:
+        clusdata_all['cases_nonlin'] = {cc:cases_adj_nonlin[cc] for cc in cases_adj_nonlin}
+    except:
+        pass
+    """
+    return cases_adj_nonlin
+
+cases_adj_nonlin_jhu = make_cases_adj_nonlin(testing,new_cases_c_spm_jhu,K=2)            # using testing data
+new_cases_c_nonlin_spm_jhu = {cc:cases_adj_nonlin_jhu[cc] for cc in countries_common}
+new_cases_c_nonlin_spm_jhu.update({'dates':new_cases_c_spm_jhu['dates']})  # add dates to dictionary
+covid_ts.update({'new_confirmed_nonlin_corrected_smoothed':new_cases_c_nonlin_spm_jhu})
+
+cases_c_nonlin_jhu = {cc:np.cumsum(new_cases_c_nonlin_spm_jhu[cc])*population_owid[cc][-2]/1000000. for cc in countries_common} 
+cases_c_nonlin_jhu.update({'dates':new_cases_c_nonlin_spm_jhu['dates']})  # add dates to dictionary
+covid_ts.update({'confirmed_nonlin_corrected_smoothed':cases_c_nonlin_jhu})
+
+cases_adj_nonlinr_jhu = make_cases_adj_nonlin(reg_testing,new_cases_c_spm_jhu,K=2)       # using regularized testing
+new_cases_c_nonlinr_spm_jhu = {cc:cases_adj_nonlinr_jhu[cc] for cc in countries_common}
+new_cases_c_nonlinr_spm_jhu.update({'dates':new_cases_c_spm_jhu['dates']})  # add dates to dictionary
+covid_ts.update({'new_confirmed_nonlinr_corrected_smoothed':new_cases_c_nonlinr_spm_jhu})
+
+cases_c_nonlinr_jhu = {cc:np.cumsum(new_cases_c_nonlinr_spm_jhu[cc])*population_owid[cc][-2]/1000000. for cc in countries_common} 
+cases_c_nonlinr_jhu.update({'dates':new_cases_c_nonlinr_spm_jhu['dates']})  # add dates to dictionary
+covid_ts.update({'confirmed_nonlinr_corrected_smoothed':cases_c_nonlinr_jhu})
+
+cases_adj_nonlin_owid = make_cases_adj_nonlin(testing,new_cases_c_spm_owid,K=2)            # using testing data
+new_cases_c_nonlin_spm_owid = {cc:cases_adj_nonlin_owid[cc] for cc in countries_common}
+new_cases_c_nonlin_spm_owid.update({'dates':new_cases_c_spm_owid['dates']})  # add dates to dictionary
+covid_owid_ts.update({'new_confirmed_nonlin_corrected_smoothed':new_cases_c_nonlin_spm_owid})
+
+cases_c_nonlin_owid = {cc:np.cumsum(new_cases_c_nonlin_spm_owid[cc])*population_owid[cc][-2]/1000000. for cc in countries_common} 
+cases_c_nonlin_owid.update({'dates':new_cases_c_nonlin_spm_owid['dates']})  # add dates to dictionary
+covid_owid_ts.update({'confirmed_nonlin_corrected_smoothed':cases_c_nonlin_owid})
+
+cases_adj_nonlinr_owid = make_cases_adj_nonlin(reg_testing,new_cases_c_spm_owid,K=2)       # using regularized testing
+new_cases_c_nonlinr_spm_owid = {cc:cases_adj_nonlinr_owid[cc] for cc in countries_common}
+new_cases_c_nonlinr_spm_owid.update({'dates':new_cases_c_spm_owid['dates']})  # add dates to dictionary
+covid_owid_ts.update({'new_confirmed_nonlinr_corrected_smoothed':new_cases_c_nonlinr_spm_owid})
+
+cases_c_nonlinr_owid = {cc:np.cumsum(new_cases_c_nonlinr_spm_owid[cc])*population_owid[cc][-2]/1000000. for cc in countries_common} 
+cases_c_nonlinr_owid.update({'dates':new_cases_c_nonlinr_spm_owid['dates']})  # add dates to dictionary
+covid_owid_ts.update({'confirmed_nonlinr_corrected_smoothed':cases_c_nonlinr_owid})
+
+print('completed nonlinear adjustment to confirmed cases.')
+
 print('Done with data.')
 print('---------------------------------')

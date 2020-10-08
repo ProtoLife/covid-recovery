@@ -808,9 +808,15 @@ class ModelFit:
 
         if datatypes == 'all' or not datatypes:
             if data_src == 'owid':
-                datatypes = ['confirmed','deaths','tests', 'stringency','deaths_corrected_smoothed','confirmed_corrected_smoothed','new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed']
+                datatypes = ['confirmed','deaths','tests', 'stringency','deaths_corrected_smoothed','confirmed_corrected_smoothed',
+                'confirmed_linr_corrected_smoothed','confirmed_nonlin_corrected_smoothed','confirmed_nonlinr_corrected_smoothed',
+                'new_confirmed_linr_corrected_smoothed','new_confirmed_nonlin_corrected_smoothed','new_confirmed_nonlinr_corrected_smoothed',
+                'new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed']
             else:
-                datatypes = ['confirmed','deaths','recovered','deaths_corrected_smoothed','confirmed_corrected_smoothed','recovered_corrected_smoothed','new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed','new_recovered_corrected_smoothed']
+                datatypes = ['confirmed','deaths','recovered','deaths_corrected_smoothed','confirmed_corrected_smoothed','recovered_corrected_smoothed',
+                'confirmed_linr_corrected_smoothed','confirmed_nonlin_corrected_smoothed','confirmed_nonlinr_corrected_smoothed',
+                'new_confirmed_linr_corrected_smoothed','new_confirmed_nonlin_corrected_smoothed','new_confirmed_nonlinr_corrected_smoothed',               
+                'new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed','new_recovered_corrected_smoothed']
         self.data = {}
         for dt in datatypes:
             self.data.update({dt:ts[dt][country][daystart:datadays]}) 
