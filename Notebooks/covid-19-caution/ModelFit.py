@@ -807,6 +807,7 @@ class ModelFit:
         self.tdata = np.linspace(0, datadays -1, datadays)
 
         if datatypes == 'all' or not datatypes:
+            # note that others also available for new_ with _pm (per million) suffix e.g. new_confirmed_nonlin_corrected_smoothed_pm
             if data_src == 'owid':
                 datatypes = ['confirmed','deaths','tests', 'stringency','deaths_corrected_smoothed','confirmed_corrected_smoothed',
                 'confirmed_linr_corrected_smoothed','confirmed_nonlin_corrected_smoothed','confirmed_nonlinr_corrected_smoothed',
