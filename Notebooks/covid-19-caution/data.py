@@ -99,7 +99,7 @@ def jhu_to_owid_str_country_md(countries_owid):
     })
     return jhu_to_owid_str_country
 
-def owid_to_jhu_str_country_md(countries_owid)
+def owid_to_jhu_str_country_md(countries_owid):
     owid_to_jhu_str_country = {}
     for cc in countries_owid:
         owid_to_jhu_str_country.update({cc:cc})
@@ -650,8 +650,8 @@ def CaCo (Co, Nt, K=2):  # cases_actual / cases_observed given Nt=testing
 
 def make_cases_adj_nonlin(testing,cases,K=2):
     cases_adj_nonlin={}
-    testing_0p1_c = testing_0p1 = {cc: [0.1 if math.isnan(t) else t for t in testing[cc]] for cc in testing}
-    cases_adj_nonlin = {cc:[CaCo(cases[cc][i],regtests(testing_0p1_c,cc)[i],2)*cases[cc][i] for i in range(len(cases[cc]))] for cc in cases if cc != 'dates'}
+    testing_0p1_c = testing_0p1 = {cc: [0.1 if math.isnan(t) else t for t in testing[cc]] for cc in testing if cc != 'dates'}
+    cases_adj_nonlin = {cc:np.array([CaCo(cases[cc][i],regtests(testing_0p1_c,cc)[i],2)*cases[cc][i] for i in range(len(cases[cc]))]) for cc in cases if cc != 'dates'}
     return cases_adj_nonlin
 
 #---------------------------------------------- data extraction and processing procedure -----------------------------------------------------------
@@ -775,7 +775,7 @@ print('---------------------------------')
 print('extracting testing data from OWID database')
 testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync) 
 testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'World'}
-testing_init_ramp = {regtests(testing[cc],country,trampday1=50) for cc in testing}  # rampup testing linearly from background 0.01 to first reported value from trampday1
+testing_init_ramp = {cc:regtests(testing,cc,trampday1=50) for cc in testing}  # rampup testing linearly from background 0.01 to first reported value from trampday1
 print('doing piecewise linear fits to testing data ... reg_testing');
 warnings.simplefilter('ignore')
 reg_testing=pwlf_testing(testing_init_ramp,trampday1=50)
@@ -813,6 +813,13 @@ print('constructing nonlinear adjustment to confirmed cases based on pwlf testin
 cases_adj_nonlin_jhu = make_cases_adj_nonlin(testing,new_cases_c_spm_jhu,K=2)            # using testing data
 new_cases_c_nonlin_spm_jhu = {cc:cases_adj_nonlin_jhu[cc] for cc in countries_common}
 new_cases_c_nonlin_spm_jhu.update({'dates':new_cases_c_spm_jhu['dates']})  # add dates to dictionary
+
+#for cc in countries_common:
+#    try:
+#        temp = cases_adj_nonlin_jhu[cc]*population_owid[cc][-2]/1000000.
+#    except:
+#        print('Exception at country',cc,'popln',population_owid[cc][-2],cases_adj_nonlin_jhu[cc])
+
 new_cases_c_nonlin_jhu = {cc:cases_adj_nonlin_jhu[cc]*population_owid[cc][-2]/1000000. for cc in countries_common} # convert from pm to real pop numbers
 new_cases_c_nonlin_jhu.update({'dates':new_cases_c_spm_jhu['dates']})  # add dates to dictionary
 covid_ts.update({'new_confirmed_nonlin_corrected_smoothed':new_cases_c_nonlin_jhu})
