@@ -622,8 +622,8 @@ def pwlf_testing(testing,trampday1=50): # reg_testing calculated from testing be
     return reg_testing 
 
 def regtests(testing,country,trampday1=50):
-    """ regularize testing data by ramping up linearly to first reported testing
-        from common trampday1
+    """ regularize testing data by ramping up linearly from common trampday1 
+        to value on first reported testing capacity
     """
     Ntests = [tt for tt in testing[country]]
     tests = 0
@@ -775,10 +775,11 @@ print('---------------------------------')
 print('extracting testing data from OWID database')
 testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync) 
 testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'World'}
+testing_init_ramp = {regtests(testing[cc],country,trampday1=50) for cc in testing}  # rampup testing linearly from background 0.01 to first reported value from trampday1
 print('doing piecewise linear fits to testing data ... reg_testing');
 warnings.simplefilter('ignore')
+reg_testing=pwlf_testing(testing_init_ramp,trampday1=50)
 
-reg_testing=pwlf_testing(testing,trampday1=50)
 
 # print('debugging lengths testing',len(testing['Germany']),'reg_testing',len(reg_testing['Germany']),
 #      'new_cases_c_spm_jhu',len(new_cases_c_spm_jhu['Germany']),'new_cases_c_spm_owid',len(new_cases_c_spm_owid['Germany']))
