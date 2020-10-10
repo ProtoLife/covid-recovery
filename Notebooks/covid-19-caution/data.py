@@ -17,7 +17,11 @@ def Float(x):
         rtn = float('NaN')
     return rtn
 
-def get_data(jhu_file):
+data_days = -1
+final_date = "10/09/20" # 9th October 2020 as cutoff for paper (8th October for JHU, since better sync offset by 1)
+
+def get_data(jhu_file, lastdate=None):
+    global data_days
     dat = []
     with open(jhu_file, newline='') as csvfile:
         myreader = csv.reader(csvfile, delimiter=',')
@@ -45,16 +49,30 @@ def get_data(jhu_file):
     for elt in popdat[0][4:]:  
         popdat0.append(elt)
     popdat[0] = [pop for pop in popdat0]
-    # print('popdat[0]',popdat[0])
+
+    # select data only up to lastdate
+    fmt = '%m/%d/%y'
+    dbdates = [datetime.datetime.strptime(dd,fmt) for dd in popdat0[1:] ]
+    if lastdate:
+        lastdate_d = datetime.datetime.strptime(lastdate,fmt)
+        if (lastdate_d-dbdates[-1]).days <= 0:
+            print('Error: provided last date parameter after end of data in JHU database, using all')
+            lastdate_d = datetime.datetime.strptime(popdat0[-1],fmt)
+    else:
+        lastdate_d = datetime.datetime.strptime(popdat0[-1],fmt)    
+    data_days = (lastdate_d-dbdates[0]).days  # -1 corrects the last date to be the equivalent of that for the OWID database, +1 allowing for 'dates' as first elt
+    days = data_days+1
+    popdat[0] = [pop for pop in popdat0[0:days]] 
+
     # totals over all countries
     totals = np.zeros(len(popdat[0])-1,dtype=int)  
     # print('debug length of totals is',len(totals))
     for row in popdat[1:]:
-        totals = totals + np.array(row[1:]) 
+        totals = totals + np.array(row[1:days]) 
     totals = list(np.asarray(totals))
     # print(totals)
-    popkeyed = {poplist[0]: poplist[1:] for poplist in popdat} 
-    popkeyed.update({'dates':popdat[0][1:]}) 
+    popkeyed = {poplist[0]: poplist[1:days] for poplist in popdat} 
+    popkeyed.update({'dates':popdat[0][1:days]}) 
     popkeyed.update({('World',''):totals})
     # del popkeyed[('d','a')]
     # assemble totals for countries with multiple regions
@@ -395,7 +413,8 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
     import numpy as np
     import datetime
     import matplotlib.dates as mdates
-    global covid_owid
+    global covid_owid,data_days
+
     with open(owid_file, 'r', newline='') as csvfile:
         myreader = csv.DictReader(csvfile,delimiter=',')
         for row in myreader:
@@ -428,6 +447,8 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
             key = 'new_tests_smoothed'
         else:
             key = 'new_tests'          # reporting intervals often sporadic so better to use smoothed weekly
+    elif datatype == 'new_tests_smoothed_per_thousand':
+        key = 'new_tests_smoothed_per_thousand'
     elif datatype =='stringency':
         key = 'stringency_index'
     elif datatype == 'population':
@@ -456,7 +477,9 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
     firstdate = dates[daysync]
     lastdate = dates[-1]
     firstdate_t =  dates_t[daysync]
-    lastdate_t =  dates_t[-1]
+    # print('debug: data_days',data_days,'len dates',len(dates_t),'daysync+data_days',daysync+data_days-1)
+    lastdate_t =  dates_t[daysync+data_days-1]
+    # lastdate_t =  dates_t[-1]
 
     daystart = 0
     daystop = (lastdate_t-firstdate_t).days
@@ -487,7 +510,7 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
 
 def get_data_owid_key(key, daysync = 0):
     """ data is synchronized to start at beginning of jhu data set"""
-    global covid_owid, owid_file
+    global covid_owid, owid_file, data_days
     if not covid_owid:
         with open(owid_file, 'r', newline='') as csvfile:
             myreader = csv.DictReader(csvfile,delimiter=',')
@@ -508,11 +531,12 @@ def get_data_owid_key(key, daysync = 0):
     firstdate = dates[daysync]
     lastdate = dates[-1]
     firstdate_t =  dates_t[daysync]
-    lastdate_t =  dates_t[-1]
+    lastdate_t =  dates_t[daysync+data_days-1]
+    # lastdate_t =  dates_t[-1]
 
     daystart = 0
     daystop = (lastdate_t-firstdate_t).days
-    
+    # print('debug data_days daystop+1',data_days,daystop+1)
     popkeyed = {country: np.zeros(daystop+1,dtype=float) for country in countries} 
     
     for dd in covid_owid:
@@ -524,7 +548,7 @@ def get_data_owid_key(key, daysync = 0):
     # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
 
     fmt_jhu = '%-m/%-d/%y'
-    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t[daysync:]]})   # dates are set to strings in jhu date format for compatibility
+    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t[daysync:daysync+data_days-1]]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
 def truncx(xx,daystart,daystop):
@@ -660,9 +684,10 @@ def make_cases_adj_nonlin(testing,cases,K=2):
 print('getting JHU data...')
 
 base = '../../covid-19-JH/csse_covid_19_data/csse_covid_19_time_series/'
-confirmed = get_data(base+'time_series_covid19_confirmed_global.csv')
-deaths = get_data(base+'time_series_covid19_deaths_global.csv')
-recovered = get_data(base+'time_series_covid19_recovered_global.csv')
+confirmed = get_data(base+'time_series_covid19_confirmed_global.csv',final_date)
+print('jhu data selected from',confirmed['dates'][0],'to',confirmed['dates'][-1])
+deaths = get_data(base+'time_series_covid19_deaths_global.csv',final_date)
+recovered = get_data(base+'time_series_covid19_recovered_global.csv',final_date)
 covid_ts = {'confirmed':confirmed,'deaths':deaths,'recovered':recovered}
 
 print('expanding JHU data : to new (daily), 7-day rolling (smoothed), reporting glitch (corrected) and combined')
@@ -681,6 +706,9 @@ print('getting owid data...')
 daysync = 23      # needs to be same as value in Cluster.py
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
 confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync=daysync)
+# print("debug len confirmed_owid['Germany'] len confirmed_owid['dates'] ",len(confirmed_owid['Germany']),len(confirmed_owid['dates']))
+print('owid data selected from',confirmed_owid['dates'][0],'to',confirmed_owid['dates'][-1])
+
 recovered_owid = None                                                         # NB OWID database has no recovered data, substitute with JHU data!
 deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative',daysync=daysync)
 tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative',daysync=daysync)
@@ -773,8 +801,10 @@ print('No of big common countries is',len(bcountries))
 print('---------------------------------')
 
 print('extracting testing data from OWID database')
-testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync) 
+testing_x=get_data_owid(owid_file,datatype='new_tests_smoothed_per_thousand',dataaccum = 'daily',daysync=daysync)
+# testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync) 
 testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'World'}
+# print("debug len testing_x['Germany'] len testing_x['dates'] ",len(testing_x['Germany']),len(testing_x['dates']))
 testing_init_ramp = {cc:regtests(testing,cc,trampday1=50) for cc in testing}  # rampup testing linearly from background 0.01 to first reported value from trampday1
 print('doing piecewise linear fits to testing data ... reg_testing');
 warnings.simplefilter('ignore')
