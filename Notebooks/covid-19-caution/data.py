@@ -254,14 +254,24 @@ def expand_data(covid_ts,database='jhu'):
                     cor_ts[:] = data_cc[:]
                     data_cor.update({cc:cor_ts}) 
                     continue
-                fftdat = np.fft.rfft(data_cc) # last axis by default
+                pulse = np.array([100 if ((i % 7 == 0 ) or (i % 7 == 2)) else 0 for i in range(259)])
+                fftdat = np.fft.rfft(data_cc,n=259) # last axis by default
+                for k in [37,74,111]:
+                    fftdat[k]= (fftdat[k-1]+fftdat[k+1])/2
+                fftdat1 = np.fft.rfft(pulse,n=259)
                 nfft = len(fftdat)
                 fftpow = np.square(np.abs(fftdat))
+                fftpow1 = np.square(np.abs(fftdat1))
                 maxarg = np.argmax(fftpow[10:])
                 print(ccs,dtype,'maximum frequency component at',maxarg+10,'in vector of length',nfft)
                 plt.plot(10+np.array(range(len(fftpow)-10)),fftpow[10:])
+                #plt.plot(10+np.array(range(len(fftpow1)-10)),fftpow1[10:])
+                smoothed = np.fft.irfft(fftdat,n=259)
                 plt.show()
-                smoothed = np.fft.irfft(fftdat)
+                plt.plot(data_cc)
+                plt.plot(smoothed)
+                plt.show()
+
                 cor_ts[0:7] = data_cc[0:7]
                 week = np.sum(data_cc[0:7])                        # initialization to value of rolling sum at t=6                      
                 for t in range(7,n):                               # speed up by ignoring correction to first 7 pts with too little data
