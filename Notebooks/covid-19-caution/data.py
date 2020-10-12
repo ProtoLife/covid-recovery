@@ -7,6 +7,7 @@ import pwlf
 from scipy import stats
 from tqdm import tqdm, tqdm_notebook  # progress bars
 
+from matplotlib import pyplot as plt
 debug = True
 
 # ----------------------------------------- functions for extracting and processing data ---------------------------------
@@ -172,6 +173,7 @@ def expand_data(covid_ts,database='jhu'):
         works for both JHU and OWID dictionaries
     """
     global debug
+
     file =open('data_corrections_'+database+'.csv',"w+")
     file.write("dtype,country,day,yps,deltas,sigmars\n")
 
@@ -252,6 +254,14 @@ def expand_data(covid_ts,database='jhu'):
                     cor_ts[:] = data_cc[:]
                     data_cor.update({cc:cor_ts}) 
                     continue
+                fftdat = np.fft.rfft(data_cc) # last axis by default
+                nfft = len(fftdat)
+                fftpow = np.square(np.abs(fftdat))
+                maxarg = np.argmax(fftpow[10:])
+                print(ccs,dtype,'maximum frequency component at',maxarg+10,'in vector of length',nfft)
+                plt.plot(10+np.array(range(len(fftpow)-10)),fftpow[10:])
+                plt.show()
+                smoothed = np.fft.irfft(fftdat)
                 cor_ts[0:7] = data_cc[0:7]
                 week = np.sum(data_cc[0:7])                        # initialization to value of rolling sum at t=6                      
                 for t in range(7,n):                               # speed up by ignoring correction to first 7 pts with too little data
@@ -259,16 +269,16 @@ def expand_data(covid_ts,database='jhu'):
                     nft= 7. # float(nt)
                     ne = 5. #nft-2.                                # two points give no deviation
                     x = times[t-nt:t]                              # t-nt up to and including t-1
-                    # y = data_cc[t-nt:t]                          # rather than use data_cc we may use the corrected values to avoid glitch errors
+                    # y = data_cc[t-nt:t]                          # 
                     y = cor_ts[t-nt:t]                             # rather than use data_cc we may use the corrected values to avoid glitch errors
                     ys = data_ccs[t-nt:t]
-                    sl, y0, r, p, se = stats.linregress(x,y)      # regression fit to unsmoothed data
+                    sl, y0, r, p, se = stats.linregress(x,y)       # regression fit to unsmoothed data
                     sls, y0s, rs, ps, ses = stats.linregress(x,ys) # regression fit to smoothed data
-                    l = np.array(y0+x*sl)                         # unsmoothed regression line pts
+                    l = np.array(y0+x*sl)                          # unsmoothed regression line pts
                     ls = np.array(y0s+x*sls)                       # smoothed regression line pts
                     sigmar =  np.sqrt(np.sum(np.square(y-l)/ne))               
                     sigmars =  np.sqrt(np.sum(np.square(ys-ls)/ne))
-                    yp = y0+times[t]*sl                           # predicted value at t from unsmoothed data
+                    yp = y0+times[t]*sl                            # predicted value at t from unsmoothed data
                     yps = y0s+times[t]*sls                         # predicted value at t from smoothed data
                     yps = max(0.,yps)
                     delta = data_cc[t]-yp
@@ -276,7 +286,7 @@ def expand_data(covid_ts,database='jhu'):
                     week = week - cor_ts[t-7] + data_cc[t]         # rolling sum of last 7 : initially using data_cc for estimate, later corrected
                     deltas = (week/7.-yps)                         # jump in smoothed curve (from predicted value)
                     adeltas = deltas-np.sign(deltas)*sigmars
-                    adeltas7 = adeltas*7.                            # change to data_cc that would give this jump in smoothed rolling average
+                    adeltas7 = adeltas*7.                          # change to data_cc that would give this jump in smoothed rolling average
                     if sigmars > 0.1 and sigmar > 0.1 and np.abs(delta) > 10.:
                         if np.abs(deltas) < 3.*sigmars or np.abs(delta) < 3.*sigmar:            # no correction
                             cor_ts[t] = data_cc[t]
