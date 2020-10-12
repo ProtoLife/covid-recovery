@@ -113,6 +113,9 @@ elif database == 'JHU':
 
 big = {cc:new_deaths_spm[cc] for cc in bcountries}
 big_cases = {cc:new_cases_spm[cc] for cc in bcountries}
+print('debug len(total_deaths)',len(total_deaths))
+print('debug len(big)',len(big))
+
 
 # badspikes = ['Peru','Bolivia','Chile','China','Equador','Kyrgystan']   # eliminate Peru and a few other countries because of bad spikes.
 
