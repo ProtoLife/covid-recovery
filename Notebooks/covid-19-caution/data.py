@@ -7,6 +7,7 @@ import pwlf
 from scipy import stats
 from tqdm import tqdm, tqdm_notebook  # progress bars
 
+debug = True
 
 # ----------------------------------------- functions for extracting and processing data ---------------------------------
 covid_owid = []               # defined globally to allow access to raw data read in for owid
@@ -170,7 +171,7 @@ def expand_data(covid_ts,database='jhu'):
         then we produce also cumulative versions of the smoothed and corrected smoothed sets
         works for both JHU and OWID dictionaries
     """
-
+    global debug
     file =open('data_corrections_'+database+'.csv',"w+")
     file.write("dtype,country,day,yps,deltas,sigmars\n")
 
@@ -246,6 +247,11 @@ def expand_data(covid_ts,database='jhu'):
                 data_cc = data_diff[cc] 
                 data_ccs = data_sm[cc] 
                 cor_ts = np.zeros(n,dtype=float)                   # array to hold corrected values to data_cc 
+                ccs = cc if database == 'owid' else cc[0] 
+                if debug and ccs not in ['Peru','Spain','United States','France','Australia','Italy','Sweden']:
+                    cor_ts[:] = data_cc[:]
+                    data_cor.update({cc:cor_ts}) 
+                    continue
                 cor_ts[0:7] = data_cc[0:7]
                 week = np.sum(data_cc[0:7])                        # initialization to value of rolling sum at t=6                      
                 for t in range(7,n):                               # speed up by ignoring correction to first 7 pts with too little data
@@ -266,32 +272,34 @@ def expand_data(covid_ts,database='jhu'):
                     yps = y0s+times[t]*sls                         # predicted value at t from smoothed data
                     yps = max(0.,yps)
                     delta = data_cc[t]-yp
+                    adelta = delta-np.sign(delta)*sigmar
                     week = week - cor_ts[t-7] + data_cc[t]         # rolling sum of last 7 : initially using data_cc for estimate, later corrected
                     deltas = (week/7.-yps)                         # jump in smoothed curve (from predicted value)
-                    deltas7 = deltas*7.                            # change to data_cc that would give this jump in smoothed rolling average
-                    if sigmars > 0.1 and sigmar > 0.1 and np.abs(deltas) > 10.:
+                    adeltas = deltas-np.sign(deltas)*sigmars
+                    adeltas7 = adeltas*7.                            # change to data_cc that would give this jump in smoothed rolling average
+                    if sigmars > 0.1 and sigmar > 0.1 and np.abs(delta) > 10.:
                         if np.abs(deltas) < 3.*sigmars or np.abs(delta) < 3.*sigmar:            # no correction
                             cor_ts[t] = data_cc[t]
                         else:                                      # do correction : limit deviation to sigmar
                             file.write("%s,\"%s\",%d,%f,%f,%f\n" % (dtype,cc,t,yps,deltas,sigmars))
-                            cor_ts[t] =  data_cc[t] - delta
+                            cor_ts[t] =  data_cc[t] - adeltas7
                             if True:
                                 tsum = np.sum(cor_ts[max(0,t-31):t-1]) 
-                                if delta > 0:
+                                if adeltas7 > 0:
                                     if tsum > 0:                   # redistribute over previous month proportional to counts                     
                                         inv_tsum = 1./tsum 
                                         for t1 in range(max(0,t-31),t):
-                                            cor_ts[t1] = cor_ts[t1]*(1. + delta *inv_tsum)
+                                            cor_ts[t1] = cor_ts[t1]*(1. + adeltas7 *inv_tsum)
                                     else:
                                         inv_tsum = 1./(t-max(0,t-31))# replace by linear ramp       
                                         for t1 in range(max(0,t-31),t):
-                                            cor_ts[t1] = cor_ts[t1] + delta * inv_tsum
+                                            cor_ts[t1] = cor_ts[t1] + adeltas7 * inv_tsum
                                 elif tsum > -delta:
                                         inv_tsum = 1./tsum 
                                         for t1 in range(max(0,t-31),t):
-                                            cor_ts[t1] = cor_ts[t1]*(1. + delta *inv_tsum)                           
+                                            cor_ts[t1] = cor_ts[t1]*(1. + adeltas7 *inv_tsum)                           
                                 else:
-                                   file.write("%s,\"%s\",%d,%f,%f,%f,no redistr\n" % (dtype,cc,t,yps,deltas,sigmars))
+                                   file.write("%s,\"%s\",%d,%f,%f,%f,no redistr\n" % (dtype,cc,t,yps,adeltas,sigmars))
                                    # print('redistribution not possible')
                                    cor_ts[t] = data_cc[t]
                     else:
