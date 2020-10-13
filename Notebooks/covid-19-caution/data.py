@@ -160,6 +160,28 @@ def owid_to_jhu_country(cc):
     else:
         return (cc_j,'')
 
+def notch_filter(data):
+     #pulse = np.array([100 if ((i % 7 == 0 ) or (i % 7 == 2)) else 0 for i in range(259)])
+     # fftdat1 = np.fft.rfft(pulse,n=259)
+     # fftpow1 = np.square(np.abs(fftdat1))
+     #plt.plot(10+np.array(range(len(fftpow1)-10)),fftpow1[10:])
+     
+     fftdat = np.fft.rfft(data_cc,n=259) # last axis by default
+     for k in [37,74,111]: # frequencies 259/7=37 and multiples inside frequency interval 259/2 
+         fftdat[k]= (fftdat[k-1]+fftdat[k+1])/2
+     nfft = len(fftdat)
+     fftpow = np.square(np.abs(fftdat))
+
+     maxarg = np.argmax(fftpow[10:])
+     print(ccs,dtype,'maximum frequency component at',maxarg+10,'in vector of length',nfft)
+     plt.plot(10+np.array(range(len(fftpow)-10)),fftpow[10:])
+     plt.show()
+
+     smoothed = np.fft.irfft(fftdat,n=259)
+     plt.plot(data_cc)
+     plt.plot(smoothed)
+     plt.show()
+
 def expand_data(covid_ts,database='jhu'):
     """ input time series dictionary : JHU or OWID
         expands data in the three direct cumulative raw data types 
@@ -239,7 +261,6 @@ def expand_data(covid_ts,database='jhu'):
 
         new_dtype_corrected = new_dtype+'_corrected'
         data_cor = {}
-        maxfactor = np.exp(0.5) # maximal exponential increase or decrease per day in data
         times = np.array(range(0,n),float)
         for cc in tqdm_notebook(data_diff, desc='report correction '+dtype ): # loop with progress bar instead of just data_diff
         # for cc in data_diff:
@@ -254,24 +275,7 @@ def expand_data(covid_ts,database='jhu'):
                     cor_ts[:] = data_cc[:]
                     data_cor.update({cc:cor_ts}) 
                     continue
-                pulse = np.array([100 if ((i % 7 == 0 ) or (i % 7 == 2)) else 0 for i in range(259)])
-                fftdat = np.fft.rfft(data_cc,n=259) # last axis by default
-                for k in [37,74,111]:
-                    fftdat[k]= (fftdat[k-1]+fftdat[k+1])/2
-                fftdat1 = np.fft.rfft(pulse,n=259)
-                nfft = len(fftdat)
-                fftpow = np.square(np.abs(fftdat))
-                fftpow1 = np.square(np.abs(fftdat1))
-                maxarg = np.argmax(fftpow[10:])
-                print(ccs,dtype,'maximum frequency component at',maxarg+10,'in vector of length',nfft)
-                plt.plot(10+np.array(range(len(fftpow)-10)),fftpow[10:])
-                #plt.plot(10+np.array(range(len(fftpow1)-10)),fftpow1[10:])
-                smoothed = np.fft.irfft(fftdat,n=259)
-                plt.show()
-                plt.plot(data_cc)
-                plt.plot(smoothed)
-                plt.show()
-
+                # notch_filter(data_cc)                            # try notch filter as alternative to rolling average to filter out weekly periodicity
                 cor_ts[0:7] = data_cc[0:7]
                 week = np.sum(data_cc[0:7])                        # initialization to value of rolling sum at t=6                      
                 for t in range(7,n):                               # speed up by ignoring correction to first 7 pts with too little data
@@ -298,9 +302,8 @@ def expand_data(covid_ts,database='jhu'):
                     adeltas = deltas-np.sign(deltas)*sigmars
                     adeltas7 = adeltas*7.                          # change to data_cc that would give this jump in smoothed rolling average
                     if sigmars > 0.1 and sigmar > 0.1 and np.abs(delta) > 10.:
-                        if np.abs(deltas) < 3.*sigmars or np.abs(delta) < 3.*sigmar:            # no correction
-                            cor_ts[t] = data_cc[t]
-                        else:                                      # do correction : limit deviation to sigmar
+                        if np.abs(deltas) > 3.*sigmars and np.abs(delta) > 3.*sigmar:            # try correction
+                                      # do correction : limit deviation to sigmar
                             file.write("%s,\"%s\",%d,%f,%f,%f\n" % (dtype,cc,t,yps,deltas,sigmars))
                             cor_ts[t] =  data_cc[t] - adeltas7
                             if True:
@@ -322,6 +325,8 @@ def expand_data(covid_ts,database='jhu'):
                                    file.write("%s,\"%s\",%d,%f,%f,%f,no redistr\n" % (dtype,cc,t,yps,adeltas,sigmars))
                                    # print('redistribution not possible')
                                    cor_ts[t] = data_cc[t]
+                        else:
+                            cor_ts[t] = data_cc[t]
                     else:
                         cor_ts[t] = data_cc[t]
                     week = week + cor_ts[t] - data_cc[t]
