@@ -6,6 +6,7 @@ import math
 import pwlf
 from scipy import stats
 from tqdm import tqdm, tqdm_notebook  # progress bars
+from scipy.interpolate import interp1d
 
 from matplotlib import pyplot as plt
 debug = True
@@ -197,7 +198,7 @@ def expand_data(covid_ts,database='jhu'):
     global debug
 
     file =open('data_corrections_'+database+'.csv',"w+")
-    file.write("dtype,country,day,yps,deltas,sigmars\n")
+    file.write("dtype,country,day,yp,delta,sigma\n")
 
     new_covid_ts = covid_ts.copy()
     if database == 'jhu':
@@ -262,6 +263,9 @@ def expand_data(covid_ts,database='jhu'):
         new_dtype_corrected = new_dtype+'_corrected'
         data_cor = {}
         times = np.array(range(0,n),float)
+        times7 = np.array(range(0,n,7),float)
+        ntimes = np.array(range(0,n),int)
+        ntimes7 = np.array(range(0,n,7),int)
         for cc in tqdm_notebook(data_diff, desc='report correction '+dtype ): # loop with progress bar instead of just data_diff
         # for cc in data_diff:
             if cc == 'dates':
@@ -270,67 +274,73 @@ def expand_data(covid_ts,database='jhu'):
                 data_cc = data_diff[cc] 
                 data_ccs = data_sm[cc] 
                 cor_ts = np.zeros(n,dtype=float)                   # array to hold corrected values to data_cc 
+
+                #data_ccs2 = data_ccs.copy()                        # corrected smoothed data
+                n7 = n//7+1
+                data_ccw = np.zeros(n7,dtype=float)
+                for t in ntimes7:
+                    t1 = t//7
+                    data_ccw[t1] = data_ccs[t]
+                data_ccws = data_ccw.copy()
+                interp = interp1d(ntimes7,data_ccw,kind='linear',fill_value="extrapolate")  # alternative kind = 'cubic'
+                data_ccwsn = interp(ntimes)
+
                 ccs = cc if database == 'owid' else cc[0] 
                 if debug and ccs not in ['Peru','Spain','United States','France','Australia','Italy','Sweden']:
                     cor_ts[:] = data_cc[:]
                     data_cor.update({cc:cor_ts}) 
                     continue
-                # notch_filter(data_cc)                            # try notch filter as alternative to rolling average to filter out weekly periodicity
-                cor_ts[0:7] = data_cc[0:7]
-                week = np.sum(data_cc[0:7])                        # initialization to value of rolling sum at t=6                      
-                for t in range(7,n):                               # speed up by ignoring correction to first 7 pts with too little data
-                    nt = 7  # min(7,t)
-                    nft= 7. # float(nt)
-                    ne = 5. #nft-2.                                # two points give no deviation
-                    x = times[t-nt:t]                              # t-nt up to and including t-1
-                    # y = data_cc[t-nt:t]                          # 
-                    y = cor_ts[t-nt:t]                             # rather than use data_cc we may use the corrected values to avoid glitch errors
-                    ys = data_ccs[t-nt:t]
-                    sl, y0, r, p, se = stats.linregress(x,y)       # regression fit to unsmoothed data
-                    sls, y0s, rs, ps, ses = stats.linregress(x,ys) # regression fit to smoothed data
-                    l = np.array(y0+x*sl)                          # unsmoothed regression line pts
-                    ls = np.array(y0s+x*sls)                       # smoothed regression line pts
-                    sigmar =  np.sqrt(np.sum(np.square(y-l)/ne))               
-                    sigmars =  np.sqrt(np.sum(np.square(ys-ls)/ne))
-                    yp = y0+times[t]*sl                            # predicted value at t from unsmoothed data
-                    yps = y0s+times[t]*sls                         # predicted value at t from smoothed data
-                    yps = max(0.,yps)
-                    delta = data_cc[t]-yp
-                    adelta = delta-np.sign(delta)*sigmar
-                    week = week - cor_ts[t-7] + data_cc[t]         # rolling sum of last 7 : initially using data_cc for estimate, later corrected
-                    deltas = (week/7.-yps)                         # jump in smoothed curve (from predicted value)
-                    adeltas = deltas-np.sign(deltas)*sigmars
-                    adeltas7 = adeltas*7.                          # change to data_cc that would give this jump in smoothed rolling average
-                    if sigmars > 0.1 and sigmar > 0.1 and np.abs(delta) > 10.:
-                        if np.abs(deltas) > 3.*sigmars and np.abs(delta) > 3.*sigmar:            # try correction
-                                      # do correction : limit deviation to sigmar
-                            file.write("%s,\"%s\",%d,%f,%f,%f\n" % (dtype,cc,t,yps,deltas,sigmars))
-                            cor_ts[t] =  data_cc[t] - adeltas7
-                            if True:
-                                tsum = np.sum(cor_ts[max(0,t-31):t-1]) 
-                                if adeltas7 > 0:
-                                    if tsum > 0:                   # redistribute over previous month proportional to counts                     
-                                        inv_tsum = 1./tsum 
-                                        for t1 in range(max(0,t-31),t):
-                                            cor_ts[t1] = cor_ts[t1]*(1. + adeltas7 *inv_tsum)
-                                    else:
-                                        inv_tsum = 1./(t-max(0,t-31))# replace by linear ramp       
-                                        for t1 in range(max(0,t-31),t):
-                                            cor_ts[t1] = cor_ts[t1] + adeltas7 * inv_tsum
-                                elif tsum > -delta:
-                                        inv_tsum = 1./tsum 
-                                        for t1 in range(max(0,t-31),t):
-                                            cor_ts[t1] = cor_ts[t1]*(1. + adeltas7 *inv_tsum)                           
-                                else:
-                                   file.write("%s,\"%s\",%d,%f,%f,%f,no redistr\n" % (dtype,cc,t,yps,adeltas,sigmars))
-                                   # print('redistribution not possible')
-                                   cor_ts[t] = data_cc[t]
-                        else:
-                            cor_ts[t] = data_cc[t]
-                    else:
-                        cor_ts[t] = data_cc[t]
-                    week = week + cor_ts[t] - data_cc[t]
-                data_cor.update({cc:cor_ts})     
+               
+                for t in range(1,n7):                              # speed up by ignoring correction to first 7 pts with too little data
+                    nt = min(6,t)
+                    y = data_ccw[t-nt:t]                           # rather than use data_cc we may use the corrected values to avoid glitch errors
+
+                    # nft= float(nt)
+                    # ne = max(nft-2,1)                              # two points give no deviation
+                    # x = times7[t-nt:t]                             # t-nt up to and including t-1  
+                    # sl, y0, r, p, se = stats.linregress(x,y)       # regression fit to unsmoothed data
+                    # l = np.array(y0+x*sl)                          # unsmoothed regression line pts
+                    # sigma =  np.sqrt(np.sum(np.square(y-l)/ne))    # sigma for regression points (standard error)                                   
+                    # yp = y0+times[t]*sl                            # predicted value at t from unsmoothed data
+
+                    yp = np.mean(y)
+                    sigma = np.std(y)
+
+                    delta = data_ccw[t]-yp
+                    # rmax = np.exp(3.5*0.5)                       # corresponding to a max daily amplification rate of 0.5 
+
+                    if (delta > 10.) and (sigma > 1.) and (np.abs(delta) > 3.*sigma):               # try correction
+                        file.write("%s,\"%s\",%d,%f,%f,%f\n" % (dtype,cc,t,yp,delta,sigma))
+                        data_ccws[t] = yp
+                        if False:
+                            tmin = max(0,t-4)
+                            tsum = np.sum(data_ccws[tmin:t]) 
+                            if tsum > 0: # redistribute over previous month proportional to counts                                     
+                                inv_tsum = 1./tsum 
+                                for t1 in range(tmin,t):
+                                    data_ccws[t1] = data_ccws[t1]*(1. + delta *inv_tsum)
+                            else:
+                                inv_tsum = 1./(t-tmin)# replace by linear ramp       
+                                for t1 in range(tmin,t):
+                                    data_ccws[t1] = data_ccws[t1] + delta * inv_tsum                      
+
+                interp2 = interp1d(ntimes7,data_ccws,kind='linear',fill_value="extrapolate")
+                data_ccwcs = interp2(ntimes)
+                data_cor.update({cc:data_ccwcs})
+                print(ccs)
+                
+                fig,axes = plt.subplots(1,1,figsize=(20,10))
+                axes.plot(data_cc,alpha=0.5,label='raw')
+                axes.plot(data_ccs,alpha=0.5,label='sm')
+                axes.plot(data_ccwsn,alpha=0.75,label='smws')
+                axes.plot(data_ccwcs,alpha=0.75,label='smwcs')
+                plt.legend()
+                plt.show()  
+                fig,axes = plt.subplots(1,1,figsize=(20,10))
+                axes.plot(data_ccw,alpha=0.5,label='smw')
+                axes.plot(data_ccws,alpha=0.75,label='smc')
+                plt.legend()
+                plt.show()      
         new_covid_ts.update({new_dtype_corrected:data_cor})
 
         new_dtype_corrected_smoothed = new_dtype_corrected+'_smoothed'
