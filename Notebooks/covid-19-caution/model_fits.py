@@ -55,9 +55,10 @@ def Float(x):
         rtn = float('NaN')
     return rtn
 
+###########################################################
 # to get ModelFit class definition:
-
 exec(open('ModelFit.py','r').read())
+###########################################################
 
 C_2s = 1000.   # scaling factor for c_2, to allow fit parameter c_2 to be of commensurate magnitude to other parameters
 
