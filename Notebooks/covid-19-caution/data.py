@@ -7,6 +7,7 @@ import pwlf
 from scipy import stats
 from tqdm import tqdm, tqdm_notebook  # progress bars
 from scipy.interpolate import interp1d
+from scipy.signal import savgol_filter
 
 from matplotlib import pyplot as plt
 debug = True
@@ -183,6 +184,71 @@ def notch_filter(data):
      plt.plot(smoothed)
      plt.show()
 
+scountries = ['Peru','Spain','United States','France','Australia','Italy','Sweden']
+dcountries = ['Afghanistan','Albania','Argentina','Armenia','Australia','Austria',
+ 'Azerbaijan','Belarus','Belgium','Bolivia','Bosnia and Herzegovina',
+ 'Brazil','Bulgaria','Canada','Chile','Colombia','Croatia',
+ 'Czech Republic','Dominican Republic','Ecuador','Egypt','El Salvador',
+ 'Finland','Germany','Greece','Guatemala','Honduras','Hungary','India',
+ 'Iran','Iraq','Ireland','Israel','Italy','Kazakhstan','Kosovo','Kuwait',
+ 'Kyrgyzstan','Lebanon','Luxembourg','Macedonia','Mexico','Moldova',
+ 'Morocco','Norway','Oman','Pakistan','Panama','Peru','Philippines',
+ 'Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Serbia',
+ 'Slovenia','South Africa','Spain','Sweden','Switzerland','Tunisia',
+ 'Turkey','Ukraine','United Arab Emirates','United States']
+
+def win_clus(t,y,clusthresh):
+        # An Efficient Method for Detection of Outliers in Tracer Curves Derived from Dynamic Contrast-Enhanced Imaging Linning Ye And Zujun Hou
+        # Mathematical Problems in Engineering Volume 2018 ID 5670165 https://doi.org/10.1155/2018/5670165
+    if np.sum(y) < 0.001:     # don't need to do analysis
+        return 0.
+    l = len(t)
+    if l != len(y):
+        print('Error in win_clus lengths do not match')
+        return
+    if l %2 != 1:
+        print('Error in win_clus window length not odd')
+        return 
+    m = (l-1)//2
+    delta = np.abs((y[1]-y[0])/(t[1]-t[0]))
+    clus = [[[t[1]],[y[1]],delta]]                           # first cluster initially containing one point
+    nc = 0
+    for i in range(2,l):
+        cand=[]
+        for j,c in enumerate(clus):                           # examine all existing clusters
+            tn = c[0][-1]
+            yn = c[1][-1]
+            delta = np.abs((y[i]-yn)/(t[i]-tn))
+            if np.abs(delta-c[2]) < clusthresh:               # point could be entered into this cluster
+                cand.append((j,delta,t[i]-tn))
+        if cand != []:
+            dt = np.array([cd[2] for cd in cand])
+            k = np.argmin(dt)
+            j = cand[k][0]
+            clus[j][0].append(t[i])
+            clus[j][1].append(y[i])
+            l1 = len(clus[j][0])
+            clus[j][2] = (clus[j][2]*l1 + cand[k][1])/(l1+1)  # update average delta
+        else:                                                 # new cluster
+            delta = np.abs((y[i]-y[i-1])/(t[i]-t[i-1]))
+            clus.append([[t[i]],[y[i]],delta])
+    cluslens = np.array([len(c[0]) for c in clus])
+    clusfitj = np.argmax(cluslens)                            # index of largest cluster
+    clusfit = clus[clusfitj]
+    clusfitnp = [np.array(clusfit[0]),np.array(clusfit[1]),clusfit[2]]
+    print('In win_clus, nr clus, cluster lengths,clusfit',len(clus),cluslens,clusfitnp)
+    tc = clusfit[0]
+    yc = clusfit[1]
+    if len(tc) != len(yc) or len(yc) < 2:
+        print('Error in win_clus, cluster for fitting too small, length, window l,m, nr clus, cluster lengths',len(yc),l,m, len(clus),cluslens)
+    sl, y0, r, p, se = stats.linregress(tc,yc)                # regression fit to largest cluster data
+    yp = y0+t[m]*sl                                           # regression line value at central pt
+    if t[m] > clusfit[0][0] and t[m]<clusfit[0][-1] and len(yc) >= 3:                             
+        return yp
+    else:
+        return y[m]
+
+
 def expand_data(covid_ts,database='jhu'):
     """ input time series dictionary : JHU or OWID
         expands data in the three direct cumulative raw data types 
@@ -198,7 +264,7 @@ def expand_data(covid_ts,database='jhu'):
     global debug
 
     file =open('data_corrections_'+database+'.csv',"w+")
-    file.write("dtype,country,day,yp,delta,sigma\n")
+    file.write("dtype,country,reason,day,y[t],yp,delta,sigma\n")
 
     new_covid_ts = covid_ts.copy()
     if database == 'jhu':
@@ -271,48 +337,84 @@ def expand_data(covid_ts,database='jhu'):
             if cc == 'dates':
                 data_cor.update({'dates':data_diff['dates']})
             else:
+                ccs = cc if database == 'owid' else cc[0] 
+                data_cc = data_diff[cc] 
+                if debug and ccs not in scountries:   # dcountries for longer list
+                    data_cor.update({cc:data_cc[:]}) 
+                    continue
+
+                float_formatter = "{:.3f}".format
+                np.set_printoptions(formatter={'float_kind':float_formatter})
                 data_cc = data_diff[cc] 
                 data_ccs = data_sm[cc] 
-                cor_ts = np.zeros(n,dtype=float)                   # array to hold corrected values to data_cc 
-
-                #data_ccs2 = data_ccs.copy()                        # corrected smoothed data
                 n7 = n//7+1
                 data_ccw = np.zeros(n7,dtype=float)
                 for t in ntimes7:
                     t1 = t//7
-                    data_ccw[t1] = data_ccs[t]
-                data_ccws = data_ccw.copy()
+                    data_ccw[t1] = data_ccs[t]*7
+                data_ccws = data_ccw.copy()                        # copy to hold glitch smoothed weekly data
+
+                # data_ccw_savgol = savgol_filter(data_ccw, 9, 6)       # Savitzky-Golay filter, window size 5, polynomial order 3 
                 interp = interp1d(ntimes7,data_ccw,kind='linear',fill_value="extrapolate")  # alternative kind = 'cubic'
                 data_ccwsn = interp(ntimes)
 
-                ccs = cc if database == 'owid' else cc[0] 
-                if debug and ccs not in ['Peru','Spain','United States','France','Australia','Italy','Sweden']:
-                    cor_ts[:] = data_cc[:]
-                    data_cor.update({cc:cor_ts}) 
-                    continue
+                data_ccwl = np.log(np.maximum(data_ccw,0.)+1.)  # positive log of data : replaces exponential decay with linear
+                data_ccwld = np.zeros(n7,float)
+                data_ccwld[:-1] = [np.abs((data_ccwl[i+1]-data_ccwl[i])/7.) for i in range(0,n7-1)] # forward differences
+                data_ccwld[-1] = 0.
+                clusthresh = np.median(np.array([d for d in data_ccwld if d>0.]))
+                print(ccs,'median difference is',clusthresh)
+                ypredl = data_ccwl.copy()
+                m=3
+                w = 2*m+1
+                ypredl[m:-m] = [win_clus(times7[i:i+w],data_ccwl[i:i+w],clusthresh) for i in range(n7-w+1)]
+                ypred = np.exp(ypredl)-1.
+
+
                
-                for t in range(1,n7):                              # speed up by ignoring correction to first 7 pts with too little data
-                    nt = min(6,t)
-                    y = data_ccw[t-nt:t]                           # rather than use data_cc we may use the corrected values to avoid glitch errors
+                for t in range(2,n7):                               # speed up by ignoring correction to first 7 pts with too little data
+                    nt = min(4,t)
+                    y = data_ccw[t-nt:t]                            # rather than use data_cc we may use the corrected values to avoid glitch errors
 
-                    # nft= float(nt)
-                    # ne = max(nft-2,1)                              # two points give no deviation
-                    # x = times7[t-nt:t]                             # t-nt up to and including t-1  
-                    # sl, y0, r, p, se = stats.linregress(x,y)       # regression fit to unsmoothed data
-                    # l = np.array(y0+x*sl)                          # unsmoothed regression line pts
-                    # sigma =  np.sqrt(np.sum(np.square(y-l)/ne))    # sigma for regression points (standard error)                                   
-                    # yp = y0+times[t]*sl                            # predicted value at t from unsmoothed data
+                    #nft= float(nt)
+                    #ne = max(nft-2,1)                              # two points give no deviation
+                    #x = times7[t-nt:t]                             # t-nt up to and including t-1  
+                    #sl, y0, r, p, se = stats.linregress(x,y)       # regression fit to unsmoothed data
+                    #l = np.array(y0+x*sl)                          # unsmoothed regression line pts
+                    #sigma =  np.sqrt(np.sum(np.square(y-l)/ne))    # sigma for regression points (standard error)                                   
+                    #yp = y0+times[t]*sl                            # predicted value at t from unsmoothed data
 
-                    yp = np.mean(y)
+                    #yp = data_ccw_savgol[t]
+                    #ypl = data_ccw_savgol[t-1]
+                    yp  = ypred[t]
+                    ypm = np.mean(y)
                     sigma = np.std(y)
-
-                    delta = data_ccw[t]-yp
-                    # rmax = np.exp(3.5*0.5)                       # corresponding to a max daily amplification rate of 0.5 
-
-                    if (delta > 10.) and (sigma > 1.) and (np.abs(delta) > 3.*sigma):               # try correction
-                        file.write("%s,\"%s\",%d,%f,%f,%f\n" % (dtype,cc,t,yp,delta,sigma))
+                    delta = data_ccw[t]-yp  
+                    lrmax = np.log(2.*(np.exp(7.*0.4)-1.))                    # integral of exp growth at 0.5 per day from 1 for a week = 64.2
+                    # rmax = 2.*(np.exp(7*0.4)-1.)                    # integral of exp growth at 0.4 per day from 1 for a week = 30
+                    flag = False
+                    if yp < 1.:                                     # close to zero : assuming scale is in terms of absolute number of individuals
+                        if data_ccw[t] > lrmax:
+                            flag = True
+                            reason = 'explode from 0'
+                        elif data_ccw[t] < 0.:
+                            flag = True
+                            reason = 'negative reported'
+                    elif delta>0.:
+                        if data_ccw[t]-yp > lrmax: 
+                            flag = True
+                            reason = 'growth too fast'
+                    elif delta<=0.:
+                        if data_ccw[t] < 0:
+                            flag = True
+                            reason = 'negative reported'
+                        elif data_ccw[t]-yp < -lrmax:
+                            flag = True
+                            reason = 'decay too fast'
+                    if flag:               # try correction
+                        file.write("%s,\"%s\",\"%s\",%d,%f,%f,%f,%f\n" % (dtype,cc,reason,t,data_ccw[t],yp,delta,sigma))
                         data_ccws[t] = yp
-                        if False:
+                        if True:
                             tmin = max(0,t-4)
                             tsum = np.sum(data_ccws[tmin:t]) 
                             if tsum > 0: # redistribute over previous month proportional to counts                                     
@@ -338,7 +440,9 @@ def expand_data(covid_ts,database='jhu'):
                 plt.show()  
                 fig,axes = plt.subplots(1,1,figsize=(20,10))
                 axes.plot(data_ccw,alpha=0.5,label='smw')
-                axes.plot(data_ccws,alpha=0.75,label='smc')
+                #axes.plot(data_ccw_savgol,alpha=0.5,label='savgol')
+                axes.plot(ypred,alpha=0.5,label='spred')
+                # axes.plot(data_ccws,alpha=0.75,label='smc')
                 plt.legend()
                 plt.show()      
         new_covid_ts.update({new_dtype_corrected:data_cor})
