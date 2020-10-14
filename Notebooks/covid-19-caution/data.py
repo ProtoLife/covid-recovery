@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 from scipy.signal import savgol_filter
 
 from matplotlib import pyplot as plt
-debug = True
+debug = False
 
 # ----------------------------------------- functions for extracting and processing data ---------------------------------
 covid_owid = []               # defined globally to allow access to raw data read in for owid
@@ -236,11 +236,11 @@ def win_clus(t,y,clusthresh):
     clusfitj = np.argmax(cluslens)                            # index of largest cluster
     clusfit = clus[clusfitj]
     clusfitnp = [np.array(clusfit[0]),np.array(clusfit[1]),clusfit[2]]
-    print('In win_clus, nr clus, cluster lengths,clusfit',len(clus),cluslens,clusfitnp)
+    # print('In win_clus, nr clus, cluster lengths,clusfit',len(clus),cluslens,clusfitnp)
     tc = clusfit[0]
     yc = clusfit[1]
-    if len(tc) != len(yc) or len(yc) < 2:
-        print('Error in win_clus, cluster for fitting too small, length, window l,m, nr clus, cluster lengths',len(yc),l,m, len(clus),cluslens)
+    # if len(tc) != len(yc) or len(yc) < 2:
+        # print('In win_clus, cluster for fitting too small, length, window l,m, nr clus, cluster lengths',len(yc),l,m, len(clus),cluslens)
     sl, y0, r, p, se = stats.linregress(tc,yc)                # regression fit to largest cluster data
     yp = y0+t[m]*sl                                           # regression line value at central pt
     if t[m] > clusfit[0][0] and t[m]<clusfit[0][-1] and len(yc) >= 3:                             
@@ -363,14 +363,13 @@ def expand_data(covid_ts,database='jhu'):
                 data_ccwld[:-1] = [np.abs((data_ccwl[i+1]-data_ccwl[i])/7.) for i in range(0,n7-1)] # forward differences
                 data_ccwld[-1] = 0.
                 clusthresh = np.median(np.array([d for d in data_ccwld if d>0.]))
-                print(ccs,'median difference is',clusthresh)
+                if debug:
+                    print(ccs,'median difference is',clusthresh)
                 ypredl = data_ccwl.copy()
                 m=3
                 w = 2*m+1
                 ypredl[m:-m] = [win_clus(times7[i:i+w],data_ccwl[i:i+w],clusthresh) for i in range(n7-w+1)]
                 ypred = np.exp(ypredl)-1.
-
-
                
                 for t in range(2,n7):                               # speed up by ignoring correction to first 7 pts with too little data
                     nt = min(4,t)
@@ -426,25 +425,25 @@ def expand_data(covid_ts,database='jhu'):
                                 for t1 in range(tmin,t):
                                     data_ccws[t1] = data_ccws[t1] + delta * inv_tsum                      
 
-                interp2 = interp1d(ntimes7,data_ccws,kind='linear',fill_value="extrapolate")
+                interp2 = interp1d(ntimes7,data_ccws/7.,kind='linear',fill_value="extrapolate")
                 data_ccwcs = interp2(ntimes)
                 data_cor.update({cc:data_ccwcs})
-                print(ccs)
-                
-                fig,axes = plt.subplots(1,1,figsize=(20,10))
-                axes.plot(data_cc,alpha=0.5,label='raw')
-                axes.plot(data_ccs,alpha=0.5,label='sm')
-                axes.plot(data_ccwsn,alpha=0.75,label='smws')
-                axes.plot(data_ccwcs,alpha=0.75,label='smwcs')
-                plt.legend()
-                plt.show()  
-                fig,axes = plt.subplots(1,1,figsize=(20,10))
-                axes.plot(data_ccw,alpha=0.5,label='smw')
-                #axes.plot(data_ccw_savgol,alpha=0.5,label='savgol')
-                axes.plot(ypred,alpha=0.5,label='spred')
-                # axes.plot(data_ccws,alpha=0.75,label='smc')
-                plt.legend()
-                plt.show()      
+                if debug:
+                    print(ccs)                
+                    fig,axes = plt.subplots(1,1,figsize=(20,10))
+                    axes.plot(data_cc,alpha=0.5,label='raw')
+                    axes.plot(data_ccs,alpha=0.5,label='sm')
+                    axes.plot(data_ccwsn,alpha=0.75,label='smws')
+                    axes.plot(data_ccwcs,alpha=0.75,label='smwcs')
+                    plt.legend()
+                    plt.show()  
+                    fig,axes = plt.subplots(1,1,figsize=(20,10))
+                    axes.plot(data_ccw,alpha=0.5,label='smw')
+                    #axes.plot(data_ccw_savgol,alpha=0.5,label='savgol')
+                    axes.plot(ypred,alpha=0.5,label='spred')
+                    # axes.plot(data_ccws,alpha=0.75,label='smc')
+                    plt.legend()
+                    plt.show()      
         new_covid_ts.update({new_dtype_corrected:data_cor})
 
         new_dtype_corrected_smoothed = new_dtype_corrected+'_smoothed'
