@@ -10,12 +10,11 @@ from scipy.interpolate import interp1d
 from scipy.signal import savgol_filter
 
 from matplotlib import pyplot as plt
-debug = False
+debug = True
 
 # ----------------------------------------- functions for extracting and processing data ---------------------------------
 covid_owid = []               # defined globally to allow access to raw data read in for owid
-countries_jhu_str_total = []  # defined globally for convenience in coutnry conversions
-owid_to_jhu_str_country = {}  # defined globally for convenience in coutnry conversions
+owid_to_jhu_str_country = {}  # defined globally for convenience in country conversions
 
 def Float(x):
     try:
@@ -83,24 +82,33 @@ def get_data(jhu_file, lastdate=None):
     popkeyed.update({('World',''):totals})
     # del popkeyed[('d','a')]
     # assemble totals for countries with multiple regions
+  
     total = np.zeros(len(popkeyed['dates']),dtype=int)      
-    poptotkeyed = {}
-    for country,tseries in popkeyed.items():
-        if country!='dates' and country[1] != '': # it seems that UK is single exception with both '' and non '' regions, UK total is then UK overseas
-            countrytotal = (country[0],'Total')
+    poptotkeyed = {}                                                  # need to work with new dictionary, since changing a dictionary in a loop is a problem                            
+    for country,tseries in popkeyed.items():                          # also because this enables us to assign states only like Canada, Australia and China to ''
+        if country!='dates' and country[1] != '':                     # UK, France, Denmark and Netherlands have both '' (main country) and non '' territories/regions
+            if (country[0],'') in popkeyed.keys():
+                countrytotal = (country[0],'')                        # lump overseas terriotries together with mother country
+                #countrytotal = (country[0]+'_Overseas','')            # sum overseas territories separately
+            else:
+                countrytotal = (country[0],'')
+            # print('country',country,countrytotal)
             if countrytotal in poptotkeyed:
                 # print(country,popkeyed[country],poptotkeyed[countrytotal])
-                total = np.array(tseries)[:]+np.array(poptotkeyed[countrytotal])[:]
+                total[:] = np.array(tseries)[:]+np.array(poptotkeyed[countrytotal])[:]
             else:
-                total =  np.array(tseries)[:]                        
+                total[:] =  np.array(tseries)[:]                        
             poptotkeyed.update({countrytotal:list(total)})
     for countrytotal,tseries in poptotkeyed.items():
-        total = np.array(tseries)
+        if countrytotal in popkeyed.keys():                           # add to mother country
+            total = np.array(tseries)+ np.array(popkeyed[countrytotal])
+        else:                                                         # use amalgamation as whole country 
+            total = np.array(tseries)
         popkeyed.update({countrytotal:list(total)})
     # remove regions/states to preserve only countries
     countrylist = list(popkeyed.keys())
     for country in countrylist:
-        if country != 'dates' and country[1] not in ['','Total']:
+        if country != 'dates' and country[1] not in ['',' ']:
             del popkeyed[country]
     # print('First four dates:',popkeyed['dates'][0:4])
     return popkeyed
@@ -154,13 +162,9 @@ def owid_to_jhu_str_country_md(countries_owid):
     return owid_to_jhu_str_country
 
 def owid_to_jhu_country(cc):
-    global countries_jhu_str_total
     global owid_to_jhu_str_country
     cc_j = owid_to_jhu_str_country[cc]
-    if cc_j in countries_jhu_str_total:
-        return (cc_j,'Total')
-    else:
-        return (cc_j,'')
+    return (cc_j,'')
 
 def notch_filter(data):
      #pulse = np.array([100 if ((i % 7 == 0 ) or (i % 7 == 2)) else 0 for i in range(259)])
@@ -184,7 +188,7 @@ def notch_filter(data):
      plt.plot(smoothed)
      plt.show()
 
-scountries = ['Peru','Spain','United States','France','Australia','Italy','Sweden']
+scountries = ['Australia','Denmark','France','Iran','Italy','Peru','Russia','Sweden','Spain','United Kingdom','United States']
 dcountries = ['Afghanistan','Albania','Argentina','Armenia','Australia','Austria',
  'Azerbaijan','Belarus','Belgium','Bolivia','Bosnia and Herzegovina',
  'Brazil','Bulgaria','Canada','Chile','Colombia','Croatia',
@@ -239,11 +243,10 @@ def win_clus(t,y,clusthresh):
     # print('In win_clus, nr clus, cluster lengths,clusfit',len(clus),cluslens,clusfitnp)
     tc = clusfit[0]
     yc = clusfit[1]
-    # if len(tc) != len(yc) or len(yc) < 2:
-        # print('In win_clus, cluster for fitting too small, length, window l,m, nr clus, cluster lengths',len(yc),l,m, len(clus),cluslens)
-    sl, y0, r, p, se = stats.linregress(tc,yc)                # regression fit to largest cluster data
-    yp = y0+t[m]*sl                                           # regression line value at central pt
-    if t[m] > clusfit[0][0] and t[m]<clusfit[0][-1] and len(yc) >= 3:                             
+    
+    if t[m] > clusfit[0][0] and t[m]<clusfit[0][-1] and len(yc) >= 3:    
+        sl, y0, r, p, se = stats.linregress(tc,yc)                # regression fit to largest cluster data
+        yp = y0+t[m]*sl                                           # regression line value at central pt                         
         return yp
     else:
         return y[m]
@@ -332,139 +335,123 @@ def expand_data(covid_ts,database='jhu'):
         times7 = np.array(range(0,n,7),float)
         ntimes = np.array(range(0,n),int)
         ntimes7 = np.array(range(0,n,7),int)
-        for cc in tqdm_notebook(data_diff, desc='report correction '+dtype ): # loop with progress bar instead of just data_diff
+        for cc in tqdm_notebook(data_diff, desc='report correction '+dtype ): # loop with progress bar instead of just data_diff                                                                   # 
         # for cc in data_diff:
             if cc == 'dates':
                 data_cor.update({'dates':data_diff['dates']})
             else:
                 ccs = cc if database == 'owid' else cc[0] 
                 data_cc = data_diff[cc] 
-                if debug and ccs not in scountries:   # dcountries for longer list
+                if debug and (ccs not in scountries):   # dcountries for longer list
                     data_cor.update({cc:data_cc[:]}) 
-                    continue
+                else:
+                    float_formatter = "{:.3f}".format
+                    np.set_printoptions(formatter={'float_kind':float_formatter})
+                    data_cc = data_diff[cc] 
+                    data_ccs = data_sm[cc] 
+                    n7 = n//7+1
+                    data_ccw = np.zeros(n7,dtype=float)
+                    for t in ntimes7:
+                        t1 = t//7
+                        data_ccw[t1] = data_ccs[t]*7
+                    data_ccws = data_ccw.copy()                         # copy to hold glitch smoothed weekly data
 
-                float_formatter = "{:.3f}".format
-                np.set_printoptions(formatter={'float_kind':float_formatter})
-                data_cc = data_diff[cc] 
-                data_ccs = data_sm[cc] 
-                n7 = n//7+1
-                data_ccw = np.zeros(n7,dtype=float)
-                for t in ntimes7:
-                    t1 = t//7
-                    data_ccw[t1] = data_ccs[t]*7
-                data_ccws = data_ccw.copy()                        # copy to hold glitch smoothed weekly data
+                    # data_ccw_savgol = savgol_filter(data_ccw, 9, 6)   # Savitzky-Golay filter, window size 5, polynomial order 3 
+                    interp = interp1d(ntimes7,data_ccw,kind='linear',fill_value="extrapolate")  # alternative kind = 'cubic'
+                    data_ccwsn = interp(ntimes)/7.                      # interpolated back to daily counts
 
-                # data_ccw_savgol = savgol_filter(data_ccw, 9, 6)       # Savitzky-Golay filter, window size 5, polynomial order 3 
-                interp = interp1d(ntimes7,data_ccw,kind='linear',fill_value="extrapolate")  # alternative kind = 'cubic'
-                data_ccwsn = interp(ntimes)
-
-                data_ccwl = np.log(np.maximum(data_ccw,0.)+1.)  # positive log of data : replaces exponential decay with linear
-                data_ccwld = np.zeros(n7,float)
-                data_ccwld[:-1] = [np.abs((data_ccwl[i+1]-data_ccwl[i])/7.) for i in range(0,n7-1)] # forward differences
-                data_ccwld[-1] = 0.
-                clusthresh = np.median(np.array([d for d in data_ccwld if d>0.]))
-                if debug:
-                    print(ccs,'median difference is',clusthresh)
-                ypredl = data_ccwl.copy()
-                m=3
-                w = 2*m+1
-                ypredl[m:-m] = [win_clus(times7[i:i+w],data_ccwl[i:i+w],clusthresh) for i in range(n7-w+1)]
-                ypred = np.exp(ypredl)-1.
-               
-                for t in range(2,n7):                               # speed up by ignoring correction to first 7 pts with too little data
-                    nt = min(4,t)
-                    y = data_ccw[t-nt:t]                            # rather than use data_cc we may use the corrected values to avoid glitch errors
-
-                    #nft= float(nt)
-                    #ne = max(nft-2,1)                              # two points give no deviation
-                    #x = times7[t-nt:t]                             # t-nt up to and including t-1  
-                    #sl, y0, r, p, se = stats.linregress(x,y)       # regression fit to unsmoothed data
-                    #l = np.array(y0+x*sl)                          # unsmoothed regression line pts
-                    #sigma =  np.sqrt(np.sum(np.square(y-l)/ne))    # sigma for regression points (standard error)                                   
-                    #yp = y0+times[t]*sl                            # predicted value at t from unsmoothed data
-
-                    #yp = data_ccw_savgol[t]
-                    #ypl = data_ccw_savgol[t-1]
-                    yp  = ypred[t]
-                    ypm = np.mean(y)
-                    sigma = np.std(y)
-                    delta = data_ccw[t]-yp  
-                    lrmax = np.log(2.*(np.exp(7.*0.4)-1.))                    # integral of exp growth at 0.5 per day from 1 for a week = 64.2
-                    # rmax = 2.*(np.exp(7*0.4)-1.)                    # integral of exp growth at 0.4 per day from 1 for a week = 30
-                    flag = False
-                    if yp < 1.:                                     # close to zero : assuming scale is in terms of absolute number of individuals
-                        if data_ccw[t] > lrmax:
-                            flag = True
-                            reason = 'explode from 0'
-                        elif data_ccw[t] < 0.:
-                            flag = True
-                            reason = 'negative reported'
-                    elif delta>0.:
-                        if data_ccw[t]-yp > lrmax: 
-                            flag = True
-                            reason = 'growth too fast'
-                    elif delta<=0.:
-                        if data_ccw[t] < 0:
-                            flag = True
-                            reason = 'negative reported'
-                        elif data_ccw[t]-yp < -lrmax:
-                            flag = True
-                            reason = 'decay too fast'
-                    if flag:               # try correction
-                        file.write("%s,\"%s\",\"%s\",%d,%f,%f,%f,%f\n" % (dtype,cc,reason,t,data_ccw[t],yp,delta,sigma))
-                        data_ccws[t] = yp
-                        if True:
-                            tmin = max(0,t-4)
-                            tsum = np.sum(data_ccws[tmin:t]) 
-                            if tsum > 0: # redistribute over previous month proportional to counts                                     
-                                inv_tsum = 1./tsum 
-                                for t1 in range(tmin,t):
-                                    data_ccws[t1] = data_ccws[t1]*(1. + delta *inv_tsum)
-                            else:
-                                inv_tsum = 1./(t-tmin)# replace by linear ramp       
-                                for t1 in range(tmin,t):
-                                    data_ccws[t1] = data_ccws[t1] + delta * inv_tsum                      
-
-                interp2 = interp1d(ntimes7,data_ccws/7.,kind='linear',fill_value="extrapolate")
-                data_ccwcs = interp2(ntimes)
-                data_cor.update({cc:data_ccwcs})
-                if debug:
-                    print(ccs)                
-                    fig,axes = plt.subplots(1,1,figsize=(20,10))
-                    axes.plot(data_cc,alpha=0.5,label='raw')
-                    axes.plot(data_ccs,alpha=0.5,label='sm')
-                    axes.plot(data_ccwsn,alpha=0.75,label='smws')
-                    axes.plot(data_ccwcs,alpha=0.75,label='smwcs')
-                    plt.legend()
-                    plt.show()  
-                    fig,axes = plt.subplots(1,1,figsize=(20,10))
-                    axes.plot(data_ccw,alpha=0.5,label='smw')
-                    #axes.plot(data_ccw_savgol,alpha=0.5,label='savgol')
-                    axes.plot(ypred,alpha=0.5,label='spred')
-                    # axes.plot(data_ccws,alpha=0.75,label='smc')
-                    plt.legend()
-                    plt.show()      
-        new_covid_ts.update({new_dtype_corrected:data_cor})
-
-        new_dtype_corrected_smoothed = new_dtype_corrected+'_smoothed'
-        data_smc = {}
-        for cc in data_diff:
-            if cc == 'dates':
-                data_smc.update({'dates':data_diff['dates']})
-            else:
-                data_cc = data_cor[cc] 
-                smc_ts = np.zeros(n,dtype=float)
-                week = 0.
-                for t in range(n):
-                    week = week + data_cc[t]
-                    if t >= 7:
-                        week = week - data_cc[t-7]
-                        nt = 7.
+                    data_ccwl = np.log(np.maximum(data_ccw,0.)+1.)  # positive log of data : replaces exponential decay with linear
+                    print('len data_ccwl',len(data_ccwl))
+                    data_ccwld = np.zeros(n7,float)
+                    data_ccwld[:-1] = [np.abs((data_ccwl[i+1]-data_ccwl[i])/7.) for i in range(0,n7-1)] # forward differences
+                    data_ccwld[-1] = 0.
+                    if data_ccwld.any() > 0.:
+                        clusthresh = np.median(np.array([d for d in data_ccwld if d>0.]))
                     else:
-                        nt = float(t+1)
-                    smc_ts[t] = week/nt
-                data_smc.update({cc:smc_ts})        
-        new_covid_ts.update({new_dtype_corrected_smoothed:data_smc})
+                        clusthresh = 0.                                 # will not be used since win_clus routine returns 0 anyway then
+                    # print(ccs,'median difference is',clusthresh)
+                    ypredl = data_ccwl.copy()
+                    m=3
+                    w = 2*m+1
+                    ypredl[m:-m] = [win_clus(times7[i:i+w],data_ccwl[i:i+w],clusthresh) for i in range(n7-w+1)]
+                    ypred = np.exp(ypredl)-1.
+                   
+                    for t in range(2,n7):                               # speed up by ignoring correction to first 7 pts with too little data
+                        nt = min(4,t)
+                        y = data_ccw[t-nt:t]                            # rather than use data_cc we may use the corrected values to avoid glitch errors
+
+                        #nft= float(nt)                                 # linear regression for rolling window - earlier attempt
+                        #ne = max(nft-2,1)                              # two points give no deviation
+                        #x = times7[t-nt:t]                             # t-nt up to and including t-1  
+                        #sl, y0, r, p, se = stats.linregress(x,y)       # regression fit to unsmoothed data
+                        #l = np.array(y0+x*sl)                          # unsmoothed regression line pts
+                        #sigma =  np.sqrt(np.sum(np.square(y-l)/ne))    # sigma for regression points (standard error)                                   
+                        #yp = y0+times[t]*sl                            # predicted value at t from unsmoothed data
+
+                        #yp = data_ccw_savgol[t]                        # Savitzky-Golay filter, did not work well for this data
+
+                        yp  = ypred[t]
+                        # ypm = np.mean(y)
+                        # sigma = np.std(y)
+                        delta = data_ccw[t]-yp  
+                        rmax = 2.*(np.exp(7.*0.5)-1.)                 # integral of exp growth at 0.5 per day from 1 for a week = 64.2
+                        # rmax = (np.exp(7*0.4)-1.)/0.4                   # integral of exp growth at 0.4 per day from 1 for a week = 30
+                        flag = False
+                        if yp < 1.:                                     # close to zero : assuming scale is in terms of absolute number of individuals
+                            if data_ccw[t] > rmax:
+                                flag = True
+                                reason = 'explode from 0'
+                            elif data_ccw[t] < 0.:
+                                flag = True
+                                reason = 'negative reported'
+                        elif delta>0.:
+                            if data_ccw[t]-yp > rmax: 
+                                flag = True
+                                reason = 'growth too fast'
+                        elif delta<=0.:
+                            if data_ccw[t] < 0:
+                                flag = True
+                                reason = 'negative reported'
+                            elif data_ccw[t]-yp < -rmax:
+                                flag = True
+                                reason = 'decay too fast'
+                        if flag:               # try correction
+                            file.write("%s,\"%s\",\"%s\",%d,%f,%f,%f\n" % (dtype,cc,reason,t,data_ccw[t],yp,delta))
+                            data_ccws[t] = yp
+                            if True:
+                                tmin = max(0,t-4)
+                                tsum = np.sum(data_ccws[tmin:t]) 
+                                if tsum > 0: # redistribute over previous month proportional to counts                                     
+                                    inv_tsum = 1./tsum 
+                                    for t1 in range(tmin,t):
+                                        data_ccws[t1] = data_ccws[t1]*(1. + delta *inv_tsum)
+                                else:
+                                    inv_tsum = 1./(t-tmin)# replace by linear ramp       
+                                    for t1 in range(tmin,t):
+                                        data_ccws[t1] = data_ccws[t1] + delta * inv_tsum                      
+                    interp2 = interp1d(ntimes7,data_ccws/7.,kind='linear',fill_value="extrapolate")
+                    data_ccwcs = interp2(ntimes)
+                    data_cor.update({cc:data_ccwcs})
+                    if debug:
+                        print(ccs)                
+                        fig,axes = plt.subplots(1,1,figsize=(20,10))
+                        axes.plot(data_cc,alpha=0.5,label='daily')
+                        axes.plot(data_ccs,alpha=0.5,label='rolling7')
+                        axes.plot(data_ccwsn,alpha=0.75,label='week_intrp')
+                        axes.plot(data_ccwcs,alpha=0.75,label='week_cor_intrp')
+                        plt.legend()
+                        plt.show()  
+                        fig,axes = plt.subplots(1,1,figsize=(20,10))
+                        axes.plot(data_ccw,alpha=0.5,label='smw')
+                        #axes.plot(data_ccw_savgol,alpha=0.5,label='savgol')
+                        axes.plot(ypred,alpha=0.5,label='spred')
+                        # axes.plot(data_ccws,alpha=0.75,label='smc')
+                        plt.legend()
+                        plt.show()      
+        new_covid_ts.update({new_dtype_corrected:data_cor})   
+        data_smc = data_cor
+        new_dtype_corrected_smoothed = new_dtype_corrected + '_smoothed'
+        new_covid_ts.update({new_dtype_corrected_smoothed:data_smc})  # with the current glitch scheme the corrected data is already smoothed by interpolation
 
         dtype_corrected_smoothed = dtype+'_corrected_smoothed'
         data_asmc = {}
@@ -864,6 +851,8 @@ deaths = get_data(base+'time_series_covid19_deaths_global.csv',final_date)
 recovered = get_data(base+'time_series_covid19_recovered_global.csv',final_date)
 covid_ts = {'confirmed':confirmed,'deaths':deaths,'recovered':recovered}
 
+import warnings
+warnings.simplefilter('error', RuntimeWarning)   # to replace warnings by errors to allow traceback
 print('expanding JHU data : to new (daily), 7-day rolling (smoothed), reporting glitch (corrected) and combined')
 covid_ts = expand_data(covid_ts,'jhu')
 print('expansion done.')
@@ -905,11 +894,10 @@ jhu_to_owid_str_country=jhu_to_owid_str_country_md(countries_owid)
 
 # owid equivalents
 owid_to_jhu_str_country = owid_to_jhu_str_country_md(countries_owid)
-countries_jhu_str_total = [cc[0] for cc in countries_jhu if cc[1] == 'Total']
 
-countries_jhu_total= [cc for cc in countries_jhu if cc[1] == 'Total']
-countries_jhu_non_total = [cc for cc in countries_jhu if ((cc[0] not in countries_jhu_str_total) and (cc[0] not in ['Diamond Princess', 'MS Zaandam']))]
-countries_jhu_4_owid = countries_jhu_non_total + countries_jhu_total
+countries_jhu_overseas= [cc for cc in countries_jhu if '_Overseas' in cc[0]]
+countries_jhu_non_special = [cc for cc in countries_jhu if  cc[0] not in ['Diamond Princess', 'MS Zaandam']]
+countries_jhu_4_owid = countries_jhu_non_special
 countries_jhu_2_owid=[jhu_to_owid_str_country[cc[0]] for cc in countries_jhu_4_owid ]
 countries_owid_to_jhu=[owid_to_jhu_country(cc) for cc in countries_jhu_2_owid]
 
