@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 from scipy.signal import savgol_filter
 
 from matplotlib import pyplot as plt
-debug = True
+debug = False
 
 # ----------------------------------------- functions for extracting and processing data ---------------------------------
 covid_owid = []               # defined globally to allow access to raw data read in for owid
@@ -361,7 +361,7 @@ def expand_data(covid_ts,database='jhu'):
                     data_ccwsn = interp(ntimes)/7.                      # interpolated back to daily counts
 
                     data_ccwl = np.log(np.maximum(data_ccw,0.)+1.)  # positive log of data : replaces exponential decay with linear
-                    print('len data_ccwl',len(data_ccwl))
+                    # print('len data_ccwl',len(data_ccwl))
                     data_ccwld = np.zeros(n7,float)
                     data_ccwld[:-1] = [np.abs((data_ccwl[i+1]-data_ccwl[i])/7.) for i in range(0,n7-1)] # forward differences
                     data_ccwld[-1] = 0.
