@@ -91,6 +91,20 @@ testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'Worl
 print('done.')
 """
 
+"""
+Basic data series:
+total_deaths
+new_deaths_spm
+new_cases_spm
+
+where spm = 'smoothed per million'
+
+The code below chooses between
+-- OWID or JHU
+-- outlier corrected (report_correct==True) or not
+
+"""
+
 if database == 'OWID':
     if report_correct:
         total_deaths = total_deaths_cs_owid
@@ -110,6 +124,18 @@ elif database == 'JHU':
         new_deaths_spm = new_deaths_spm_jhu
         new_cases_spm = new_cases_spm_jhu
 
+"""
+Clustering data:
+-- align initial boundary for death threshold
+-- filter for at least 150 days
+
+basic data to start with are big and big_cases, with bcountries, set in data.py, filtering common_countries (common to owid & jhu)
+
+"""
+
+# from data.py:
+# bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
+# bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
 
 big = {cc:new_deaths_spm[cc] for cc in bcountries}
 big_cases = {cc:new_cases_spm[cc] for cc in bcountries}
