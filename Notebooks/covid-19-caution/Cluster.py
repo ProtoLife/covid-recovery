@@ -1,33 +1,38 @@
 # import required packages
 import os 
 import csv
-from sympy import symbols, init_printing
+
 import numpy as np
-import sympy
-import itertools
-import scipy
-import datetime
+import warnings
+import math
+
 import matplotlib.dates as mdates
 from matplotlib import pyplot as plt
-from pygom import DeterministicOde, Transition, SimulateOde, TransitionType, SquareLoss
+import datetime
+import itertools
+
+import scipy
 from scipy.optimize import minimize
+from sympy import symbols, init_printing
+import sympy
+from pygom import DeterministicOde, Transition, SimulateOde, TransitionType, SquareLoss
+
 
 import pickle as pk
 import jsonpickle as jpk
 
 from cycler import cycler
-import pwlf
+import pwlf                 # piecewise linear fit 
 
-import umap
+# for clustering and PCA
+#
+import umap 
 import umap.plot
 
 from sklearn.decomposition import PCA
 from sklearn import cluster
 from sklearn.cluster import AgglomerativeClustering
 import hdbscan
-
-import warnings
-import math
 
 # for FPCA:
 #
@@ -67,31 +72,6 @@ report_correct = True     # whether to use reporting spike corrected data for cl
 daysync = 23       # needs to be same as value in data.py
 
 """
-# We don't need most of this any more 
-print('database',database, 'correct active',report_correct)
-
-# for OWID database
-# covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid,
-#                 'population':population_owid,'population_density':population_density_owid,'gdp_per_capita':gdp_per_capita_owid}
-
-total_deaths_x = get_data_owid_key('total_deaths',daysync)
-new_deaths_spm_x = get_data_owid_key('new_deaths_smoothed_per_million',daysync)
-total_cases_x = get_data_owid_key('total_cases',daysync)
-total_cases_ppm_x = get_data_owid_key('total_cases_per_million',daysync)
-new_cases_spm_x = get_data_owid_key('new_cases_smoothed_per_million',daysync)
-testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync)
-
-total_deaths_owid = {cc:total_deaths_x[cc] for cc in total_deaths_x if cc != 'dates' and cc != 'World'}
-new_deaths_spm = {cc:new_deaths_spm_x[cc] for cc in new_deaths_spm_x if cc != 'dates' and cc != 'World'}
-total_cases = {cc:total_cases_x[cc] for cc in total_cases_x if cc != 'dates' and cc != 'World'}
-total_cases_ppm = {cc:total_cases_ppm_x[cc] for cc in total_cases_ppm_x if cc != 'dates' and cc != 'World'}
-new_cases_spm = {cc:new_cases_spm_x[cc] for cc in new_cases_spm_x if cc != 'dates' and cc != 'World'}
-testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'World'}
-
-print('done.')
-"""
-
-"""
 Basic data series:
 total_deaths
 new_deaths_spm
@@ -128,9 +108,7 @@ elif database == 'JHU':
 Clustering data:
 -- align initial boundary for death threshold
 -- filter for at least 150 days
-
 basic data to start with are big and big_cases, with bcountries, set in data.py, filtering common_countries (common to owid & jhu)
-
 """
 
 # from data.py:

@@ -63,3 +63,66 @@
                         cor_ts[t] = data_cc[t]
                 data_cor.update({cc:cor_ts})        
         new_covid_ts.update({new_dtype_corrected:data_cor})
+
+2nd phase
+
+ for t in range(7,n):                               # speed up by ignoring correction to first 7 pts with too little data
+                    nt = 7  # min(7,t)
+                    nft= 7. # float(nt)
+                    ne = 5. #nft-2.                                # two points give no deviation
+                    x = times[t-nt:t]                              # t-nt up to and including t-1
+                    # y = data_cc[t-nt:t]                          # 
+                    y = data_cc[t-nt:t]                             # rather than use data_cc we may use the corrected values to avoid glitch errors
+                    ys = data_ccs2[t-nt:t]
+
+                    # sl, y0, r, p, se = stats.linregress(x,y)       # regression fit to unsmoothed data
+                    # sls, y0s, rs, ps, ses = stats.linregress(x,ys) # regression fit to smoothed data
+                    # l = np.array(y0+x*sl)                          # unsmoothed regression line pts
+                    # ls = np.array(y0s+x*sls)                       # smoothed regression line pts
+                    # sigmar =  np.sqrt(np.sum(np.square(y-l)/ne))               
+                    # sigmars =  np.sqrt(np.sum(np.square(ys-ls)/ne))
+                    # yp = y0+times[t]*sl                            # predicted value at t from unsmoothed data
+                    # yps = y0s+times[t]*sls                         # predicted value at t from smoothed data
+                    # yps = max(0.,yps)
+                    yp = np.mean(y)
+                    sigmar = np.std(y)
+                    yps = np.mean(ys)
+                    sigmars = np.std(ys)
+                    delta = data_cc[t]-yp
+                    adelta = delta-np.sign(delta)*sigmar
+                    week = week - cor_ts[t-7] + data_cc[t]         # rolling sum of last 7 : initially using data_cc for estimate, later corrected
+                    # deltas = (week/7.-yps)                         # jump in smoothed curve (from predicted value)
+                    deltas = data_ccs[t]-yps
+                    adeltas = deltas - np.sign(deltas)*sigmars
+                    adeltas7 = adeltas*7.                          # change to data_cc that would give this jump in smoothed rolling average
+                    if sigmars > 0.1 and np.abs(delta) > 10.:
+                        if np.abs(deltas) > 8.*sigmars: # and np.abs(delta) > 3.*sigmar:            # try correction
+                                      # do correction : limit deviation to sigmar
+                            file.write("%s,\"%s\",%d,%f,%f,%f\n" % (dtype,cc,t,yps,deltas,sigmars))
+                            cor_ts[t] =  data_cc[t] - adeltas7
+                            data_ccs2[t] = data_ccs[t] - deltas
+                            if False:
+                                tsum = np.sum(cor_ts[max(0,t-31):t-1]) 
+                                if adeltas7 > 0:
+                                    if tsum > 0:                   # redistribute over previous month proportional to counts                     
+                                        inv_tsum = 1./tsum 
+                                        for t1 in range(max(0,t-31),t):
+                                            cor_ts[t1] = cor_ts[t1]*(1. + adeltas7 *inv_tsum)
+                                    else:
+                                        inv_tsum = 1./(t-max(0,t-31))# replace by linear ramp       
+                                        for t1 in range(max(0,t-31),t):
+                                            cor_ts[t1] = cor_ts[t1] + adeltas7 * inv_tsum
+                                elif tsum > -delta:
+                                        inv_tsum = 1./tsum 
+                                        for t1 in range(max(0,t-31),t):
+                                            cor_ts[t1] = cor_ts[t1]*(1. + adeltas7 *inv_tsum)                           
+                                else:
+                                   file.write("%s,\"%s\",%d,%f,%f,%f,no redistr\n" % (dtype,cc,t,yps,adeltas,sigmars))
+                                   # print('redistribution not possible')
+                                   cor_ts[t] = data_cc[t]
+                        else:
+                            cor_ts[t] = data_cc[t]
+                    else:
+                        cor_ts[t] = data_cc[t]
+                    week = week + cor_ts[t] - data_cc[t]
+                data_cor.update({cc:cor_ts})
