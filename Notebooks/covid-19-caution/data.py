@@ -840,8 +840,11 @@ def make_cases_adj_nonlin(testing,cases,K=2):
     return cases_adj_nonlin
 
 #---------------------------------------------- data extraction and processing procedure -----------------------------------------------------------
-# ## JHU data
+import warnings
+warnings.simplefilter('error', RuntimeWarning)   # to replace warnings by errors to allow traceback
 
+
+# ## JHU data
 print('getting JHU data...')
 
 base = '../../covid-19-JH/csse_covid_19_data/csse_covid_19_time_series/'
@@ -849,29 +852,22 @@ confirmed = get_data(base+'time_series_covid19_confirmed_global.csv',final_date)
 print('jhu data selected from',confirmed['dates'][0],'to',confirmed['dates'][-1])
 deaths = get_data(base+'time_series_covid19_deaths_global.csv',final_date)
 recovered = get_data(base+'time_series_covid19_recovered_global.csv',final_date)
-covid_ts = {'confirmed':confirmed,'deaths':deaths,'recovered':recovered}
 
-import warnings
-warnings.simplefilter('error', RuntimeWarning)   # to replace warnings by errors to allow traceback
+covid_ts = {'confirmed':confirmed,'deaths':deaths,'recovered':recovered}
+countries_jhu = [cc for cc in confirmed if cc is not 'dates']
+
 print('expanding JHU data : to new (daily), 7-day rolling (smoothed), reporting glitch (corrected) and combined')
 covid_ts = expand_data(covid_ts,'jhu')
-print('expansion done.')
-
-countries_jhu = [(row[0],row[1]) for row in confirmed][1:]
 print("number of countries listed in JHU database",len(countries_jhu))
-i=0
-for country in countries_jhu:
-    i = i + 1
 print('done with JHU data (covid_ts dictionary keys: confirmed, deaths, recovered).')
 
-
+# ## OWID data
 print('getting owid data...')
+
 daysync = 23      # needs to be same as value in Cluster.py
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
 confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync=daysync)
-# print("debug len confirmed_owid['Germany'] len confirmed_owid['dates'] ",len(confirmed_owid['Germany']),len(confirmed_owid['dates']))
 print('owid data selected from',confirmed_owid['dates'][0],'to',confirmed_owid['dates'][-1])
-
 recovered_owid = None                                                         # NB OWID database has no recovered data, substitute with JHU data!
 deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative',daysync=daysync)
 tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative',daysync=daysync)
@@ -879,15 +875,22 @@ stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily
 population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily',daysync=daysync) # NB use [-2] to get non-zero set of populations from 2nd last time point
 population_density_owid = get_data_owid(owid_file,datatype='population_density',dataaccum = 'daily',daysync=daysync)
 gdp_per_capita_owid = get_data_owid(owid_file,datatype='gdp_per_capita',dataaccum = 'daily',daysync=daysync)
+
 covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid,
                  'population':population_owid,'population_density':population_density_owid,'gdp_per_capita':gdp_per_capita_owid}
-countries_owid = [x for x in deaths_owid if x is not 'dates']  
+countries_owid = [cc for cc in deaths_owid if cc is not 'dates']  
 
 print('expanding OWID data : to new (daily), 7-day rolling (smoothed), reporting glitch (corrected) and combined')
 covid_owid_ts = expand_data(covid_owid_ts,'owid')
 print("number of countries listed in OWID database",len(countries_owid))
 print('done with OWID data (covid_owid_ts dictionary see .keys()) .')
 
+# ## WHO & icus_2012
+print('getting ICU and acute care data icus_2012 and WHO ...')
+acute_dict = get_WHO_data_acute_beds()
+icu_dict = get_2012_data_ICUs()
+
+# ## Country mappings and common sets
 print('mapping country names between JHU and OWID and extracting common countries...')
 # jhu equivalents   
 jhu_to_owid_str_country=jhu_to_owid_str_country_md(countries_owid)
@@ -904,12 +907,6 @@ countries_owid_to_jhu=[owid_to_jhu_country(cc) for cc in countries_jhu_2_owid]
 countries_common_x = [cc for cc in countries_jhu_2_owid if cc not in ['dates','World']] + ['dates','World']
 countries_common = [cc for cc in countries_common_x if cc not in ['dates','World']]
 
-print('getting ICU and acute care data icus_2012 and WHO ...')
-
-
-
-acute_dict = get_WHO_data_acute_beds()
-icu_dict = get_2012_data_ICUs()
 
 print('extracting data sets for common countries both databases...')
 # JHU
@@ -971,10 +968,6 @@ testing_init_ramp = {cc:regtests(testing,cc,trampday1=50) for cc in testing}  # 
 print('doing piecewise linear fits to testing data ... reg_testing');
 warnings.simplefilter('ignore')
 reg_testing=pwlf_testing(testing_init_ramp,trampday1=50)
-
-
-# print('debugging lengths testing',len(testing['Germany']),'reg_testing',len(reg_testing['Germany']),
-#      'new_cases_c_spm_jhu',len(new_cases_c_spm_jhu['Germany']),'new_cases_c_spm_owid',len(new_cases_c_spm_owid['Germany']))
 
 # corrected adjusted (linr: corresponding to pwlf) smoothed data  : corrected for testing limitations
 new_cases_c_linr_spm_jhu = {cc:new_cases_c_spm_jhu[cc]/reg_testing[cc] for cc in countries_common}
