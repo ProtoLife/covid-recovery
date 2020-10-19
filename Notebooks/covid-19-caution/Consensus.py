@@ -34,6 +34,17 @@ import math
 
 from tqdm.notebook import tqdm  # progress bars
 
+## map stuff
+import ipyleaflet
+import json
+import geopandas as gpd
+import pickle as pk
+import os
+import requests
+from ipywidgets import link, FloatSlider, HTML
+from branca.colormap import linear
+from matplotlib import colors as mpcolors
+
 
 def clust(clustering_a,clustering_b,colors_a,colors_b): 
     """ relables clustering b to match clustering a
@@ -661,14 +672,18 @@ class Consensus:
 
                     if diag:
                         print('--------------------------')
-            self.probdata2 = np.where(self.probdata==0.,self.outlierdata,self.probdata)
-            if diag:
-                print('---------------------------------------------------------')
-                print('minc,min_samples,ncomp,nclus,nclustered,nunclustered,validity,validitysc,score1,score2')
-                print('maxvalid ',maxvalid[ic])
-                print('maxvalidsc ',maxvalidsc[ic])
-                print('minscore1',minscore1[ic])
-                print('minscore2',minscore2[ic])
+        self.probdata2 = np.where(self.probdata==0.,self.outlierdata,self.probdata)
+        if diag:
+            print('---------------------------------------------------------')
+            print('minc,min_samples,ncomp,nclus,nclustered,nunclustered,validity,validitysc,score1,score2')
+            print('maxvalid ',maxvalid[ic])
+            print('maxvalidsc ',maxvalidsc[ic])
+            print('minscore1',minscore1[ic])
+            print('minscore2',minscore2[ic])
+        print('making clusters...')
+        self.make_clusters()
+        print('swizzling')
+        self.swizzle()
         
     def plot_outliers(self):
         Nvars = len(self.cases)*4
@@ -851,3 +866,106 @@ class Consensus:
         ax.set_xticklabels(rep,rotation='vertical')
         plt.show()
         
+    def make_map(self):
+        def load_data(url, filename, file_type):
+            r = requests.get(url)
+            with open(filename, 'w') as f:
+                f.write(r.content.decode("utf-8"))
+            with open(filename, 'r') as f:
+                return file_type(f)
+
+        url = 'https://raw.githubusercontent.com/python-visualization/folium/master/examples/data'
+        country_shapes = f'{url}/world-countries.json'
+        # Loading a json data structure with geo data using json.load: geo_json_data
+        geo_json_data = load_data(country_shapes,'json',json.load);
+        fname = country_shapes
+        geog = gpd.read_file(fname)
+        geog.head();
+        self.clusalign_hsv = swizzleHSV(scountries,self.coldata_adj2,self.cols,self.refclustering)
+        df0list = [[term]+list(self.clusalign_hsv[term]) for term in self.clusalign_hsv]
+        df0 = pd.DataFrame(df0list, columns = ['name','cluster','hue','sat','val'])
+
+        dflist = [[term]+[list(self.clusalign_hsv[term])[0]]+[list(self.clusalign_hsv[term])[1:]] for term in self.clusalign_hsv]
+        df = pd.DataFrame(dflist, columns = ['name','cluster','hsv'])
+
+        df.replace('United States', 'United States of America', inplace=True)
+        df.replace('USA', "United States of America", inplace = True)
+        df.replace('Tanzania', "United Republic of Tanzania", inplace = True)
+        df.replace('Democratic Republic of Congo', "Democratic Republic of the Congo", inplace = True)
+        df.replace('Congo', "Republic of the Congo", inplace = True)
+        df.replace('Lao', "Laos", inplace = True)
+        df.replace('Syrian Arab Republic', "Syria", inplace = True)
+        df.replace('Serbia', "Republic of Serbia", inplace = True)
+        df.replace('Czechia', "Czech Republic", inplace = True)
+        df.replace('UAE', "United Arab Emirates", inplace = True)
+
+        geogclus=geog.merge(df,how='left',on='name')
+
+        # now add the new properties to geo_json_data
+        # https://stackoverflow.com/questions/944700/how-can-i-check-for-nan-values
+        x = float('nan')
+        # print(math.isnan(x))
+        clusters =  dict(zip(geogclus['id'].tolist(), geogclus['cluster'].tolist()))
+        clusters = {cc: -1 if math.isnan(clusters[cc]) else clusters[cc] for cc in clusters.keys()}
+        clusterbn =  dict(zip(geogclus['name'].tolist(), geogclus['cluster'].tolist()))
+        clusterbn = {cc: -2 if math.isnan(clusterbn[cc]) else clusterbn[cc] for cc in clusterbn.keys()}
+        hsvbn =  dict(zip(geogclus['name'].tolist(), geogclus['hsv'].tolist()))
+        hsvbn = {cc: [0.,0.,1.] if not isinstance(hsvbn[cc],list) else hsvbn[cc]  for cc in hsvbn.keys()}
+
+        # now add cluster and hsv properties to geo_json_data to allow flexible use
+        for feature in geo_json_data['features']:
+            # print(feature)
+            properties = feature['properties']
+            name = properties['name']
+            properties['cluster']= clusterbn[name]
+            properties['hsv']= hsvbn[name]
+            #print(name,properties['hsv'])
+
+        def rgb_to_str(rgb):
+            return '#%02x%02x%02x' % (int(rgb[0]*255),int(rgb[1]*255),int(rgb[2]*255))
+
+        def colorit(feature,colormap,x):
+            h = feature['properties']['hsv'][0]
+            s = feature['properties']['hsv'][1]
+            v = feature['properties']['hsv'][2]
+            rgb = list(mpcolors.hsv_to_rgb([h,s,v]))
+            return rgb_to_str(rgb)
+
+        style_function = lambda feature,colormap,x: {"weight":0.5, 
+                                    'color':'black',
+                                    #'fillColor':colormap(x['properties']['hue']), 
+                                    'fillColor':colorit(feature,colormap,x), 
+                                    'fillOpacity':1.0}
+        chosen_country = 'Australia'
+        def update_html(feature,  **kwargs):
+            global chosen_country
+            chosen_country = feature['properties']['name']
+            html.value = '''
+                <h3><b>{}</b></h3>
+                <h4>Cluster: {:2d} </h4> 
+                <h4>HSV: {}</h4>
+            '''.format(feature['properties']['name'],
+                       feature['properties']['cluster'],
+                       "%.3f %.3f %.3f" % tuple(feature['properties']['hsv']))
+
+        layer = ipyleaflet.Choropleth(
+            geo_data=geo_json_data,
+            choro_data=clusters,
+            colormap=linear.YlOrRd_04,
+            border_color='black',
+            style={'fillOpacity': 0.8, 'dashArray': '5, 5'},
+            style_callback = style_function)
+
+        html = HTML('''Hover Over Countries''')
+        html.layout.margin = '0px 20px 20px 20px'
+        control = ipyleaflet.WidgetControl(widget=html, position='topright')
+
+        m = ipyleaflet.Map(center = (20,10), zoom = 2)
+        m.add_layer(layer)
+
+        m.add_control(control)
+        layer.on_hover(update_html)
+        m.add_control(ipyleaflet.FullScreenControl())
+
+        self.map = m        
+    
