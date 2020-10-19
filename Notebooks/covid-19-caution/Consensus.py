@@ -394,7 +394,41 @@ def swizzleRGB(countries,data,cols):
     print('cnt =',cnt)
     return rtn
 
+
 def swizzle2(countries,data,cols,refcol):
+    eps = 0.0001
+    clus = [None]*len(countries)
+    rgblist = [None]*len(countries)
+    hsvdic = {}
+    hsvrefs = [mpcolors.rgb_to_hsv(c) for c in data[:,refcol]]
+    huesref  = np.sort(list(set([hsv[0] for hsv in hsvrefs if hsv[1] > eps])))
+    # print('huesref',huesref)
+    for i in range(len(countries)):
+        hsvsc = hscore_org(data[i,:,:],cols)
+        hue = hsvsc[0]
+        sat = hsvsc[1]
+        if sat <= 0.5:  # mean is classed as unclustered
+            clus[i] = -1
+        else:
+            clus[i] = closest_hue(hue,huesref)
+        hsvdic.update({countries[i]:hsvsc})
+        rgblist[i] = mpcolors.hsv_to_rgb(hsvsc)  
+    # print('clus',clus,'len',len(clus))
+    rtn = [None]*len(countries)
+    cnt = 0
+    for j in set(clus):
+        print('-------class',j,'---------')
+        for i in range(len(countries)):
+            if clus[i] == j:  
+                rtn[cnt] = i
+                # print(cnt,i,countries[i],rgblist[i],hsvlist[i])
+                print(cnt,i,countries[i])
+                cnt = cnt+1
+    print('cnt =',cnt)
+    return rtn,rgblist,hsvdic
+
+
+def swizzle3(countries,data,cols,refcol):
     eps = 0.0001
     clus = [None]*len(countries)
     rgblist = [None]*len(countries)
@@ -506,6 +540,7 @@ class Consensus:
         self.reportdata = [None]*4*6
         data = clusdata_all[cases[0]]
         dat = np.array([data[cc] for cc in data])
+
         self.probdata=np.zeros((4*6,len(dat)),dtype=float)
         self.outlierdata=np.zeros((4*6,len(dat)),dtype=float)
         self.clusdata = np.zeros((4*6,len(countries)),dtype=np.integer)
@@ -516,6 +551,9 @@ class Consensus:
             # for ic,case in enumerate(cases):
             data = clusdata_all[case]
             dat = np.array([data[cc] for cc in data])
+            for i in range(len(dat)):   # normalize data
+                mx = max(dat[i])
+                dat[i] = [dd/mx for dd in dat[i]]
             dat_disc = skfda.representation.grid.FDataGrid(dat,list(range(len(dat[0]))))
 
             if diag:
@@ -740,7 +778,7 @@ class Consensus:
             self.cols=list(range(4*len(self.cases)))
         else:
             self.cols = cols
-        dic,classes,idx,rgblist,hsvdic = swizzle2(scountries,self.coldata_adj2,self.cols,self.refclustering)
+        dic,classes,idx,rgblist,hsvdic = swizzle3(scountries,self.coldata_adj2,self.cols,self.refclustering)
         #print(cols.idx)
         self.classes = classes
         self.swdat = np.array([self.coldata_adj2[i] for i in idx])  # dat is swizzle2 sorted coldata_adj2
