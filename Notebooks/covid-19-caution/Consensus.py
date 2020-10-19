@@ -122,7 +122,7 @@ def rescale(v,d):
         projecting equivalent validity at dim = 2"""
     if d > 12.:
         d = 12.
-    logd = np.log(d/2.)
+    logd = np.log(0.5*d)
     return v*(1.+logd)/(1.+v*logd)
 
 def score_int(a,b):
@@ -475,7 +475,8 @@ def swizzle3(countries,data,cols,refcol,satthresh = 0.7):
     for i in range(len(countries)):
         # hsvsc = hscore_org(data[i,:,:],cols)
         # print(countries[i])
-        hsvsc = hscore_mode_org(data[i,:,:],cols)
+        # hsvsc = hscore_mode_org(data[i,:,:],cols) # using modal hue
+        hsvsc = hscore_org(data[i,:,:],cols)      # using color circle mean hue
         hue = hsvsc[0]
         sat = hsvsc[1]
         if sat <= satthresh:  # mean is classed as unclustered
@@ -607,16 +608,24 @@ class Consensus:
             minscore1val = 999.
             minscore2val = 999.
             for ncomp in self.ncomp:  # code will only work if reference value 2 included in range
+                fpca_disc = FPCA(n_components=ncomp)
+                fpca_disc.fit(dat_disc)
+                foo = fpca_disc.transform(dat_disc)
                 for min_samples in self.min_samples:
                     for minc in self.minc:
-                        fpca_disc = FPCA(n_components=ncomp)
-                        fpca_disc.fit(dat_disc)
-                        foo = fpca_disc.transform(dat_disc)
                         clusterer = hdbscan.HDBSCAN(min_cluster_size=minc,min_samples=min_samples)
                         labels = clusterer.fit_predict(foo)
-                        nclus = len(set([x for x in labels if x>-1]))
-                        nclustered = sum([1 for x in labels if x>-1])
-                        nunclustered = sum([1 for x in labels if x==-1])
+                        
+                        # nclus = len(set([x for x in labels if x>-1]))
+                        labelset = np.unique(labels)
+                        nclus = len(np.unique(labels)) 
+                        if -1 in labelset:
+                            nclus = nclus-1
+                        # nunclustered = sum([1 for x in labels if x==-1])
+                        nunclustered = np.count_nonzero(labels == -1)
+                        # nclustered = sum([1 for x in labels if x>-1])
+                        nclustered = len(labels) - nunclustered
+
                         try:
                             validity = hdbscan.validity.validity_index(foo, labels)
                             validity = max(validity,0.001)
@@ -954,7 +963,7 @@ class Consensus:
             choro_data=clusters,
             colormap=linear.YlOrRd_04,
             border_color='black',
-            style={'fillOpacity': 0.8, 'dashArray': '5, 5'},
+            style={'fillOpacity': 0.9, 'dashArray': '5, 5'},
             style_callback = style_function)
 
         html = HTML('''Hover Over Countries''')
