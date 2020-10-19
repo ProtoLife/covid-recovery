@@ -497,6 +497,7 @@ def swizzle3(countries,data,cols,refcol,satthresh = 0.7):
                 classes[cnt] = j
                 rtn[cnt] = i
                 dic[j].append(countries[i])
+                hsvdic[countries[i]] = [j]+hsvdic[countries[i]] # add class to hsvdic
                 # print(cnt,i,countries[i],rgblist[i],hsvlist[i])
                 #print(cnt,i,countries[i])
                 cnt = cnt+1
@@ -881,11 +882,11 @@ class Consensus:
         fname = country_shapes
         geog = gpd.read_file(fname)
         geog.head();
-        self.clusalign_hsv = swizzleHSV(scountries,self.coldata_adj2,self.cols,self.refclustering)
-        df0list = [[term]+list(self.clusalign_hsv[term]) for term in self.clusalign_hsv]
+        #self.clusalign_hsv = swizzleHSV(self.scountries,self.coldata_adj2,self.cols,self.refclustering)
+        df0list = [[term]+list(self.hsvdic[term]) for term in self.hsvdic]
         df0 = pd.DataFrame(df0list, columns = ['name','cluster','hue','sat','val'])
 
-        dflist = [[term]+[list(self.clusalign_hsv[term])[0]]+[list(self.clusalign_hsv[term])[1:]] for term in self.clusalign_hsv]
+        dflist = [[term]+[list(self.hsvdic[term])[0]]+[list(self.hsvdic[term])[1:]] for term in self.hsvdic]
         df = pd.DataFrame(dflist, columns = ['name','cluster','hsv'])
 
         df.replace('United States', 'United States of America', inplace=True)
