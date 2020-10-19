@@ -157,10 +157,16 @@ def color_mean_rgb_to_hsv(rgb_colours,weights=None):
     wsum = 0.
     hwsum = 0.
     
+    if len(rgb_colours) == 0:
+        print('Error in color_mean_rgb_to_hsv: empty list of rgb_colours')
+        return [0.,0.,0.]
+
     if weights == None:
-        weights = [1 if mpcolors.rgb_to_hsv(c)[1] > 0 else 0 for c in rgb_colours] # designed to exclude -1 unclustered colours
+        weights = [1. if mpcolors.rgb_to_hsv(c)[1] > 0 else 0. for c in rgb_colours] # designed to exclude -1 unclustered colours
+        if np.sum(np.array(weights)) < eps:
+            weights = [1. for c in rgb_colours]
     elif weights == 'all':
-        weights = [1 for c in rgb_colours]
+        weights = [1. for c in rgb_colours]
         
     for i,c in enumerate(rgb_colours):
         hsvcol = mpcolors.rgb_to_hsv(c)
@@ -168,24 +174,28 @@ def color_mean_rgb_to_hsv(rgb_colours,weights=None):
         s = hsvcol[1]
         v = hsvcol[2]
         if s > eps and v > eps:
-            asum = asum + np.sin(h*2*pi)*weights[i]
-            bsum = bsum + np.cos(h*2*pi)*weights[i]
+            asum = asum + np.sin(h*2.*pi)*weights[i]
+            bsum = bsum + np.cos(h*2.*pi)*weights[i]
             hwsum = hwsum + weights[i]
         ssum = ssum + hsvcol[1]*weights[i]
         vsum = vsum + hsvcol[2]*weights[i]
         wsum = wsum + weights[i]
         
-    if hwsum > 0:
+    if hwsum > eps:
         asum = asum/hwsum
         bsum = bsum/hwsum
-        h = np.arctan2(asum,bsum)/(2*pi)
+        h = np.arctan2(asum,bsum)/(2.*pi)
         if h < 0.:
             h = 1.+h
     else:
         h = 0.
-
-    s = ssum/wsum
-    v = vsum/wsum
+    if wsum > eps:
+        s = ssum/wsum
+        v = vsum/wsum
+    else:
+        print('Error in color_mean_rgb_to_hsv: 0 wsum')
+        s = 0.
+        v = 0.
     # print(rgb_colours,'mean',mpcolors.hsv_to_rgb([h,s,v]))
     if h < 0.:
         print('error in color_mean, hue out of range',h)
@@ -507,9 +517,6 @@ def swizzleHSV(countries,data,cols,refcol):
         rtn[countries[i]]=(clus[i],hsvsc[0],hsvsc[1],hsvsc[2])
     return rtn
 
-    
-
-
 
 class Consensus:
     def __init__(self,
@@ -526,8 +533,10 @@ class Consensus:
         self.ncomp = ncomp
         self.minc = minc
         self.min_samples = min_samples
+        self.countries = list(clusdata_all[cases[0]].keys()) # save countries in first data set as list
 
     def scan(self,diag=False):
+        countries = self.countries
         maxvalid = [None,None,None,None,None,None]
         maxvalidval= 0.0
         maxvalidsc = [None,None,None,None,None,None]
@@ -538,19 +547,17 @@ class Consensus:
         minscore2val = 999.
         self.report = [' ']*4*6
         self.reportdata = [None]*4*6
-        data = clusdata_all[cases[0]]
-        dat = np.array([data[cc] for cc in data])
-
-        self.probdata=np.zeros((4*6,len(dat)),dtype=float)
-        self.outlierdata=np.zeros((4*6,len(dat)),dtype=float)
-        self.clusdata = np.zeros((4*6,len(countries)),dtype=np.integer)
+        runlen = len(clusdata_all[cases[0]])
+        self.probdata=np.zeros((4*6,runlen),dtype=float)
+        self.outlierdata=np.zeros((4*6,runlen),dtype=float)
+        self.clusdata = np.zeros((4*6,len(countries)),dtype=np.int64)
         self.info =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         infomax =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         cnt=0
         for ic,case in tqdm(list(enumerate(self.cases)), desc='loop over cases' ): # loop with progress bar instead of just looping over enumerate(cases)
-            # for ic,case in enumerate(cases):
+        # for ic,case in enumerate(cases):
             data = clusdata_all[case]
-            dat = np.array([data[cc] for cc in data])
+            dat = np.array([data[cc] for cc in data]).astype(float)
             for i in range(len(dat)):   # normalize data
                 mx = max(dat[i])
                 dat[i] = [dd/mx for dd in dat[i]]
@@ -577,15 +584,15 @@ class Consensus:
                             validity = hdbscan.validity.validity_index(foo, labels)
                             validity = max(validity,0.001)
                             validitysc = rescale(validity,ncomp) 
-                            score1 = 1.0/validitysc + nunclustered/5 + np.abs(nclus-4)/2
-                            score2 = nunclustered*(4.+np.abs(nclus-4))/(validitysc*20)
+                            score1 = 1.0/validitysc + float(nunclustered)/5. + np.abs(float(nclus)-4.)/2.
+                            score2 = float(nunclustered)*(4.+np.abs(nclus-4.))/(validitysc*20.)
                             if validity > maxvalidval:
                                 maxvalidval = validity
                                 maxvalid[ic] = [(minc,min_samples,ncomp,nclus,nclustered,nunclustered,validity,validitysc,score1,score2)]
                                 self.probdata[ic*4,:] = clusterer.probabilities_[:]
                                 self.outlierdata[ic*4,:] = clusterer.outlier_scores_[:]
                                 self.clusdata[ic*4,:] = labels[:]
-                                self.report[ic*4] = 'max normal validity: %15s,%2d,%3d,%3d,%3d,%5.2f' % (case,minc,ncomp,nclus,nunclustered,validitysc)
+                                self.report[ic*4] = 'max normal validity: %13s,%2d,%3d,%3d,%3d,%5.2f' % (case,minc,ncomp,nclus,nunclustered,validitysc)
                                 self.reportdata[ic*4] = (case,minc,ncomp,nclus,nunclustered,validity,validitysc,score1,score2)
                             if validitysc > maxvalidscval:
                                 maxvalidscval = validitysc
@@ -593,7 +600,7 @@ class Consensus:
                                 self.probdata[ic*4+1,:] = clusterer.probabilities_[:]
                                 self.outlierdata[ic*4+1,:] = clusterer.outlier_scores_[:]
                                 self.clusdata[ic*4+1,:] = labels[:]
-                                self.report[ic*4+1] = 'max scaled validity: %15s,%2d,%3d,%3d,%3d,%5.2f' % (case,minc,ncomp,nclus,nunclustered,validitysc)
+                                self.report[ic*4+1] = 'max scaled validity: %13s,%2d,%3d,%3d,%3d,%5.2f' % (case,minc,ncomp,nclus,nunclustered,validitysc)
                                 self.reportdata[ic*4+1] = (case,minc,ncomp,nclus,nunclustered,validity,validitysc,score1,score2)
                             if score1 <  minscore1val:
                                 minscore1val = score1
@@ -601,7 +608,7 @@ class Consensus:
                                 self.probdata[ic*4+2,:] = clusterer.probabilities_[:]
                                 self.outlierdata[ic*4+2,:] = clusterer.outlier_scores_[:]
                                 self.clusdata[ic*4+2,:] = labels[:]
-                                self.report[ic*4+2] = 'min combined score1: %15s,%2d,%3d,%3d,%3d,%5.2f' % (case,minc,ncomp,nclus,nunclustered,validitysc)
+                                self.report[ic*4+2] = 'min combined score1: %13s,%2d,%3d,%3d,%3d,%5.2f' % (case,minc,ncomp,nclus,nunclustered,validitysc)
                                 self.reportdata[ic*4+2] = (case,minc,ncomp,nclus,nunclustered,validity,validitysc,score1,score2)
                             if score2 <  minscore2val:
                                 minscore2val = score2
@@ -609,7 +616,7 @@ class Consensus:
                                 self.probdata[ic*4+3,:] = clusterer.probabilities_[:]
                                 self.outlierdata[ic*4+3,:] = clusterer.outlier_scores_[:]
                                 self.clusdata[ic*4+3,:] = labels[:]
-                                self.report[ic*4+3] = 'min combined score2: %15s,%2d,%3d,%3d,%3d,%5.2f' % (case,minc,ncomp,nclus,nunclustered,validitysc)
+                                self.report[ic*4+3] = 'min combined score2: %13s,%2d,%3d,%3d,%3d,%5.2f' % (case,minc,ncomp,nclus,nunclustered,validitysc)
                                 self.reportdata[ic*4+3] = (case,minc,ncomp,nclus,nunclustered,validity,validitysc,score1,score2)
 
                             if diag:
@@ -649,21 +656,28 @@ class Consensus:
             i = n % max_rows
             j = int (n/max_rows)
             ax = axes[j,i]
-            ax.scatter(range(len(self.outlierdata[0])),self.probdata[n],alpha=0.3)
-            ax.scatter(range(len(self.outlierdata[0])),1-self.outlierdata[n],alpha=0.3)
+            ax.scatter(range(len(self.outlierdata[0])),self.probdata[n],color='blue',alpha=0.3,s=40)   # blue
+            ax.scatter(range(len(self.outlierdata[0])),1-self.outlierdata[n],color='red',alpha=0.3,s=20)  # red
+            ax.set_xlabel('country')
             ax.set_title(self.report[n])
 
     def  make_clusters(self,
-                      refclustering=22 # # ficudial column; change here.
+                      refclustering='auto' # # fiducial column; change here.
                       ):
-        if not refclustering < 4*len(self.cases):
-            print('refclustering must be < 4*number_of_cases.')
-            self.refclustering = 4*len(self.cases)-1
-            print('resetting to ',self.refclustering)
+        countries = self.countries
+        if refclustering == 'auto' or refclustering >= 4*len(self.cases):
+            nrep = len(self.reportdata)
+            scores = [rep[7] for rep in self.reportdata[3:nrep:4]] # optimal score 2 subset of data reports 
+            refclustering = np.argmin(np.array(scores))*4+3        # ref clustering is clustering with minimal score 2
+            print('reference clustering (numbered from 0) is',refclustering)
+            self.refclustering = refclustering
         else:
             self.refclustering = refclustering
+
         clus_argsort = np.lexsort((countries,self.clusdata[self.refclustering]))  # must run a scan above to define and fill clusdata.
         scountries = [countries[clus_argsort[i]] for i in range(len(countries))]
+        self.scountries = scountries
+
         self.probdata_s = self.probdata2.copy()
         self.clusdata_s = self.clusdata.copy()
         for i in range(len(self.probdata2)):
@@ -684,9 +698,10 @@ class Consensus:
         # cindex = np.random.random_integers(0,3,(10,10))  # cluster index 
         cindex = np.transpose(self.clusdata_s)
         ncols = len(set(self.clusdata.flatten()))
-        if ncols>11:
-            print('currently only 11 colours allowed', ncols )
-        colors = np.array([[1,1,1],[1,0,0],[0,1,0],[0,0,1],[1,1,0],[0,1,1],[1,0,1],[0.5,1,0],[0,1,0.5],[0.5,0,1],[0.5,1,0.5],[0.3,0.7,0.5]]) # black,red,green,blue,yellow,cyan,magenta
+        if ncols>16:
+            print('currently only 16 colours allowed', ncols )
+        colors = np.array([[1,1,1],[1,0,0],[0,1,0],[0,0,1],[1.,1.,0.],[1.,0.,1.],[0.,1.,1.],[0.5,1,0],
+                           [0,1,0.5],[0.5,0,1],[0.5,1,0.5],[0.3,0.7,0.5],[0.5,0.7,0.3],[0.7,0.5,0.3],[0.1,0.7,0.7],[0.7,0.1,0.7]]) # black,red,green,blue,yellow,cyan,magenta,...
         colors = np.concatenate((colors,colors))
         cluscols = np.transpose(colors[cindex[:,:]+1],(2,0,1)) # transpose to allow elementwise multiplication with rawdata with separate r,g,b
         self.coldata = np.transpose((cluscols+3*cluscols*rawdata)/4.,(1,2,0))   # transpose back to have colours as elements of 2D array
@@ -723,6 +738,7 @@ class Consensus:
 
 
     def plot_stage(self,stage=1):
+        scountries = self.scountries
         if stage not in [1,2,3]:
             print('Currently there are only stages 1, 2, 3.')
             return
@@ -735,7 +751,7 @@ class Consensus:
     
         fig,ax = plt.subplots(1,1,figsize=(15,20))
         img = ax.imshow(coldat)
-        ax.set_yticks(range(len(countries)))
+        ax.set_yticks(range(len(scountries)))
         ax.set_yticklabels(scountries)
         ax.set_xticks(range(len(self.clusdata_s)))
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
@@ -745,11 +761,12 @@ class Consensus:
 
     def plot_all_stages(self):
         # the three stages of cluster alignment
-        fig,axes = plt.subplots(1,3,figsize=(15,20))
+        scountries = self.scountries
+        fig,axes = plt.subplots(1,3,figsize=(20,20))
 
         ax = axes[0]
         img = ax.imshow(self.coldata)
-        ax.set_yticks(range(len(countries)))
+        ax.set_yticks(range(len(scountries)))
         ax.set_yticklabels(scountries)
         ax.set_xticks(range(len(self.clusdata_s)))
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
@@ -757,7 +774,7 @@ class Consensus:
 
         ax = axes[1]
         img = ax.imshow(self.coldata_adj)
-        ax.set_yticks(range(len(countries)))
+        ax.set_yticks(range(len(scountries)))
         ax.set_yticklabels(scountries)
         ax.set_xticks(range(len(self.clusdata_s)))
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
@@ -765,15 +782,17 @@ class Consensus:
 
         ax = axes[2]
         img = ax.imshow(self.coldata_adj2)
-        ax.set_yticks(range(len(countries)))
+        ax.set_yticks(range(len(scountries)))
         ax.set_yticklabels(scountries)
         ax.set_xticks(range(len(self.clusdata_s)))
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
         ax.set_xticklabels(self.report,rotation='vertical')
 
+        fig.tight_layout(pad=2.0)
         plt.show()        
 
     def swizzle(self,cols=None):
+        scountries = self.scountries
         if cols==None:
             self.cols=list(range(4*len(self.cases)))
         else:
