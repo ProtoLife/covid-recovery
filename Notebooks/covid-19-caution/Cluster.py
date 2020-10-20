@@ -60,16 +60,17 @@ from skfda.representation.basis import BSpline, Fourier, Monomial
 ## cases_adj_nonlin   ( = old longshort_cases_adj_c)
 ## cases_adj_nonlinr
 
-# two key parameters : mindeaths between 100 and 200 and mindays 150 to 160 
-print('Getting data:')
+import data_config
 from data import *
+database = data_config.database  # 'OWID' or ' JHU'
+report_correct = data_config.report_correct
+daysync = data_config.daysync # 23
+thresh = data_config.thresh # 10
+mindays = data_config.mindays # 150
 
 print('Constructing common synchronized deaths, case and testing data...');
-
-# database == 'OWID' # OWID database: to use JHU database comment this line and use line below
-database='JHU'     # JHU database: to use OWID database comment this line and use line above
-report_correct = True     # whether to use reporting spike corrected data for clustering
-daysync = 23       # needs to be same as value in data.py
+print('database',database,'report correction',report_correct)
+print('daysync',daysync,'thresh for deaths',thresh,'mindays',mindays)
 
 """
 Basic data series:
@@ -117,8 +118,8 @@ basic data to start with are big and big_cases, with bcountries, set in data.py,
 
 big = {cc:new_deaths_spm[cc] for cc in bcountries}
 big_cases = {cc:new_cases_spm[cc] for cc in bcountries}
-print('debug len(total_deaths)',len(total_deaths))
-print('debug len(big)',len(big))
+print('number of countries in total_deaths)',len(total_deaths))
+print('number of countries in big',len(big))
 
 
 # badspikes = ['Peru','Bolivia','Chile','China','Equador','Kyrgystan']   # eliminate Peru and a few other countries because of bad spikes.
@@ -130,7 +131,7 @@ short_cases = {}
 short_testing = {}
 short_reg_testing = {}
 first_thresh = {}
-thresh = 10   # better to use day when #total_deaths (ie cumulative) absolute first reaches 10 or perhaps 30 absolute as sync point & keep entire rest of trace
+# thresh = 10   # better to use day when #total_deaths (ie cumulative) absolute first reaches 10 or perhaps 30 absolute as sync point & keep entire rest of trace
 for cc in bcountries:
     tdates = len(total_deaths['Germany'])  # changed to a particular common country to get database indept (formerly using 'dates' entry in total_Deaths_x)
     for i in range(tdates):
@@ -150,8 +151,8 @@ short_reg_testing_est = min([len(short_reg_testing[x]) for x in short_reg_testin
 short_testing_c = {cc:short_testing[cc][:short_testing_est] for cc in short_testing}
 short_reg_testing_c = {cc:short_reg_testing[cc][:short_reg_testing_est] for cc in short_reg_testing} 
 
-# choose subset of time series data that must have at least len mindays=160
-mindays = 150 # changed from 160 to include more countries on Sep 24
+# choose subset of time series data that must have at least len mindays=150
+# mindays = 150 # changed from 160 to include more countries on Sep 24
 longshort = {cc:short_deaths[cc] for cc in short_deaths if (len(short_deaths[cc])>=mindays)};
 longshortest =  min([len(longshort[x]) for x in longshort])
 longshort_c = {cc:longshort[cc][:longshortest] for cc in longshort}

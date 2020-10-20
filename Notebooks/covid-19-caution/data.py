@@ -10,7 +10,12 @@ from scipy.interpolate import interp1d
 from scipy.signal import savgol_filter
 
 from matplotlib import pyplot as plt
+
 debug = False
+import data_config
+
+mindeaths = data_config.mindeaths
+mindeathspm = data_config.mindeathspm
 
 # ----------------------------------------- functions for extracting and processing data ---------------------------------
 covid_owid = []               # defined globally to allow access to raw data read in for owid
@@ -843,7 +848,8 @@ def make_cases_adj_nonlin(testing,cases,K=2):
 import warnings
 warnings.simplefilter('error', RuntimeWarning)   # to replace warnings by errors to allow traceback
 
-
+print('Getting data:')
+print('mindeaths',mindeaths,'mindeathspm',mindeathspm)
 # ## JHU data
 print('getting JHU data...')
 
@@ -952,8 +958,8 @@ new_cases_c_spm_owid = {cc:covid_owid_ts['new_confirmed_corrected_smoothed'][cc]
 new_cases_c_spm_owid.update({'dates':covid_owid_ts['new_confirmed_corrected_smoothed']['dates']})  # add dates to dictionary
 
 # common big epidemic countries (common to both jhu and owid databases)
-mindeaths = 100
-mindeathspm = 0.5 
+# mindeaths = 100
+# mindeathspm = 0.5 
 bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
 bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
 print('No of big common countries is',len(bcountries))
