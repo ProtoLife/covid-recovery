@@ -881,6 +881,7 @@ class Consensus:
         plt.show()
         
     def make_map(self):
+        # global geog,geog1
         def load_data(url, filename, file_type):
             r = requests.get(url)
             with open(filename, 'w') as f:
@@ -894,8 +895,9 @@ class Consensus:
         geo_json_data = load_data(country_shapes,'json',json.load);
         fname = country_shapes
         geog = gpd.read_file(fname)
-        geog.head();
-        #self.clusalign_hsv = swizzleHSV(self.scountries,self.coldata_adj2,self.cols,self.refclustering)
+        # geog1 = gpd.read_file(fname)
+
+        # self.clusalign_hsv = swizzleHSV(self.scountries,self.coldata_adj2,self.cols,self.refclustering)
         df0list = [[term]+list(self.hsvdic[term]) for term in self.hsvdic]
         df0 = pd.DataFrame(df0list, columns = ['name','cluster','hue','sat','val'])
 
@@ -912,6 +914,20 @@ class Consensus:
         df.replace('Serbia', "Republic of Serbia", inplace = True)
         df.replace('Czechia', "Czech Republic", inplace = True)
         df.replace('UAE', "United Arab Emirates", inplace = True)
+        df.replace('USA', "United States of America", inplace = True)
+
+        #geog.name.replace('United States of America', 'United States', inplace=True)
+        #geog.name.replace('United Republic of Tanzania', 'Tanzania',  inplace = True)
+        #geog.name.replace('Republic of Serbia', 'Serbia',  inplace = True)
+        # geog.name.replace("Democratic Republic of the Congo", 'Democratic Republic of Congo', inplace = True)
+        # geog.name.replace("Republic of the Congo", 'Congo',  inplace = True)
+        # geog.name.replace('Laos', "Lao", inplace = True)
+        # geog.name.replace("Syria", 'Syrian Arab Republic', inplace = True)   
+        # geog.name.replace("Czech Republic",'Czechia', inplace = True)
+        # geog.name.replace( "United Arab Emirates",'UAE', inplace = True)
+
+        # replace_dic = {'United States of America':'United States','United Republic of Tanzania': 'Tanzania','Republic of Serbia': 'Serbia'}
+        replace_dic = {}
 
         geogclus=geog.merge(df,how='left',on='name')
 
@@ -931,18 +947,38 @@ class Consensus:
             # print(feature)
             properties = feature['properties']
             name = properties['name']
-            properties['cluster']= clusterbn[name]
-            properties['hsv']= hsvbn[name]
+            if name in replace_dic:
+                properties['name'] = replace_dic[name]
+                name = properties['name']
+            if name in clusterbn:
+                properties['cluster']= clusterbn[name]
+            else:
+                properties['cluster']= -2
+            if name in hsvbn:    
+                properties['hsv']= hsvbn[name]
+            else:
+                properties['hsv']= [[0.,0.,1.]]
             #print(name,properties['hsv'])
 
         def rgb_to_str(rgb):
-            return '#%02x%02x%02x' % (int(rgb[0]*255),int(rgb[1]*255),int(rgb[2]*255))
+            if len(rgb) == 3:
+                return '#%02x%02x%02x' % (int(rgb[0]*255),int(rgb[1]*255),int(rgb[2]*255))
+            elif len(rgb) == 4:
+                return '#%02x%02x%02x%02x' % (int(rgb[3]*255),int(rgb[0]*255),int(rgb[1]*255),int(rgb[2]*255))
+            else:
+                return '#000000'
 
         def colorit(feature,colormap,x):
+            c = feature['properties']['cluster']
             h = feature['properties']['hsv'][0]
             s = feature['properties']['hsv'][1]
             v = feature['properties']['hsv'][2]
+            if c == -1:
+                t = 0.2
+            else:
+                t = 0.
             rgb = list(mpcolors.hsv_to_rgb([h,s,v]))
+            # rgb.append(t)
             return rgb_to_str(rgb)
 
         style_function = lambda feature,colormap,x: {"weight":0.5, 
@@ -956,13 +992,19 @@ class Consensus:
             global country_display
             chosen_country = feature['properties']['name']
             country_display.children[1].value=chosen_country
+
+            #  <h4>Prob in cluster: {}</h4>
+            #  <h4>Prob this cluster: {}</h4>
+
             html.value = '''
                 <h3><b>{}</b></h3>
                 <h4>Cluster: {:2d} </h4> 
-                <h4>HSV: {}</h4>
+                <h4>Colour mix: {}</h4>
             '''.format(feature['properties']['name'],
                        feature['properties']['cluster'],
-                       "%.3f %.3f %.3f" % tuple(feature['properties']['hsv']))
+                       "%.3f %.3f %.3f" % tuple(feature['properties']['hsv'][0]))
+                       #"%.3f" % feature['properties']['hsv'][0],
+                       #"%.3f" % feature['properties']['hsv'][1])
 
         def myplot(dataname='deaths',country='Australia'):
             plt.plot(clusdata_all[dataname][country])
