@@ -199,7 +199,7 @@ def color_mean_rgb_to_hsv(rgb_colours,weights=None,modal=False):
     if modal:
         hvals = list(hdic.keys())    
         hcnts = [hdic[h1] for h1 in hvals]
-        hmaxcnt = np.argmax(np.array(hcnts))
+        hmaxcnt = np.argmax(np.array(hcnts)) # problem if hcnts is empty sequence
     if modal and hcnts[hmaxcnt] >= len(rgb_colours)/4:
         h = hvals[hmaxcnt]
         # print('using modal hue %f with cnts %d',h,hcnts[hmaxcnt])    
@@ -560,6 +560,7 @@ class Consensus:
                  ncomp = range(2,16),
                  minc = range(3,10),
                  min_samples = range(2,3), # 1 element [2] by default
+                 satthresh = 0.7           # metaparam for swizzle, toward 1 => more unclustered
                  ):
         for cc in cases:
             if cc not in ['deaths', 'cases', 'cases_lin2020', 'cases_pwlfit', 'cases_nonlin', 'cases_nonlinr']:
@@ -570,6 +571,7 @@ class Consensus:
         self.minc = minc
         self.min_samples = min_samples
         self.countries = list(clusdata_all[cases[0]].keys()) # save countries in first data set as list
+        self.satthresh = satthresh
         self.clusdata = None
         self.swcountries=None
 
@@ -583,8 +585,8 @@ class Consensus:
         minscore1val = 999.
         minscore2 = [None,None,None,None,None,None]
         minscore2val = 999.
-        self.report = [' ']*4*6
-        self.reportdata = [None]*4*6
+        self.report = [' ']*4*len(self.cases)
+        self.reportdata = [None]*4*len(self.cases)
         runlen = len(clusdata_all[cases[0]])
         self.probdata=np.zeros((4*6,runlen),dtype=float)
         self.outlierdata=np.zeros((4*6,runlen),dtype=float)
@@ -717,8 +719,8 @@ class Consensus:
         if len(self.clusdata) == 0:
             print('must run a scan to define and fill clusdata first: starting scan')
             self.scan()
-
         countries = self.countries
+        
         if refclustering == 'auto' or refclustering >= 4*len(self.cases):
             nrep = len(self.reportdata)
             scores = [rep[7] for rep in self.reportdata[3:nrep:4]] # optimal score 2 subset of data reports 
@@ -838,7 +840,9 @@ class Consensus:
         fig.tight_layout(pad=2.0)
         plt.show()        
 
-    def swizzle(self,cols=None,satthresh = 0.7):
+    def swizzle(self,cols=None,satthresh=None):
+        if satthresh == None:
+            satthresh = self.satthresh
         # scountries = self.scountries   # s stands for sorted (by ref clustering and lexicographically)
         if cols==None:
             self.cols=list(range(4*len(self.cases)))
