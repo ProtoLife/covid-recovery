@@ -16,7 +16,7 @@ import pandas as pd
 # Jupyter Specifics
 get_ipython().run_line_magic('matplotlib', 'inline')
 from IPython.display import display, HTML
-from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed
+from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Output
 display(HTML("<style>.container { width:100% !important; }</style>"))
 style = {'description_width': '100px'}
 slider_layout = Layout(width='99%')
@@ -692,10 +692,10 @@ class Consensus:
             print('maxvalidsc ',maxvalidsc[ic])
             print('minscore1',minscore1[ic])
             print('minscore2',minscore2[ic])
-        print('making clusters...')
-        self.make_clusters()
-        print('swizzling')
-        self.swizzle()
+            print('making clusters...')
+            self.make_clusters()
+            print('swizzling')
+            self.swizzle()
         
     def plot_outliers(self):
         Nvars = len(self.cases)*4
@@ -953,7 +953,9 @@ class Consensus:
         chosen_country = 'Australia'
         def update_html(feature,  **kwargs):
             global chosen_country
+            global country_display
             chosen_country = feature['properties']['name']
+            country_display.children[1].value=chosen_country
             html.value = '''
                 <h3><b>{}</b></h3>
                 <h4>Cluster: {:2d} </h4> 
@@ -961,6 +963,25 @@ class Consensus:
             '''.format(feature['properties']['name'],
                        feature['properties']['cluster'],
                        "%.3f %.3f %.3f" % tuple(feature['properties']['hsv']))
+
+        def myplot(dataname='deaths',country='Australia'):
+            plt.plot(clusdata_all[dataname][country])
+
+        def on_clicked(feature,  **kwargs):
+            global chosen_country
+            global country_display
+            chosen_country = feature['properties']['name']
+            country_display.children[1].value=chosen_country
+            print("Country selected",chosen_country)
+
+        def getvalue(change):
+            # make the new value available
+            #future.set_result(change.new)
+            #widget.unobserve(getvalue, value)
+            global chosen_country,chosen_country_widget
+            chosen_country = change.new['properties']['name']
+            print("Country selected is",chosen_country)
+            
 
         layer = ipyleaflet.Choropleth(
             geo_data=geo_json_data,
@@ -979,6 +1000,8 @@ class Consensus:
 
         m.add_control(control)
         layer.on_hover(update_html)
+        layer.on_click(on_clicked)
+        layer.observe(getvalue,'change')
         m.add_control(ipyleaflet.FullScreenControl())
 
         self.map = m        
