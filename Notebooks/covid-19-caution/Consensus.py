@@ -553,6 +553,21 @@ def swizzleHSV(countries,data,cols,refcol):
         rtn[countries[i]]=(clus[i],hsvsc[0],hsvsc[1],hsvsc[2])
     return rtn
 
+def compare_dic(dic1,dic2):
+    df = pd.DataFrame(columns=['c1','c2','val'])
+    cnt=0
+    for k in dic1:
+        Nk = len(dic1[k])
+        s1 = set(dic1[k])
+        for kk in dic2:
+            s2 = set(dic2[kk])
+            #olap = len(s1.intersection(s2))/float(Nk)
+            olap = len(s1.intersection(s2))
+            if olap > 0:
+                df.loc[cnt] = ['a'+str(k),'b'+str(kk),olap]
+                cnt = cnt+1
+    return df
+
 
 class Consensus:
     def __init__(self,
