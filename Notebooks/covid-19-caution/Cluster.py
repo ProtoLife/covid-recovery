@@ -60,15 +60,18 @@ from skfda.representation.basis import BSpline, Fourier, Monomial
 ## cases_adj_nonlin   ( = old longshort_cases_adj_c)
 ## cases_adj_nonlinr
 
-import data_config
 from data import *
+import data_config
 database = data_config.database  # 'OWID' or ' JHU'
 report_correct = data_config.report_correct
 daysync = data_config.daysync # 23
 thresh = data_config.thresh # 10
 mindays = data_config.mindays # 150
+mindeaths = data_config.mindeaths
+mindeathspm = data_config.mindeathspm
 
 print('Constructing common synchronized deaths, case and testing data...');
+print('mindeaths',mindeaths,'mindeathspm',mindeathspm)
 print('database',database,'report correction',report_correct)
 print('daysync',daysync,'thresh for deaths',thresh,'mindays',mindays)
 
@@ -112,6 +115,12 @@ Clustering data:
 basic data to start with are big and big_cases, with bcountries, set in data.py, filtering common_countries (common to owid & jhu)
 """
 
+# mindeaths = 100
+# mindeathspm = 0.5 
+bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
+bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
+print('No of big common countries is',len(bcountries))
+print('---------------------------------')
 # from data.py:
 # bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
 # bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]

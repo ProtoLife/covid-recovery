@@ -896,7 +896,7 @@ class Consensus:
         plt.show()
         
     def make_map(self):
-        # global geog,geog1
+        global geog,geog1,clusters,geo_json_data
         def load_data(url, filename, file_type):
             r = requests.get(url)
             with open(filename, 'w') as f:
@@ -910,7 +910,7 @@ class Consensus:
         geo_json_data = load_data(country_shapes,'json',json.load);
         fname = country_shapes
         geog = gpd.read_file(fname)
-        # geog1 = gpd.read_file(fname)
+        geog1 = gpd.read_file(fname)
 
         # self.clusalign_hsv = swizzleHSV(self.scountries,self.coldata_adj2,self.cols,self.refclustering)
         df0list = [[term]+list(self.hsvdic[term]) for term in self.hsvdic]
@@ -919,21 +919,23 @@ class Consensus:
         dflist = [[term]+[list(self.hsvdic[term])[0]]+[list(self.hsvdic[term])[1:]] for term in self.hsvdic]
         df = pd.DataFrame(dflist, columns = ['name','cluster','hsv'])
 
-        df.replace('United States', 'United States of America', inplace=True)
-        df.replace('USA', "United States of America", inplace = True)
-        df.replace('Tanzania', "United Republic of Tanzania", inplace = True)
-        df.replace('Democratic Republic of Congo', "Democratic Republic of the Congo", inplace = True)
-        df.replace('Congo', "Republic of the Congo", inplace = True)
-        df.replace('Lao', "Laos", inplace = True)
-        df.replace('Syrian Arab Republic', "Syria", inplace = True)
-        df.replace('Serbia', "Republic of Serbia", inplace = True)
-        df.replace('Czechia', "Czech Republic", inplace = True)
-        df.replace('UAE', "United Arab Emirates", inplace = True)
-        df.replace('USA', "United States of America", inplace = True)
+        #df.replace('United States', 'United States of America', inplace=True)
+        df.replace('United States of America', "United States", inplace = True)
+        #df.replace('Tanzania', "United Republic of Tanzania", inplace = True)
+        #df.replace('Democratic Republic of Congo', "Democratic Republic of the Congo", inplace = True)
+        #df.replace('Congo', "Republic of the Congo", inplace = True)
+        #df.replace('Lao', "Laos", inplace = True)
+        #df.replace('Syrian Arab Republic', "Syria", inplace = True)
+        #df.replace('Serbia', "Republic of Serbia", inplace = True)
+        #df.replace('Czechia', "Czech Republic", inplace = True)
+        #df.replace('UAE', "United Arab Emirates", inplace = True)
+        df.replace('USA', "United States", inplace = True)
 
-        #geog.name.replace('United States of America', 'United States', inplace=True)
-        #geog.name.replace('United Republic of Tanzania', 'Tanzania',  inplace = True)
-        #geog.name.replace('Republic of Serbia', 'Serbia',  inplace = True)
+        
+        geog.name.replace('United States of America', 'United States', inplace=True)
+        geog.name.replace('USA', 'United States', inplace=True)
+        geog.name.replace('United Republic of Tanzania', 'Tanzania',  inplace = True)
+        geog.name.replace('Republic of Serbia', 'Serbia',  inplace = True)
         # geog.name.replace("Democratic Republic of the Congo", 'Democratic Republic of Congo', inplace = True)
         # geog.name.replace("Republic of the Congo", 'Congo',  inplace = True)
         # geog.name.replace('Laos', "Lao", inplace = True)
@@ -941,17 +943,15 @@ class Consensus:
         # geog.name.replace("Czech Republic",'Czechia', inplace = True)
         # geog.name.replace( "United Arab Emirates",'UAE', inplace = True)
 
-        # replace_dic = {'United States of America':'United States','United Republic of Tanzania': 'Tanzania','Republic of Serbia': 'Serbia'}
-        replace_dic = {}
+        replace_dic = {'USA':'United States','United States of America':'United States','United Republic of Tanzania': 'Tanzania','Republic of Serbia': 'Serbia'}
 
         geogclus=geog.merge(df,how='left',on='name')
 
-        # now add the new properties to geo_json_data
         # https://stackoverflow.com/questions/944700/how-can-i-check-for-nan-values
-        x = float('nan')
-        # print(math.isnan(x))
+        # cluster and hsv data for chloro_data which could be used by chloropleth as x
+
         clusters =  dict(zip(geogclus['id'].tolist(), geogclus['cluster'].tolist()))
-        clusters = {cc: -1 if math.isnan(clusters[cc]) else clusters[cc] for cc in clusters.keys()}
+        clusters = {cc: -2 if math.isnan(clusters[cc]) else clusters[cc] for cc in clusters.keys()}
         clusterbn =  dict(zip(geogclus['name'].tolist(), geogclus['cluster'].tolist()))
         clusterbn = {cc: -2 if math.isnan(clusterbn[cc]) else clusterbn[cc] for cc in clusterbn.keys()}
         hsvbn =  dict(zip(geogclus['name'].tolist(), geogclus['hsv'].tolist()))
@@ -972,7 +972,7 @@ class Consensus:
             if name in hsvbn:    
                 properties['hsv']= hsvbn[name]
             else:
-                properties['hsv']= [[0.,0.,1.]]
+                properties['hsv']= [0.,0.,1.]
             #print(name,properties['hsv'])
 
         def rgb_to_str(rgb):
@@ -983,7 +983,7 @@ class Consensus:
             else:
                 return '#000000'
 
-        def colorit(feature,colormap,x):
+        def colorfill(feature,colormap,x):
             c = feature['properties']['cluster']
             h = feature['properties']['hsv'][0]
             s = feature['properties']['hsv'][1]
@@ -996,30 +996,49 @@ class Consensus:
             # rgb.append(t)
             return rgb_to_str(rgb)
 
+        def colorborder(feature,colormap,x):
+            c = feature['properties']['cluster']
+            h = feature['properties']['hsv'][0]
+            s = feature['properties']['hsv'][1]
+            v = feature['properties']['hsv'][2]
+            if c == -2:
+                rgb = list(mpcolors.hsv_to_rgb([0.,0.,1.]))
+            elif c == -1:
+                rgb = list(mpcolors.hsv_to_rgb([0.,0.,0.]))
+            else:
+                rgb = list(mpcolors.hsv_to_rgb([h,1.,1.]))
+            # rgb.append(t)
+            return rgb_to_str(rgb)
+
         style_function = lambda feature,colormap,x: {"weight":0.5, 
-                                    'color':'black',
+                                    # 'color':'black',
                                     #'fillColor':colormap(x['properties']['hue']), 
-                                    'fillColor':colorit(feature,colormap,x), 
-                                    'fillOpacity':1.0}
-        chosen_country = 'Australia'
+                                    'border_color':colorborder(feature,colormap,x),
+                                    'color': colorborder(feature,colormap,x),
+                                    'fillColor':colorfill(feature,colormap,x), 
+                                    'fillOpacity':0.8}
+
         def update_html(feature,  **kwargs):
             global chosen_country
             global country_display
             chosen_country = feature['properties']['name']
-            country_display.children[1].value=chosen_country
+            if country_display:
+                country_display.children[1].value=chosen_country
 
-            #  <h4>Prob in cluster: {}</h4>
-            #  <h4>Prob this cluster: {}</h4>
 
+            # print('debug name hsv cluster',feature['properties']['name'],feature['properties']['cluster'],feature['properties']['hsv'])
             html.value = '''
                 <h3><b>{}</b></h3>
                 <h4>Cluster: {:2d} </h4> 
-                <h4>Colour mix: {}</h4>
+                <h4>Cluster colour mix: {}</h4>
+                <h4>Prob in a cluster: {}</h4>
+                <h4>Prob this cluster: {}</h4>
             '''.format(feature['properties']['name'],
                        feature['properties']['cluster'],
-                       "%.3f %.3f %.3f" % tuple(feature['properties']['hsv'][0]))
-                       #"%.3f" % feature['properties']['hsv'][0],
-                       #"%.3f" % feature['properties']['hsv'][1])
+                       #"%.3f %.3f %.3f" % tuple(feature['properties']['hsv']))
+                       "%.3f" % feature['properties']['hsv'][0],
+                       "%.3f" % feature['properties']['hsv'][1],
+                       "%.3f" % feature['properties']['hsv'][2])
 
         def myplot(dataname='deaths',country='Australia'):
             plt.plot(clusdata_all[dataname][country])
@@ -1038,20 +1057,20 @@ class Consensus:
             global chosen_country,chosen_country_widget
             chosen_country = change.new['properties']['name']
             print("Country selected is",chosen_country)
-            
-
+         
+        #print('now forming chloropleth layer')   
         layer = ipyleaflet.Choropleth(
             geo_data=geo_json_data,
             choro_data=clusters,
             colormap=linear.YlOrRd_04,
-            border_color='black',
-            style={'fillOpacity': 0.9, 'dashArray': '5, 5'},
+            #border_color='black',
+            #style={'fillOpacity': 0.9, 'dashArray': '5, 5'},
             style_callback = style_function)
-
-        html = HTML('''Hover Over Countries''')
+        #print('now setting up country control')
+        html = HTML('''Selected Country''')
         html.layout.margin = '0px 20px 20px 20px'
         control = ipyleaflet.WidgetControl(widget=html, position='topright')
-
+        #print('now implementing map')
         m = ipyleaflet.Map(center = (20,10), zoom = 2)
         m.add_layer(layer)
 

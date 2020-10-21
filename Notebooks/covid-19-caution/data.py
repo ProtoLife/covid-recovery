@@ -12,10 +12,7 @@ from scipy.signal import savgol_filter
 from matplotlib import pyplot as plt
 
 debug = False
-import data_config
-
-mindeaths = data_config.mindeaths
-mindeathspm = data_config.mindeathspm
+# import data_config # not needed here now
 
 # ----------------------------------------- functions for extracting and processing data ---------------------------------
 covid_owid = []               # defined globally to allow access to raw data read in for owid
@@ -194,17 +191,18 @@ def notch_filter(data):
      plt.show()
 
 scountries = ['Australia','Denmark','France','Iran','Italy','Peru','Russia','Sweden','Spain','United Kingdom','United States']
-dcountries = ['Afghanistan','Albania','Argentina','Armenia','Australia','Austria',
- 'Azerbaijan','Belarus','Belgium','Bolivia','Bosnia and Herzegovina',
- 'Brazil','Bulgaria','Canada','Chile','Colombia','Croatia',
- 'Czech Republic','Dominican Republic','Ecuador','Egypt','El Salvador',
- 'Finland','Germany','Greece','Guatemala','Honduras','Hungary','India',
- 'Iran','Iraq','Ireland','Israel','Italy','Kazakhstan','Kosovo','Kuwait',
- 'Kyrgyzstan','Lebanon','Luxembourg','Macedonia','Mexico','Moldova',
- 'Morocco','Norway','Oman','Pakistan','Panama','Peru','Philippines',
- 'Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Serbia',
- 'Slovenia','South Africa','Spain','Sweden','Switzerland','Tunisia',
- 'Turkey','Ukraine','United Arab Emirates','United States']
+d_countries = ['Afghanistan' 'Albania' 'Argentina' 'Armenia' 'Australia' 'Austria'
+ 'Azerbaijan' 'Bahamas' 'Belarus' 'Belgium' 'Bolivia'
+ 'Bosnia and Herzegovina' 'Brazil' 'Bulgaria' 'Canada' 'Chile' 'Colombia'
+ 'Croatia' 'Czech Republic' 'Denmark' 'Dominican Republic' 'Ecuador'
+ 'Egypt' 'El Salvador' 'Finland' 'France' 'Germany' 'Greece' 'Guatemala'
+ 'Honduras' 'Hungary' 'India' 'Iran' 'Iraq' 'Ireland' 'Israel' 'Italy'
+ 'Kazakhstan' 'Kosovo' 'Kuwait' 'Kyrgyzstan' 'Lebanon' 'Luxembourg'
+ 'Macedonia' 'Mexico' 'Moldova' 'Morocco' 'Netherlands' 'Norway' 'Oman'
+ 'Panama' 'Paraguay' 'Peru' 'Philippines' 'Poland' 'Portugal' 'Qatar'
+ 'Romania' 'Russia' 'Saudi Arabia' 'Serbia' 'Slovenia' 'South Africa'
+ 'Spain' 'Sweden' 'Switzerland' 'Tunisia' 'Turkey' 'Ukraine'
+ 'United Arab Emirates' 'United Kingdom' 'United States']    # somewhat longer list of 72 used at one stage in cluster analysis
 
 def win_clus(t,y,clusthresh):
         # An Efficient Method for Detection of Outliers in Tracer Curves Derived from Dynamic Contrast-Enhanced Imaging Linning Ye And Zujun Hou
@@ -347,7 +345,7 @@ def expand_data(covid_ts,database='jhu'):
             else:
                 ccs = cc if database == 'owid' else cc[0] 
                 data_cc = data_diff[cc] 
-                if debug and (ccs not in scountries):   # dcountries for longer list
+                if debug and (ccs not in scountries):   # d_countries for longer list
                     data_cor.update({cc:data_cc[:]}) 
                 else:
                     float_formatter = "{:.3f}".format
@@ -790,7 +788,7 @@ def pwlf_testing(testing,trampday1=50): # reg_testing calculated from testing be
     reg_testing={}
     i = 0
     for cc in tqdm_notebook(countries_common, desc='piecewise linear fit'): # loop with progress bar instead of just loop
-    # for cc in countries_common:   # was bcountries in cluster.py
+    # for cc in countries_common:
         # testing_cap = np.array([max(t,0.1) for t in testing[cc]])
         testing_cap = testing[cc][trampday1:] # we assume international common starting day 50 of begin of preparation of testing (linear ramp to first recorded data) 
         xxi = range(len(testing_cap))
@@ -849,7 +847,6 @@ import warnings
 warnings.simplefilter('error', RuntimeWarning)   # to replace warnings by errors to allow traceback
 
 print('Getting data:')
-print('mindeaths',mindeaths,'mindeathspm',mindeathspm)
 # ## JHU data
 print('getting JHU data...')
 
@@ -958,12 +955,6 @@ new_cases_c_spm_owid = {cc:covid_owid_ts['new_confirmed_corrected_smoothed'][cc]
 new_cases_c_spm_owid.update({'dates':covid_owid_ts['new_confirmed_corrected_smoothed']['dates']})  # add dates to dictionary
 
 # common big epidemic countries (common to both jhu and owid databases)
-# mindeaths = 100
-# mindeathspm = 0.5 
-bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
-bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
-print('No of big common countries is',len(bcountries))
-print('---------------------------------')
 
 print('extracting testing data from OWID database')
 testing_x=get_data_owid(owid_file,datatype='new_tests_smoothed_per_thousand',dataaccum = 'daily',daysync=daysync)
