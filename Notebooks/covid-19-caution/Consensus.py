@@ -751,13 +751,14 @@ class Consensus:
 
         self.probdata_s = self.probdata2.copy()                                   # sort the cluster ids and probs to match scountries
         self.clusdata_s = self.clusdata.copy()
-        self.dics = [{}]*len(self.probdata2)
+        self.dics = []
         for i in range(len(self.probdata2)):
-            foo = self.probdata2[i]
+            tmp = {}
             for j in range(len(scountries)):
                 self.probdata_s[i,j] = self.probdata2[i,clus_argsort[j]]
                 self.clusdata_s[i,j] = self.clusdata[i,clus_argsort[j]]
-                self.dics[i].update({scountries[j]:self.clusdata_s[i,j]})
+                tmp[scountries[j]] = self.clusdata_s[i,j]
+            self.dics.append(tmp.copy())
 
         """
         This is the basic cluster comparison.  It suffers from the independent ordering of clusters, which makes the colourings different in each column. 
