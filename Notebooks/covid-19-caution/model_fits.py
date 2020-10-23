@@ -112,6 +112,8 @@ def make_model(mod_name,age_structure=None):
                   transition_type=TransitionType.T))                 
 
             model = DeterministicOde(state, param_list, transition=transition)
+            if model == None:
+                print('Error in make_model constructing DeterministicOde (in pygom)')
             model.modelname='SIR'+'_'+str(age_structure)
             model.ei=slice(1*age_structure,2*age_structure)
             model.confirmed=slice(1*age_structure,4*age_structure)  # cases 1-3 i.e. I, R and D
