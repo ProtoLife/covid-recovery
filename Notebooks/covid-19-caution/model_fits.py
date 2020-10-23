@@ -62,7 +62,7 @@ exec(open('ModelFit.py','r').read())
 
 C_2s = 1000.   # scaling factor for c_2, to allow fit parameter c_2 to be of commensurate magnitude to other parameters
 
-def make_model(mod_name):
+def make_model(mod_name,age_structure=None):
     """ make models of types ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R']"""
     global C_2s           # scaling factor for c_2
     rtn = {}
@@ -70,31 +70,98 @@ def make_model(mod_name):
     c_2s = '%f*' % C_2s   # string equation substitute scaled constant
 
     if mod_name == 'SIR':
-        state = ['S', 'I', 'R', 'D']
-        param_list = ['beta', 'gamma','mu','N']
-        transition = [
-            Transition(origin='S', destination='I', equation='beta*I*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='R', equation='gamma*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='D', equation='mu*I',
-                       transition_type=TransitionType.T)    
-        ]
+        if age_structure: # age_structure is integer number of age compartments
+            first_infected_agegroup = int(age_structure//4)   # rough first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
+            state0 = ['S', 'I', 'R', 'D']
+            param_list0 = ['beta', 'gamma','mu','N']
+            state = []
+            sa = {}     # state age dictionary
+            for s in state0:
+                state_tmp = []
+                for i in range(age_structure):
+                    state_tmp.append(s+'_'+str(i))
+                state.extend(state_tmp)
+                sa.update({s:state_tmp.copy()})
+            param_list = param_list0
+            pa = {}
+            N_list = []
+            for i in range(age_structure):
+                N_list.append('N'+'_'+str(i))
+            param_list.extend(N_list)
+            pa.update({'N':N_list})
+            contact = [[None]*age_structure]*age_structure
+            for i in range(age_structure):
+                contact[i] = ['con'+'_'+str(i)+'_'+str(j) for j in range(age_structure)]
+                param_list.extend(contact[i])
+            phi = [None]*age_structure
+            for i in range(age_structure):
+                tmp = 'beta*(0'
+                for j in range(age_structure):
+                    tmp= tmp+'+'+contact[i][j]+'*'+sa['I'][j]+'/'+pa['N'][j]
+                tmp = tmp+')'
+                phi[i]=tmp[:]               # Note that strings are treated like arrays and need to be copied elementwise
+            transition = []
+            for i in range(age_structure):
+                transition.append(Transition(origin=sa['S'][i],destination=sa['I'][i], equation = phi[i]+'*'+sa['S'][i],
+                  transition_type=TransitionType.T))
+            for i in range(age_structure):
+                transition.append(Transition(origin=sa['I'][i],destination=sa['R'][i], equation = 'gamma'+'*'+sa['I'][i],
+                  transition_type=TransitionType.T)) 
+            for i in range(age_structure):
+                transition.append(Transition(origin=sa['I'][i],destination=sa['D'][i], equation = 'mu'+'*'+sa['I'][i],
+                  transition_type=TransitionType.T))                 
 
-        model = DeterministicOde(state, param_list, transition=transition)
-        model.modelname='SIR'
-        model.ei=1
-        model.confirmed=slice(1,4)  # cases 1-3 i.e. I, R and D
-        model.recovered=slice(2,3)
-        model.deaths=slice(3,4)
-        model.I_1 = 1
-        x0 = [1.0-I_0, I_0, 0.0, 0.0]
-        model.initial_values = (x0, 0) # 0 for t[0]
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.modelname='SIR'+'_'+str(age_structure)
+            model.ei=slice(1*age_structure,2*age_structure)
+            model.confirmed=slice(1*age_structure,4*age_structure)  # cases 1-3 i.e. I, R and D
+            model.recovered=slice(2*age_structure,3*age_structure)
+            model.deaths=slice(3*age_structure,4*age_structure)
+            model.I_1 = 1*age_structure + first_infected_agegroup
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            #x0 = [1.0-I_0, I_0, 0.0, 0.0]
+            x0 = []
+            for s in state0:
+                state_tmp = []
+                for i in range(age_structure):
+                    if i == first_infected_agegroup and s == 'S':
+                        x0.append(1.0-I_0)
+                    elif i == first_infected_agegroup and s == 'I':
+                        x0.append(I_0)
+                    else:
+                        x0.append(0.)
+            model.initial_values = (x0, 0) # 0 for t[0]
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
+        else:
+            state = ['S', 'I', 'R', 'D']
+            param_list = ['beta', 'gamma','mu','N']
+            transition = [
+                Transition(origin='S', destination='I', equation='beta*I*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='R', equation='gamma*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='D', equation='mu*I',
+                           transition_type=TransitionType.T)    
+            ]
+
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.modelname='SIR'
+            model.ei=1
+            model.confirmed=slice(1,4)  # cases 1-3 i.e. I, R and D
+            model.recovered=slice(2,3)
+            model.deaths=slice(3,4)
+            model.I_1 = 1
+            x0 = [1.0-I_0, I_0, 0.0, 0.0]
+            model.initial_values = (x0, 0) # 0 for t[0]
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SCIR':
         state = ['S', 'I', 'R', 'D', 'S_c']
@@ -856,11 +923,12 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     return [sbparams,cbparams,fbparams,dbparams]
 
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
-def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
-    [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
-    dbparams['run_name'] = smodel # default value when no country yet
+def parametrize_model(smodel,age_structure=None,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
+    if sbparams == None or cbparams==None or fbparams==None or dbparams==None:
+      [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
+      dbparams['run_name'] = smodel # default value when no country yet
     b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
-    fullmodel = make_model(smodel)
+    fullmodel = make_model(smodel,age_structure=age_structure)
     model = fullmodel['model']
     params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
     model.initial_values = base2ICs(I0,N,smodel,model)
@@ -886,6 +954,16 @@ fullmodels = {}
 print('making the models...')
 for smodel in smodels:
     fullmodel = parametrize_model(smodel)
+    fullmodels[smodel] = fullmodel
+    # take fullmodel['model'] so that modelnm is same model as before
+    # for backward compatibility
+    cmodels[smodel] = fullmodel['model']
+    modelnm = smodel+'_model'
+    exec(modelnm+" = fullmodel['model']")
+    print(smodel)
+samodels = ['SIR_A']
+for smodel in samodels:
+    fullmodel = parametrize_model(smodel,age_structure=4)
     fullmodels[smodel] = fullmodel
     # take fullmodel['model'] so that modelnm is same model as before
     # for backward compatibility
