@@ -553,7 +553,7 @@ def swizzleHSV(countries,data,cols,refcol):
         rtn[countries[i]]=(clus[i],hsvsc[0],hsvsc[1],hsvsc[2])
     return rtn
 
-def compare_dic(dic1,dic2):
+def dic_compare(dic1,dic2):
     df = pd.DataFrame(columns=['c1','c2','val'])
     cnt=0
     for k in dic1:
