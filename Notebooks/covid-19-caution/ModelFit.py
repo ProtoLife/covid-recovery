@@ -820,6 +820,10 @@ class ModelFit:
                 'new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed','new_recovered_corrected_smoothed']
         self.data = {}
         for dt in datatypes:
+            if dt not in ts:
+                print('datatype error:')
+                print(dt,'not in ts for data_src',data_src)
+                return None
             self.data.update({dt:ts[dt][country][daystart:datadays]}) 
 
         self.startdate = startdate_t.strftime(fmt_jhu)
