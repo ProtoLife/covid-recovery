@@ -63,14 +63,15 @@ exec(open('ModelFit.py','r').read())
 C_2s = 1000.   # scaling factor for c_2, to allow fit parameter c_2 to be of commensurate magnitude to other parameters
 
 def state_age(state0,age_structure):            
-     state = []
-     sa = {}                                               # state age dictionary
-     for s in state0:
-         state_tmp = []
-         for i in range(age_structure):
-             state_tmp.append(s+'_'+str(i))
-         state.extend(state_tmp)
-         sa.update({s:state_tmp.copy()})
+    state = []
+    sa = {}                                               # state age dictionary
+    for s in state0:
+        state_tmp = []
+        for i in range(age_structure):
+            state_tmp.append(s+'_'+str(i))
+        
+        state.extend(state_tmp)
+        sa.update({s:state_tmp.copy()})
     return sa,state
 
 def param_list_age(param_list0,age_structure):
@@ -792,6 +793,8 @@ def make_model(mod_name,age_structure=None):
         rtn['param_list'] = param_list
         rtn['model'] = model
         return rtn
+    print('make-model:  ERROR:  could not make model',mod_name);
+    return None
 
 def param_copy(model):
     params = model.parameters
@@ -1057,6 +1060,25 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     return [sbparams,cbparams,fbparams,dbparams]
 
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
+def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
+    if sbparams == None or cbparams==None or fbparams==None or dbparams==None:
+      [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
+      dbparams['run_name'] = smodel # default value when no country yet
+    b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
+    fullmodel = make_model(smodel)
+    model = fullmodel['model']
+    params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
+    model.initial_values = base2ICs(I0,N,smodel,model)
+    # model.baseparams = list(sbparams)+list(cbparams)+list(fbparams)
+    model.parameters = params_in # sets symbolic name parameters
+    fullmodel['params'] = params_in    # sets string params
+    fullmodel['sbparams'] = sbparams
+    fullmodel['cbparams'] = cbparams
+    fullmodel['fbparams'] = fbparams
+    fullmodel['dbparams'] = dbparams
+    fullmodel['initial_values'] = model.initial_values
+    return fullmodel
+
 def parametrize_model_age(smodel,age_structure=None,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     if sbparams == None or cbparams==None or fbparams==None or dbparams==None:
       [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
@@ -1087,7 +1109,7 @@ cmodels = {}
 fullmodels = {}
 print('making the models...')
 for smodel in smodels:
-    fullmodel = parametrize_model(smodel)
+    fullmodel = parametrize_model_age(smodel)
     fullmodels[smodel] = fullmodel
     # take fullmodel['model'] so that modelnm is same model as before
     # for backward compatibility
@@ -1095,16 +1117,16 @@ for smodel in smodels:
     modelnm = smodel+'_model'
     exec(modelnm+" = fullmodel['model']")
     print(smodel)
-samodels = ['SIR_A']
-for smodel in samodels:
-    fullmodel = parametrize_model(smodel,age_structure=4)
-    fullmodels[smodel] = fullmodel
-    # take fullmodel['model'] so that modelnm is same model as before
-    # for backward compatibility
-    cmodels[smodel] = fullmodel['model']
-    modelnm = smodel+'_model'
-    exec(modelnm+" = fullmodel['model']")
-    print(smodel)
+# samodels = ['SIR_A']
+# for smodel in samodels:
+#     fullmodel = parametrize_model_age(smodel,age_structure=4)
+#     fullmodels[smodel] = fullmodel
+#     # take fullmodel['model'] so that modelnm is same model as before
+#     # for backward compatibility
+#     cmodels[smodel] = fullmodel['model']
+#     modelnm = smodel+'_model'
+#     exec(modelnm+" = fullmodel['model']")
+#     print(smodel)
             
             
     
