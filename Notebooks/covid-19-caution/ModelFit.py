@@ -807,7 +807,6 @@ class ModelFit:
         self.tsim = np.linspace(0, simdays -1, simdays)
         self.tdata = np.linspace(0, datadays -1, datadays)
 
-
         if datatypes == 'all' or not datatypes:
             # NHP: Oct 25, 2020:  For the moment, installing datatypes lists obtained from covid_ts (for jhu) and covid_owid_ts (for owid)
             # # note that others also available for new_ with _pm (per million) suffix e.g. new_confirmed_nonlin_corrected_smoothed_pm
@@ -822,22 +821,28 @@ class ModelFit:
             #     'new_confirmed_linr_corrected_smoothed','new_confirmed_nonlin_corrected_smoothed','new_confirmed_nonlinr_corrected_smoothed',               
             #     'new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed','new_recovered_corrected_smoothed']
             if data_src == 'owid':
-                datatypes = ['confirmed', 'deaths', 'recovered', 'tests', 'stringency', 'population', 'population_density', 'gdp_per_capita',
+                datatypes = ['confirmed', 'deaths', 'tests', 'stringency', 'population', 'population_density', 'gdp_per_capita',
                              'new_deaths', 'new_deaths_smoothed', 'deaths_smoothed', 'new_deaths_corrected', 'new_deaths_corrected_smoothed',
                              'deaths_corrected_smoothed', 'new_confirmed', 'new_confirmed_smoothed', 'confirmed_smoothed', 'new_confirmed_corrected',
                              'new_confirmed_corrected_smoothed', 'confirmed_corrected_smoothed', 'confirmed_linr_corrected_smoothed',
                              'new_confirmed_nonlin_corrected_smoothed', 'confirmed_nonlin_corrected_smoothed', 'new_confirmed_nonlinr_corrected_smoothed',
                              'confirmed_nonlinr_corrected_smoothed']
             elif data_src == 'jhu':
-                datatypes = ['confirmed', 'deaths', 'recovered', 'new_deaths', 'new_deaths_smoothed', 'deaths_smoothed', 'new_deaths_corrected',
-                             'new_deaths_corrected_smoothed', 'deaths_corrected_smoothed', 'new_confirmed', 'new_confirmed_smoothed',
-                             'confirmed_smoothed', 'new_confirmed_corrected', 'new_confirmed_corrected_smoothed', 'confirmed_corrected_smoothed',
-                             'confirmed_linr_corrected_smoothed', 'new_confirmed_nonlin_corrected_smoothed', 'confirmed_nonlin_corrected_smoothed',
-                             'new_confirmed_nonlinr_corrected_smoothed', 'confirmed_nonlinr_corrected_smoothed']
+                datatypes = ['confirmed', 'deaths', 'recovered', 
+                             'new_deaths', 'new_deaths_smoothed', 'deaths_smoothed', 'new_deaths_corrected', 'new_deaths_corrected_smoothed',
+                             'deaths_corrected_smoothed', 'new_confirmed', 'new_confirmed_smoothed', 'confirmed_smoothed', 'new_confirmed_corrected',
+                             'new_confirmed_corrected_smoothed', 'confirmed_corrected_smoothed', 'confirmed_linr_corrected_smoothed',
+                             'new_confirmed_nonlin_corrected_smoothed', 'confirmed_nonlin_corrected_smoothed', 'new_confirmed_nonlinr_corrected_smoothed',
+                             'confirmed_nonlinr_corrected_smoothed']
             else:
                 print("ERROR:  don't know datatypes for data_src",data_src)
                 return None
-                    
+                
+        # old code (John)            
+        # self.data = {}
+        # for dt in datatypes:
+        #    self.data.update({dt:ts[dt][country][daystart:datadays]}) 
+
         print('before ts covid_ts covid_owid_ts',len(ts))
         print(datatypes)    
         self.data = {}

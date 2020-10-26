@@ -10,6 +10,8 @@ from scipy.interpolate import interp1d
 from scipy.signal import savgol_filter
 
 from matplotlib import pyplot as plt
+import pandas as pd
+import numpy as np
 
 debug = False
 # import data_config # not needed here now
@@ -784,6 +786,68 @@ def get_2012_data_ICUs():
     icu_dict = {elt[0]:elt[1] for elt in icus_data[1:]}
     return icu_dict   
 
+def get_data_contact_matrices():
+    """ get contact matrices for 152 countries from database built by extrapolation in 2017
+    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5609774/
+    """
+    global countries_common,translate_contact
+    import os.path
+    from os import path
+    contact_file1 = '../../data/UN/contact_matrices_152_countries/MUestimates_all_locations_1.xlsx' 
+    contact_file2 = '../../data/UN/contact_matrices_152_countries/MUestimates_all_locations_2.xlsx' 
+    if path.exists(contact_file1) and path.exists(contact_file2):
+        print('152 country contact files found 1 A-M and 2 M-Z')
+    else:
+        print('error',contact_file1,'or',contact_file2, 'not found')
+        return
+    with open(contact_file1,'rb') as fp:
+        dat = pd.read_excel(io=fp,sheet_name=None)
+    with open(contact_file2,'rb') as fp:
+        dat2 = pd.read_excel(io=fp,sheet_name=None) 
+    dat.update(dat2)
+
+    countries_common_contact = [cc for cc in countries_common if translate_contact[cc] in dat]
+    print('Of',len(countries_common),'in countries_common',len(countries_common_contact),'have contact matrices')
+    # print('Exceptions:',set(countries_common)-set(countries_common_contact))
+    contact_dic = {cc:np.array(dat[translate_contact[cc]]) for cc in countries_common_contact}
+    contact_dic.update({'Kosovo':contact_dic['Serbia'],'Norway':contact_dic['Sweden'],
+                    'Afghanistan':contact_dic['Pakistan'],'Moldova': contact_dic['Romania']}) # to complete cluster country data via close countries
+    print('4 country contact matrices set equal to that of neighbour to complete cluster country set')
+    print('                   Kosovo:Serbia','Norway:Sweden','Afghanistan:Pakistan','Moldova:Romania')
+    return contact_dic,countries_common_contact
+
+def get_data_age_groups():
+    """ get age groups both sexes for countries from UN database
+        the country Kosovo was not available and is taken instead from CIA World Fact Book (hand entered from image)
+    """
+    global countries_common,translate_age
+    import os.path
+    from os import path
+    agedist_file = '../../data/UN/age_structure/WPP2019_POP_F07_1_POPULATION_BY_AGE_BOTH_SEXES_trimmed.xlsx' 
+
+    if path.exists(agedist_file):
+        print('UN contact files found 1 and 2')
+    else:
+        print('error',agedist_file, 'not found')
+        return
+    with open(agedist_file,'rb') as fp:
+        datage = pd.read_excel(io=fp,sheet_name='ESTIMATES')
+
+    headings = list(datage.keys())
+    age_array = np.zeros((21,202),np.float)   # hard code dimensions of array must match
+    for i,col in enumerate(headings[2:]):
+        age_array[i,:] = datage[col][:]*1000
+    age_array=np.transpose(age_array)
+    age_countries = datage['Country']
+    age_dic = {age_countries[j]:age_array[j] for j in range(len(age_countries))}  
+
+    countries_common_age = [cc for cc in countries_common if translate_age[cc] in age_dic]
+    print('Of',len(countries_common),'in countries_common',len(countries_common_age),'have age structure')
+    # print('Exceptions:',set(countries_common)-set(countries_common_age))
+    age_group_dic = {cc:np.array(age_dic[translate_age[cc]]) for cc in countries_common_age}
+    print('Kosovo age structure digitized from CIA World Fact Book Image 2018 to complete cluster country set')
+    return age_group_dic,countries_common_age
+
 def pwlf_testing(testing,trampday1=50): # reg_testing calculated from testing below : using piecewise linear approximation
     reg_testing={}
     i = 0
@@ -910,6 +974,63 @@ countries_owid_to_jhu=[owid_to_jhu_country(cc) for cc in countries_jhu_2_owid]
 countries_common_x = [cc for cc in countries_jhu_2_owid if cc not in ['dates','World']] + ['dates','World']
 countries_common = [cc for cc in countries_common_x if cc not in ['dates','World']]
 
+translate_contact = {x:x for x in countries_common}
+translate_contact.update({
+ 'Bolivia':'Bolivia (Plurinational State of',
+ 'Brunei':'Brunei Darussalam',
+ 'Cape Verde':'Cabo Verde',
+ "Cote d'Ivoire":"Côte d'Ivoire",
+ 'Democratic Republic of Congo':'Democratic Republic of the Congo',
+ 'Dominica':'Dominican Republic',
+ 'Laos':"Lao People's Democratic Republic",
+ 'Iran':'Iran (Islamic Republic of)',
+ 'Macedonia':'TFYR of Macedonia',
+ 'Moldova':'Republic of Moldova',
+ 'Palestine':'State of Palestine',
+ 'Syria':'Syrian Arab Republic',  
+ 'Timor':'Timor-Leste',
+ 'Russia':'Russian Federation',
+ 'South Korea':'Republic of Korea',
+ 'Swaziland': 'Eswatini',
+ 'Tanzania':'United Republic of Tanzania',
+ 'United States':'United States of America',
+ 'United Kingdom':'United Kingdom of Great Britain',
+ 'Venezuela':'Venezuela (Bolivarian Republic ',
+ 'Vietnam':'Viet Nam'})
+
+translate_age = {x:x for x in countries_common}
+translate_age.update({
+ 'Bolivia':'Bolivia (Plurinational State of)',
+ 'Brunei':'Brunei Darussalam',
+ 'Cape Verde':'Cabo Verde',
+ 'Taiwan':'China, Taiwan Province of China',
+ "Cote d'Ivoire":"Côte d'Ivoire",
+ 'Czech Republic':'Czechia',
+ 'Democratic Republic of Congo':'Democratic Republic of the Congo',
+ 'Dominica':'Dominican Republic',
+ 'Swaziland': 'Eswatini',
+ 'Laos':"Lao People's Democratic Republic",
+ 'Macedonia':'North Macedonia',
+ 'Moldova':'Republic of Moldova',
+ 'Iran':'Iran (Islamic Republic of)',
+ 'Palestine':'State of Palestine',
+ 'Syria':'Syrian Arab Republic',  
+ 'Timor':'Timor-Leste',
+ 'Russia':'Russian Federation',
+ 'South Korea':'Republic of Korea',
+ 'Tanzania':'United Republic of Tanzania',
+ 'United States':'United States of America',
+ 'United Kingdom':'United Kingdom',
+ 'Venezuela':'Venezuela (Bolivarian Republic of)',
+ 'Vietnam':'Viet Nam'})
+
+# 152 Country Contact Data
+print('getting 2017 contact matrix data from 152 countries ...')
+contact_dic,countries_common_contact = get_data_contact_matrices()
+
+# UN Country Age Group Data
+print('getting UN all sex age group data for 2020 ...')
+age_group_dic,countries_common_age= get_data_age_groups()
 
 print('extracting data sets for common countries both databases...')
 # JHU
