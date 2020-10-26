@@ -151,9 +151,9 @@ def make_model(mod_name,age_structure=None):
             phi = phi_age(contact,sa,'I',pa,age_structure)
 
             transition = []
-            transition = transition_age(transition,'S','I','beta *','S',sa,TransitionType.T,age_structure,phi=phi)
-            transition = transition_age(transition,'I','R','gamma * ','I',sa,TransitionType.T,age_structure)
-            transition = transition_age(transition,'I','D','mu * ','I',sa,TransitionType.T,age_structure)               
+            transition = transition_age(transition,'S','I','beta*','S',sa,TransitionType.T,age_structure,phi=phi)
+            transition = transition_age(transition,'I','R','gamma*','I',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','D','mu*','I',sa,TransitionType.T,age_structure)               
 
             model = DeterministicOde(state, param_list, transition=transition)
             if model == None:
@@ -240,49 +240,96 @@ def make_model(mod_name,age_structure=None):
         return rtn
 
     if mod_name == 'SC2IR':
-        state = ['S', 'I', 'R', 'D', 'I_c', 'S_c']
-        param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
+       if age_structure:                                         # age_structure is integer number of age compartments            
+            state0 = ['S', 'I', 'R', 'D', 'I_c', 'S_c']
+            sa,state = state_age(state0,age_structure)
 
-        transition = [
-            Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='S', equation='c_1*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='R', equation='gamma*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='D', equation='mu*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_c', destination='R', equation='gamma*I_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_c', destination='I', equation='c_1*I_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_c', destination='D', equation='mu*I_c',
-                       transition_type=TransitionType.T)  #, 
-            ]
+            param_list0 = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
+            pa,param_list,N_list,contact = param_list_age(param_list0.copy(),age_structure)
 
-        model = DeterministicOde(state, param_list, transition=transition)
-        model.modelname='SC2IR'
+            phi = phi_age(contact,sa,'I',pa,age_structure)
+            phi_c = phi_age(contact,sa,'I_c',pa,age_structure)
+            phi_1c = [p[0]+'+c_0*'+p[1] for p in zip(phi,phi_c)]   # '(I_1+c_0*I_c)' to corresponding phi combination   
+            sumI = state_sum_age('I',sa,age_structure)
+            sumI_c = state_sum_age('I_c',sa,age_structure)
 
-        model.ei=1
-        model.confirmed=slice(1,5)  # cases 1-3 i.e. I, R and D
-        model.recovered=slice(2,3)
-        model.deaths=slice(3,4)
-        model.all_susceptibles=[0,5]
-        model.S_c=5
-        model.I_1 = 1
-        x0_SC2IR = [1.0-I_0, I_0, 0.0, 0.0, 0.0, 0.0]
-        model.initial_values = (x0_SC2IR, 0)
+            transition = []
+            transition = transition_age(transition,'S','I','beta*','S',sa,TransitionType.T,age_structure,phi=phi_1c)
+            transition = transition_age(transition,'S','S_c',c_2s+'c_2*('+sumI+sumI_c+')'+'*','S',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_c','S','c_1*','S_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_c','I_c','c_0*beta*','S_c',sa,TransitionType.T,age_structure,phi=phi_1c)
+            transition = transition_age(transition,'I','R','gamma*','I',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','D','mu*','I',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','I_c',c_2s+'c_2*('+sumI+sumI_c+')'+'*','I',sa,TransitionType.T,age_structure)               
+            transition = transition_age(transition,'I_c','R','gamma*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','D','mu*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','I','c_1*','I_c',sa,TransitionType.T,age_structure)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            model = DeterministicOde(state, param_list, transition=transition)
+            if model == None:
+                print('Error in make_model constructing DeterministicOde (in pygom)')
+            model.modelname=mod_name+'_A'+str(age_structure)
+            model.ei=slice(1*age_structure,2*age_structure)
+            model.confirmed=slice(1*age_structure,5*age_structure)  
+            model.recovered=slice(2*age_structure,3*age_structure)
+            model.deaths=slice(3*age_structure,4*age_structure)
+            model.all_susceptibles=slice(0*age_structure,5*age_structure)
+            model.S_c=slice(5*age_structure,6*age_structure)
+
+            first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
+            model.I_1 = 1*age_structure + first_infected_agegroup
+            #x0 = [1.0-I_0, I_0, 0.0, 0.0]
+            x0_SC2IR = initial_state_age(I_0,state0,'I',first_infected_agegroup,age_structure)
+            model.initial_values = (x0_SC2IR, 0) # 0 for t[0]
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
+        else:
+            state = ['S', 'I', 'R', 'D', 'I_c', 'S_c']
+            param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
+
+            transition = [
+                Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='S', equation='c_1*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='R', equation='gamma*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='D', equation='mu*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='R', equation='gamma*I_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='I', equation='c_1*I_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='D', equation='mu*I_c',
+                           transition_type=TransitionType.T)  #, 
+                ]
+
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.modelname='SC2IR'
+
+            model.ei=1
+            model.confirmed=slice(1,5)  # cases 1-3 i.e. I, R and D
+            model.recovered=slice(2,3)
+            model.deaths=slice(3,4)
+            model.all_susceptibles=[0,5]
+            model.S_c=5
+            model.I_1 = 1
+            x0_SC2IR = [1.0-I_0, I_0, 0.0, 0.0, 0.0, 0.0]
+            model.initial_values = (x0_SC2IR, 0)
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
     
     if mod_name == 'SEIR':
         state = ['S', 'E', 'I', 'R', 'D']
@@ -1090,7 +1137,7 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
 # smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
 smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
-samodels = ['SIR_A4','SEIR_A4','SC3EI3R_A4'] 
+samodels = ['SIR_A4','SC2IR_A4','SEIR_A4','SC3EI3R_A4'] 
 # Initialize all models
 
 cmodels = {}
