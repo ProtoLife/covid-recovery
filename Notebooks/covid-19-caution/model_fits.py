@@ -592,6 +592,8 @@ def make_model(mod_name):
         rtn['param_list'] = param_list
         rtn['model'] = model
         return rtn
+    print('make-model:  ERROR:  could not make model',mod_name);
+    return None
 
 def param_copy(model):
     params = model.parameters
@@ -894,19 +896,7 @@ for smodel in smodels:
     cmodels[smodel] = fullmodel['model']
     modelnm = smodel+'_model'
     exec(modelnm+" = fullmodel['model']")
-    print(smodel)
-samodels = ['SIR_A']
-for smodel in samodels:
-    fullmodel = parametrize_model(smodel)
-    fullmodels[smodel] = fullmodel
-    # take fullmodel['model'] so that modelnm is same model as before
-    # for backward compatibility
-    cmodels[smodel] = fullmodel['model']
-    modelnm = smodel+'_model'
-    exec(modelnm+" = fullmodel['model']")
-    print(smodel)
-            
-            
+    print(smodel)            
     
     # fullmodels[smodel] = make_model(smodel)
     # cmodels[smodel] = fullmodels[smodel]['model']
