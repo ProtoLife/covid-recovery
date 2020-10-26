@@ -240,7 +240,7 @@ def make_model(mod_name,age_structure=None):
         return rtn
 
     if mod_name == 'SC2IR':
-       if age_structure:                                         # age_structure is integer number of age compartments            
+        if age_structure:                                         # age_structure is integer number of age compartments            
             state0 = ['S', 'I', 'R', 'D', 'I_c', 'S_c']
             sa,state = state_age(state0,age_structure)
 
@@ -255,12 +255,12 @@ def make_model(mod_name,age_structure=None):
 
             transition = []
             transition = transition_age(transition,'S','I','beta*','S',sa,TransitionType.T,age_structure,phi=phi_1c)
-            transition = transition_age(transition,'S','S_c',c_2s+'c_2*('+sumI+sumI_c+')'+'*','S',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S','S_c',c_2s+'c_2*('+sumI+'+'+sumI_c+')'+'*','S',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'S_c','S','c_1*','S_c',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'S_c','I_c','c_0*beta*','S_c',sa,TransitionType.T,age_structure,phi=phi_1c)
             transition = transition_age(transition,'I','R','gamma*','I',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'I','D','mu*','I',sa,TransitionType.T,age_structure)
-            transition = transition_age(transition,'I','I_c',c_2s+'c_2*('+sumI+sumI_c+')'+'*','I',sa,TransitionType.T,age_structure)               
+            transition = transition_age(transition,'I','I_c',c_2s+'c_2*('+sumI+'+'+sumI_c+')'+'*','I',sa,TransitionType.T,age_structure)               
             transition = transition_age(transition,'I_c','R','gamma*','I_c',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'I_c','D','mu*','I_c',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'I_c','I','c_1*','I_c',sa,TransitionType.T,age_structure)
