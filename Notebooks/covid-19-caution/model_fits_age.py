@@ -74,7 +74,7 @@ def state_age(state0,age_structure):
         sa.update({s:state_tmp.copy()})
     return sa,state
 
-def param_list_age(param_list0,age_structure):
+def param_list_age(param_list,age_structure):
     pa = {}
     N_list = []                                            # add age structure to parameters {N_i}
     for i in range(age_structure):
@@ -146,7 +146,7 @@ def make_model(mod_name,age_structure=None):
             sa,state = state_age(state0,age_structure)
 
             param_list0 = ['beta', 'gamma','mu','N']
-            pa,param_list,N_list,contact = param_list_age(param_list0,age_structure)
+            pa,param_list,N_list,contact = param_list_age(param_list0.copy(),age_structure)
 
             phi = phi_age(contact,sa,'I',pa,age_structure)
 
@@ -158,7 +158,7 @@ def make_model(mod_name,age_structure=None):
             model = DeterministicOde(state, param_list, transition=transition)
             if model == None:
                 print('Error in make_model constructing DeterministicOde (in pygom)')
-            model.modelname='SIR'+'_'+str(age_structure)
+            model.modelname='SIR'+'_A'+str(age_structure)
             model.ei=slice(1*age_structure,2*age_structure)
             model.confirmed=slice(1*age_structure,4*age_structure)  # cases 1-3 i.e. I, R and D
             model.recovered=slice(2*age_structure,3*age_structure)
@@ -410,7 +410,7 @@ def make_model(mod_name,age_structure=None):
 
             param_list0 = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
                           'p_1','p_2','mu','N']
-            pa,param_list,N_list,contact = param_list_age(param_list0,age_structure)
+            pa,param_list,N_list,contact = param_list_age(param_list0.copy(),age_structure)
 
             phi = phi_age(contact,sa,'I_1',pa,age_structure)  
             # note that beta_2 and beta_3 are set to zero in default installation, and with age-dept I3 models we enforce this
@@ -427,7 +427,7 @@ def make_model(mod_name,age_structure=None):
             model = DeterministicOde(state, param_list, transition=transition)
             if model == None:
                 print('Error in make_model constructing DeterministicOde (in pygom)')
-            model.modelname='SIR'+'_'+str(age_structure)
+            model.modelname='SEI3R'+'_A'+str(age_structure)
             model.ei=slice(1*age_structure,5*age_structure)
             model.confirmed=slice(2*age_structure,7*age_structure)
             model.recovered=slice(5*age_structure,6*age_structure)
@@ -533,12 +533,12 @@ def make_model(mod_name,age_structure=None):
 
     if mod_name == 'SC3EI3R':
         if age_structure:  # age_structure is integer number of age compartments            
-            state = ['S', 'E', 'I_1', 'I_2','I_3', 'R', 'D', 'I_c', 'S_c', 'E_c']
+            state0 = ['S', 'E', 'I_1', 'I_2','I_3', 'R', 'D', 'I_c', 'S_c', 'E_c']
             sa,state = state_age(state0,age_structure)
 
-            param_list = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
+            param_list0 = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
                           'p_1','p_2','mu','c_0','c_1','c_2','N']
-            pa,param_list,N_list,contact = param_list_age(param_list0,age_structure)
+            pa,param_list,N_list,contact = param_list_age(param_list0.copy(),age_structure)
 
             phi = phi_age(contact,sa,'I_1',pa,age_structure)
             phi_c = phi_age(contact,sa,'I_c',pa,age_structure)
@@ -569,7 +569,7 @@ def make_model(mod_name,age_structure=None):
             model = DeterministicOde(state, param_list, transition=transition)
             if model == None:
                 print('Error in make_model constructing DeterministicOde (in pygom)')
-            model.modelname='SIR'+'_'+str(age_structure)
+            model.modelname='SC3EI3R'+'_A'+str(age_structure)
             model.ei=slice(1*age_structure,5*age_structure)
             model.confirmed=slice(2*age_structure,8*age_structure)
             model.recovered=slice(5*age_structure,6*age_structure)
@@ -1002,14 +1002,18 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
    
     return(sbparams,cbparams)
 
-def base2ICs(I0,N,smodel,model):
+def base2ICs(I0,N,smodel,model,age_structure=None):
+
     (x0old,t0) = model.initial_values
     nstates = len(x0old)
     x0 = [0.]*nstates
-    x0[0] = N*(1-I0)
+    if age_structure:
+        first_infected_agegroup = int(age_structure//4)
+    else:
+        first_infected_agegroup = 0
+    x0[first_infected_agegroup] = N*(1-I0)
     if model.I_1 < nstates:
         x0[model.I_1] = N*I0
-
     else:
         print('error, initial infectives location out of bounds',model.I_1,'not <',nstates)
     return (x0,t0)
@@ -1060,34 +1064,19 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     return [sbparams,cbparams,fbparams,dbparams]
 
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
-def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
+def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None,age_structure=None):
     if sbparams == None or cbparams==None or fbparams==None or dbparams==None:
       [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
       dbparams['run_name'] = smodel # default value when no country yet
-    b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
-    fullmodel = make_model(smodel)
-    model = fullmodel['model']
-    params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
-    model.initial_values = base2ICs(I0,N,smodel,model)
-    # model.baseparams = list(sbparams)+list(cbparams)+list(fbparams)
-    model.parameters = params_in # sets symbolic name parameters
-    fullmodel['params'] = params_in    # sets string params
-    fullmodel['sbparams'] = sbparams
-    fullmodel['cbparams'] = cbparams
-    fullmodel['fbparams'] = fbparams
-    fullmodel['dbparams'] = dbparams
-    fullmodel['initial_values'] = model.initial_values
-    return fullmodel
 
-def parametrize_model_age(smodel,age_structure=None,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
-    if sbparams == None or cbparams==None or fbparams==None or dbparams==None:
-      [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
-      dbparams['run_name'] = smodel # default value when no country yet
     b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
     fullmodel = make_model(smodel,age_structure=age_structure)
     model = fullmodel['model']
     params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
-    model.initial_values = base2ICs(I0,N,smodel,model)
+    if age_structure:
+        model.initial_values = base2ICs(I0,N,smodel,model,age_structure=age_structure)
+    else:
+        model.initial_values = base2ICs(I0,N,smodel,model)
     # model.baseparams = list(sbparams)+list(cbparams)+list(fbparams)
     model.parameters = params_in # sets symbolic name parameters
     fullmodel['params'] = params_in    # sets string params
@@ -1095,21 +1084,29 @@ def parametrize_model_age(smodel,age_structure=None,sbparams=None,cbparams=None,
     fullmodel['cbparams'] = cbparams
     fullmodel['fbparams'] = fbparams
     fullmodel['dbparams'] = dbparams
-    fullmodel['initial_values'] = model.initial_values
+    fullmodel['initial_values'] = model.initial_values  # this line probably not required, since already initialized in make_model
     return fullmodel
-
 
 # smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
 smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
- 
+samodels = ['SIR_A4','SEIR_A4','SC3EI3R_A4'] 
 # Initialize all models
 
 cmodels = {}
 fullmodels = {}
 print('making the models...')
-for smodel in smodels:
-    fullmodel = parametrize_model_age(smodel)
+for smodel in smodels+samodels:
+    if '_A' in smodel:
+        [smodel_root,age_str] = smodel.split("_A")
+        try:
+            age_structure = int(age_str)
+        except:
+            print("Error in parameterize_model, age suffix is not an integer.")
+    else:
+        smodel_root = smodel
+        age_structure = None
+    fullmodel = parametrize_model(smodel_root,age_structure=age_structure)
     fullmodels[smodel] = fullmodel
     # take fullmodel['model'] so that modelnm is same model as before
     # for backward compatibility
@@ -1117,17 +1114,6 @@ for smodel in smodels:
     modelnm = smodel+'_model'
     exec(modelnm+" = fullmodel['model']")
     print(smodel)
-# samodels = ['SIR_A']
-# for smodel in samodels:
-#     fullmodel = parametrize_model_age(smodel,age_structure=4)
-#     fullmodels[smodel] = fullmodel
-#     # take fullmodel['model'] so that modelnm is same model as before
-#     # for backward compatibility
-#     cmodels[smodel] = fullmodel['model']
-#     modelnm = smodel+'_model'
-#     exec(modelnm+" = fullmodel['model']")
-#     print(smodel)
-            
             
     
     # fullmodels[smodel] = make_model(smodel)

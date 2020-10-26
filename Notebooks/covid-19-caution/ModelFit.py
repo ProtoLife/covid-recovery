@@ -763,7 +763,8 @@ class ModelFit:
             self.country = country
         elif data_src == 'jhu':
             if country in ['Australia', 'China', 'Denmark', 'France', 'Netherlands', 'United Kingdom']:
-                self.country = country = (self.country_str,'Total')
+                # self.country = country = (self.country_str,'Total')
+                self.country = country = (self.country_str,'')  # now amalgamated with territories or summed from states
             else:
                 self.country = country = (self.country_str,'')
         else:
@@ -806,6 +807,7 @@ class ModelFit:
         self.tsim = np.linspace(0, simdays -1, simdays)
         self.tdata = np.linspace(0, datadays -1, datadays)
 
+
         if datatypes == 'all' or not datatypes:
             # NHP: Oct 25, 2020:  For the moment, installing datatypes lists obtained from covid_ts (for jhu) and covid_owid_ts (for owid)
             # # note that others also available for new_ with _pm (per million) suffix e.g. new_confirmed_nonlin_corrected_smoothed_pm
@@ -836,7 +838,8 @@ class ModelFit:
                 print("ERROR:  don't know datatypes for data_src",data_src)
                 return None
                     
-            
+        print('before ts covid_ts covid_owid_ts',len(ts))
+        print(datatypes)    
         self.data = {}
         for dt in datatypes:
             if dt not in ts:
@@ -844,7 +847,7 @@ class ModelFit:
                 print(dt,'not in ts for data_src',data_src)
                 return None
             self.data.update({dt:ts[dt][country][daystart:datadays]}) 
-
+        print('after')
         self.startdate = startdate_t.strftime(fmt_jhu)
         self.stopdate = stopdate_t.strftime(fmt_jhu)
 
