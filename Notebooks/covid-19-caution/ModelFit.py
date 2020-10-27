@@ -628,6 +628,7 @@ class ModelFit:
             if 'logI_0' in params_lmf:
                 modelfit.set_I0(parvals['logI_0'])    
 
+            # maybe try log(1+xxx)
             fittry = modelfit.solve4fit(modelfit.fit_targets,modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
             #rmsres2 = np.sqrt(np.sum(np.square(resd)))
             #print('resid: ',rmsres2)

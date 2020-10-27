@@ -1136,7 +1136,7 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
 
 # smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
-smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
+smodels = ['SIR','SC2IR','SEIR','SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
 samodels = ['SIR_A4','SC2IR_A4','SEIR_A4','SC3EI3R_A4'] 
 # Initialize all models
 
