@@ -732,7 +732,7 @@ def get_WHO_data_acute_beds():
     """ get acute beds data per 100000 (mostly 2014,  äITA, MKD, ROU, RUS 2013, NLD 2012)"""
     import os.path
     from os import path
-    who_file = './acute_WHO_2014.csv'   # note that these are acute care beds: ICUs are estimated at only 3-5% of acute care beds
+    who_file = '../../data/WHO_and_ICU/acute_WHO_2014.csv'   # note that these are acute care beds: ICUs are estimated at only 3-5% of acute care beds
     if path.exists(who_file):
         print('WHO acute file found','dictionary acute_who')
     else:
@@ -760,7 +760,7 @@ def get_2012_data_ICUs():
     """ get ICU data 2012 from Intensive Care Med (2012) 38:1647–1653 DOI 10.1007/s00134-012-2627-8 """
     import os.path
     from os import path
-    ICU_file = './acute care and ICUs.csv'   # note that these are acute care beds: ICUs are estimated at only 3-5% of acute care beds
+    ICU_file = '../../data/WHO_and_ICU/acute care and ICUs.csv'   # note that these are acute care beds: ICUs are estimated at only 3-5% of acute care beds
     if path.exists(ICU_file):
         print('ICU file found','dictionary icus_2012')
     else:
