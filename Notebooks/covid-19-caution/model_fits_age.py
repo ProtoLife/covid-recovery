@@ -75,26 +75,19 @@ def state_age(state0,age_structure):
     return sa,state
 
 def param_list_age(param_list,age_structure):
-    pa = {}
-    N_list = []                                            # add age structure to parameters {N_i}
-    for i in range(age_structure):
-        N_list.append('N'+'_'+str(i))
-    param_list.extend(N_list)
-    pa.update({'N':N_list})
-
     contact = [[None]*age_structure]*age_structure         # add contact matrix to parameters {µ_i_j}
     for i in range(age_structure):
-        contact[i] = ['con'+'_'+str(i)+'_'+str(j) for j in range(age_structure)]
+        contact[i] = ['m'+'_'+str(i)+'_'+str(j) for j in range(age_structure)]  # this should be set to M_i_j/N_j where N_j is normalized by N 
         param_list.extend(contact[i])
-    return pa,param_list,N_list,contact
+    return param_list,contact
 
-def phi_age(contact,sa,s,pa,age_structure):
+def phi_age(contact,sa,s,age_structure):
     phi = [None]*age_structure                             # contact matrix weighted contacts per day for age groups 
     for i in range(age_structure):
         tmp = '('
         plus = ''
         for j in range(age_structure):
-            tmp= tmp+plus+contact[i][j]+'*'+sa[s][j]+'/'+pa['N'][j]
+            tmp= tmp+plus+contact[i][j]+'*'+sa[s][j]      # note that division by N_j is assumed subsumed into contact matrix elt normalization
             plus = '+'
         tmp = tmp+')'
         phi[i]=tmp[:]               # Note that strings are treated like arrays and need to be copied elementwise
@@ -146,9 +139,9 @@ def make_model(mod_name,age_structure=None):
             sa,state = state_age(state0,age_structure)
 
             param_list0 = ['beta', 'gamma','mu','N']
-            pa,param_list,N_list,contact = param_list_age(param_list0.copy(),age_structure)
+            param_list,contact = param_list_age(param_list0.copy(),age_structure)
 
-            phi = phi_age(contact,sa,'I',pa,age_structure)
+            phi = phi_age(contact,sa,'I',age_structure)
 
             transition = []
             transition = transition_age(transition,'S','I','beta*','S',sa,TransitionType.T,age_structure,phi=phi)
@@ -245,10 +238,10 @@ def make_model(mod_name,age_structure=None):
             sa,state = state_age(state0,age_structure)
 
             param_list0 = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
-            pa,param_list,N_list,contact = param_list_age(param_list0.copy(),age_structure)
+            param_list,contact = param_list_age(param_list0.copy(),age_structure)
 
-            phi = phi_age(contact,sa,'I',pa,age_structure)
-            phi_c = phi_age(contact,sa,'I_c',pa,age_structure)
+            phi = phi_age(contact,sa,'I',age_structure)
+            phi_c = phi_age(contact,sa,'I_c',age_structure)
             phi_1c = [p[0]+'+c_0*'+p[1] for p in zip(phi,phi_c)]   # '(I_1+c_0*I_c)' to corresponding phi combination   
             sumI = state_sum_age('I',sa,age_structure)
             sumI_c = state_sum_age('I_c',sa,age_structure)
@@ -457,9 +450,9 @@ def make_model(mod_name,age_structure=None):
 
             param_list0 = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
                           'p_1','p_2','mu','N']
-            pa,param_list,N_list,contact = param_list_age(param_list0.copy(),age_structure)
+            param_list,contact = param_list_age(param_list0.copy(),age_structure)
 
-            phi = phi_age(contact,sa,'I_1',pa,age_structure)  
+            phi = phi_age(contact,sa,'I_1',age_structure)  
             # note that beta_2 and beta_3 are set to zero in default installation, and with age-dept I3 models we enforce this
             transition = []
             transition = transition_age(transition,'S','E','beta_1 *','S',sa,TransitionType.T,age_structure,phi=phi)
@@ -585,10 +578,10 @@ def make_model(mod_name,age_structure=None):
 
             param_list0 = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
                           'p_1','p_2','mu','c_0','c_1','c_2','N']
-            pa,param_list,N_list,contact = param_list_age(param_list0.copy(),age_structure)
+            param_list,contact = param_list_age(param_list0.copy(),age_structure)
 
-            phi = phi_age(contact,sa,'I_1',pa,age_structure)
-            phi_c = phi_age(contact,sa,'I_c',pa,age_structure)
+            phi = phi_age(contact,sa,'I_1',age_structure)
+            phi_c = phi_age(contact,sa,'I_c',age_structure)
             phi_1c = [p[0]+'+c_0*'+p[1] for p in zip(phi,phi_c)]   # '(I_1+c_0*I_c)' to corresponding phi combination   
             sumI_3 = state_sum_age('I_3',sa,age_structure)
 
@@ -1136,10 +1129,10 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
 
 # smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
-smodels = ['SIR','SC2IR','SEIR','SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
-samodels = ['SIR_A4','SC2IR_A4','SEIR_A4','SC3EI3R_A4'] 
-# Initialize all models
+smodels = ['SIR','SC2IR','SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
+samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4'] # age structured models (one still missing U)
 
+# Initialize all models
 cmodels = {}
 fullmodels = {}
 print('making the models...')

@@ -794,7 +794,7 @@ def get_data_contact_matrices():
     import os.path
     from os import path
     contact_file1 = '../../data/UN/contact_matrices_152_countries/MUestimates_all_locations_1.xlsx' 
-    contact_file2 = '../../data/UN/contact_matrices_152_countries/MUestimates_all_locations_2.xlsx' 
+    contact_file2 = '../../data/UN/contact_matrices_152_countries/MUestimates_all_locations_2.xlsm' 
     if path.exists(contact_file1) and path.exists(contact_file2):
         print('152 country contact files found 1 A-M and 2 M-Z')
     else:
@@ -810,10 +810,11 @@ def get_data_contact_matrices():
     print('Of',len(countries_common),'in countries_common',len(countries_common_contact),'have contact matrices')
     # print('Exceptions:',set(countries_common)-set(countries_common_contact))
     contact_dic = {cc:np.array(dat[translate_contact[cc]]) for cc in countries_common_contact}
-    contact_dic.update({'Kosovo':contact_dic['Serbia'],'Norway':contact_dic['Sweden'],
-                    'Afghanistan':contact_dic['Pakistan'],'Moldova': contact_dic['Romania']}) # to complete cluster country data via close countries
+    contact_dic.update({'Afghanistan':contact_dic['Pakistan'],'Kosovo':contact_dic['Serbia'],
+                    'Moldova': contact_dic['Romania'],'Norway':contact_dic['Sweden']}) # to complete cluster country data via close countries
     print('4 country contact matrices set equal to that of neighbour to complete cluster country set')
-    print('                   Kosovo:Serbia','Norway:Sweden','Afghanistan:Pakistan','Moldova:Romania')
+    print('                   Afghanistan:Pakistan','Kosovo:Serbia','Moldova:Romania','Norway:Sweden')
+    countries_common_contact.extend(['Afghanistan','Kosovo','Moldova','Norway'])
     return contact_dic,countries_common_contact
 
 def get_data_age_groups():
@@ -836,7 +837,7 @@ def get_data_age_groups():
     headings = list(datage.keys())
     age_array = np.zeros((21,202),np.float)   # hard code dimensions of array must match
     for i,col in enumerate(headings[2:]):
-        age_array[i,:] = datage[col][:]*1000
+        age_array[i,:] = datage[col][:]*1000  # original data specified in thousands, convert to individuals
     age_array=np.transpose(age_array)
     age_countries = datage['Country']
     age_dic = {age_countries[j]:age_array[j] for j in range(len(age_countries))}  
@@ -845,7 +846,7 @@ def get_data_age_groups():
     print('Of',len(countries_common),'in countries_common',len(countries_common_age),'have age structure')
     # print('Exceptions:',set(countries_common)-set(countries_common_age))
     age_group_dic = {cc:np.array(age_dic[translate_age[cc]]) for cc in countries_common_age}
-    print('Kosovo age structure digitized from CIA World Fact Book Image 2018 to complete cluster country set')
+    print('Kosovo age structure digitized from CIA World Fact Book Image 2018 to complete cluster country set in trimmed excel file')
     return age_group_dic,countries_common_age
 
 def pwlf_testing(testing,trampday1=50): # reg_testing calculated from testing below : using piecewise linear approximation

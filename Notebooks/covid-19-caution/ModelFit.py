@@ -843,9 +843,7 @@ class ModelFit:
         # self.data = {}
         # for dt in datatypes:
         #    self.data.update({dt:ts[dt][country][daystart:datadays]}) 
-
-        print('before ts covid_ts covid_owid_ts',len(ts))
-        print(datatypes)    
+  
         self.data = {}
         for dt in datatypes:
             if dt not in ts:
@@ -853,7 +851,7 @@ class ModelFit:
                 print(dt,'not in ts for data_src',data_src)
                 return None
             self.data.update({dt:ts[dt][country][daystart:datadays]}) 
-        print('after')
+
         self.startdate = startdate_t.strftime(fmt_jhu)
         self.stopdate = stopdate_t.strftime(fmt_jhu)
 
