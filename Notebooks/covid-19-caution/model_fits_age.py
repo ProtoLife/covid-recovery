@@ -1130,8 +1130,8 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
 
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
 smodels = ['SIR','SC2IR','SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
-samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4'] # age structured models (one still missing U)
-
+# samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4'] # age structured models (one still missing U)
+samodels = []
 # Initialize all models
 cmodels = {}
 fullmodels = {}
