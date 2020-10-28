@@ -236,7 +236,7 @@ class ModelFit:
         return params_init_min_max
 
     def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axis=None,
-                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None, outfile = None,datasets=['confirmed_corrected_smoothed']):
+                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None, outfile = None,datasets=['confirmed_corrected_smoothed'],age_groups=None):
         """
         solve ODEs and plot for fitmodel indicated
         
@@ -331,27 +331,25 @@ class ModelFit:
             if species == 'confirmed':
                 suma = np.sum(srsoln[:,model.confirmed],axis=1)*mags[ns]
                 if not fitdata is None:
-                    ax.plot(tvec1,suma,label=label,color='green')
                     fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracConfirmedDet']/self.population # confirmed cases data, corrected by FracConfirmedDet
                     ax.plot(tvecf1,fita,'o',label=label,color='green')
-                else:
-                    ax.plot(tvec1,suma,label=label)
+                ax.plot(tvec1,suma,label=label,color='green')
+                if age_groups:
+                    print('model.confirmed',model.confirmed)
+                    #for age in range(age_groups):
+                        #suma_age = np.sum(srsoln[:,model.confirmed],axis=1)*mags[ns]
             if species == 'recovered':
                 suma = np.sum(srsoln[:,model.recovered],axis=1)*mags[ns]  
                 if not fitdata is None:
-                    ax.plot(tvec1,suma,label=label,color='blue')
                     fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracRecoveredDet']/self.population # recovered cases data, corrected by FracRecoveredDet
                     ax.plot(tvecf1,fita,'o',label=label,color='blue')
-                else:
-                    ax.plot(tvec1,suma,label=label)
+                ax.plot(tvec1,suma,label=label,color='blue')
             elif species == 'deaths':
                 suma = np.sum(srsoln[:,model.deaths],axis=1)*mags[ns]
                 if not fitdata is None:
-                    ax.plot(tvec1,suma,label=label,color='darkred')
                     fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracDeathsDet']/self.population # deaths cases data, corrected by FracDeathsDet
                     ax.plot(tvecf1,fita,'o',label=label,color='red',alpha=0.2)
-                else:
-                    ax.plot(tvec1,suma,label=label)
+                ax.plot(tvec1,suma,label=label,color='darkred')
             elif species == 'EI':
                 ax.plot(tvec1,self.soln[:,model.ei],label=label)
                 # ax.plot(tvec1,self.soln[:,model.ei],label="%s" % count)
@@ -701,7 +699,7 @@ class ModelFit:
         except that if run_id starts with character '_', it is appended to the default run_id,
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
-        global make_model,covid_ts,covid_owid_ts
+        global make_model,covid_ts,covid_owid_ts,possmodels
         dirnm = os.getcwd()
         # construct default name for file / run_id
         if country != '':
@@ -728,7 +726,26 @@ class ModelFit:
                 print("warning:  changing model from",modelname,'to',self.model.modelname)
                 self.modelname = modelname
         else:
-            #model_d = make_model(modelname)                # I still prefer this I think, but 
+            if modelname not in fullmodels:
+                if '_A' in modelname:
+                    [modelname_root,age_str] = modelname.split("_A")
+                    try:
+                        age_structure = int(age_str)
+                    except:
+                        print("Error in parameterize_model, age suffix is not an integer.")
+                        return
+                else:
+                    modelname_root = modelname
+                    age_structure = None
+
+                if modelname_root not in possmodels:
+                    print('root model name',modelname_root,'not yet supported')
+                    return
+                else:
+                    print('Adding model',modelname,'to stored models.')
+                    fullmodel = parametrize_model(modelname_root,age_structure=age_structure)
+                    fullmodels[modelname] = fullmodel
+
             model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
             self.model = model_d['model']
             if new:

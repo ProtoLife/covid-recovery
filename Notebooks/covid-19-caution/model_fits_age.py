@@ -57,6 +57,7 @@ def Float(x):
 
 ###########################################################
 # to get ModelFit class definition:
+possmodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full root model set
 exec(open('ModelFit.py','r').read())
 ###########################################################
 
@@ -1106,8 +1107,8 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
 def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None,age_structure=None):
     if sbparams == None or cbparams==None or fbparams==None or dbparams==None:
-      [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
-      dbparams['run_name'] = smodel # default value when no country yet
+        [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
+        dbparams['run_name'] = smodel # default value when no country yet
 
     b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
     fullmodel = make_model(smodel,age_structure=age_structure)
@@ -1127,7 +1128,6 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     fullmodel['initial_values'] = model.initial_values  # this line probably not required, since already initialized in make_model
     return fullmodel
 
-# smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
 smodels = ['SIR','SC2IR','SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
 samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4'] # age structured models (one still missing U)
@@ -1146,31 +1146,17 @@ for smodel in smodels+samodels:
     else:
         smodel_root = smodel
         age_structure = None
-    fullmodel = parametrize_model(smodel_root,age_structure=age_structure)
-    fullmodels[smodel] = fullmodel
-    # take fullmodel['model'] so that modelnm is same model as before
-    # for backward compatibility
-    cmodels[smodel] = fullmodel['model']
-    modelnm = smodel+'_model'
-    exec(modelnm+" = fullmodel['model']")
-    print(smodel)
-            
-    
-    # fullmodels[smodel] = make_model(smodel)
-    # cmodels[smodel] = fullmodels[smodel]['model']
-    # params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
-    # cmodels[smodel].initial_values = base2ICs(I0,N,smodel,cmodels)
-    # fullmodels[smodel]['model'].parameters = params_in # sets symbolic name parameters
-    # fullmodels[smodel]['model'].params = params_in    # sets string params
-    # cmodels[smodel].parameters = params_in
-    # cmodels[smodel].sbparams = sbparams
-    # cmodels[smodel].cbparams = cbparams
-    # cmodels[smodel].fbparams = fbparams
-    # dbparams['run_name'] = smodel # default value when no country yet
-    # cmodels[smodel].dbparams = dbparams
-    # modelnm = smodel+'_model'
-    # exec(modelnm+" = cmodels[smodel]")
-    # print(smodel)
+
+    if smodel_root not in possmodels:
+        print('root model name',smodel_root,'not yet supported')
+    else: 
+        fullmodel = parametrize_model(smodel_root,age_structure=age_structure)
+        fullmodels[smodel] = fullmodel
+        # take fullmodel['model'] so that modelnm is same model as before for backward compatibility
+        cmodels[smodel] = fullmodel['model']
+        modelnm = smodel+'_model'
+        exec(modelnm+" = fullmodel['model']")
+        print(smodel)
 
 print('done with the models.')
     
