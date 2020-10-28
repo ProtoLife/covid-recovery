@@ -335,9 +335,18 @@ class ModelFit:
                     ax.plot(tvecf1,fita,'o',label=label,color='green')
                 ax.plot(tvec1,suma,label=label,color='green')
                 if age_groups:
-                    print('model.confirmed',model.confirmed)
-                    #for age in range(age_groups):
-                        #suma_age = np.sum(srsoln[:,model.confirmed],axis=1)*mags[ns]
+                    slice_=model.confirmed
+                    step = age_groups*slice_.step if slice_.step else age_groups
+                    suma_age_cum_last = 0
+                    for age in range(age_groups):
+                        suma_age = np.sum(srsoln[:,slice(slice_.start+age,slice_.stop,step)],axis=1)*mags[ns]
+                        suma_age_cum = suma_age.copy() if age == 0 else suma_age_cum + suma_age
+                        ax.fill_between(tvec1,suma_age_cum_last,suma_age_cum,color='green',alpha=float(age)/age_groups)
+                        ax.plot(tvec1,suma_age_cum,label=label,color='green',alpha=0.2,linewidth=1)
+                        suma_age_cum_last = suma_age_cum
+
+                        # line, = ax.plot(...
+                        # line.set_dashes([2,2,2+age,2])
             if species == 'recovered':
                 suma = np.sum(srsoln[:,model.recovered],axis=1)*mags[ns]  
                 if not fitdata is None:
@@ -350,6 +359,16 @@ class ModelFit:
                     fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracDeathsDet']/self.population # deaths cases data, corrected by FracDeathsDet
                     ax.plot(tvecf1,fita,'o',label=label,color='red',alpha=0.2)
                 ax.plot(tvec1,suma,label=label,color='darkred')
+                suma_age_cum_last = 0
+                if age_groups:
+                    slice_=model.deaths
+                    step = age_groups*slice_.step if slice_.step else age_groups
+                    for age in range(age_groups):
+                        suma_age = np.sum(srsoln[:,slice(slice_.start+age,slice_.stop,step)],axis=1)*mags[ns]
+                        suma_age_cum = suma_age.copy() if age == 0 else suma_age_cum + suma_age
+                        ax.fill_between(tvec1,suma_age_cum_last,suma_age_cum,color='darkred',alpha=float(age)/age_groups)
+                        ax.plot(tvec1,suma_age_cum,label=label,color='darkred',alpha=0.2,linewidth=1)
+                        suma_age_cum_last = suma_age_cum
             elif species == 'EI':
                 ax.plot(tvec1,self.soln[:,model.ei],label=label)
                 # ax.plot(tvec1,self.soln[:,model.ei],label="%s" % count)
