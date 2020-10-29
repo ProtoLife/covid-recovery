@@ -609,7 +609,8 @@ class Consensus:
         self.info =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         infomax =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         cnt=0
-        for ic,case in tqdm(list(enumerate(self.cases)), desc='loop over cases' ): # loop with progress bar instead of just looping over enumerate(cases)
+
+        for ic,case in tqdm(list(enumerate(self.cases)), desc='loop over cases' ,disable= not diag): # loop with progress bar instead of just looping over enumerate(cases)
         # for ic,case in enumerate(cases):
             data = clusdata_all[case]
             dat = np.array([data[cc] for cc in data]).astype(float)
@@ -729,8 +730,8 @@ class Consensus:
             ax.set_title(self.report[n])
 
     def  make_clusters(self,
-                      refclustering='auto' # # fiducial column; change here.
-                      ):
+                      refclustering='auto', # # fiducial column; change here.
+                      diag=True):
         if len(self.clusdata) == 0:
             print('must run a scan to define and fill clusdata first: starting scan')
             self.scan()
@@ -740,7 +741,8 @@ class Consensus:
             nrep = len(self.reportdata)
             scores = [rep[7] for rep in self.reportdata[3:nrep:4]] # optimal score 2 subset of data reports 
             refclustering = np.argmin(np.array(scores))*4+3        # ref clustering is clustering with minimal score 2
-            print('reference clustering (numbered from 0) is',refclustering)
+            if diag:
+                print('reference clustering (numbered from 0) is',refclustering)
             self.refclustering = refclustering
         else:
             self.refclustering = refclustering
@@ -826,6 +828,7 @@ class Consensus:
         ax.set_xticklabels(self.report,rotation='vertical')
         # fig.colorbar(img)
         plt.show()
+        return fig
 
     def plot_all_stages(self):
         # the three stages of cluster alignment
@@ -857,7 +860,8 @@ class Consensus:
         ax.set_xticklabels(self.report,rotation='vertical')
 
         fig.tight_layout(pad=2.0)
-        plt.show()        
+        plt.show()
+        return fig        
 
     def swizzle(self,cols=None,satthresh=None):
         if satthresh == None:
@@ -898,6 +902,7 @@ class Consensus:
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
         ax.set_xticklabels(rep,rotation='vertical')
         plt.show()
+        return fig
         
     def make_map(self):
         global geog,geog1,clusters,geo_json_data
@@ -1032,11 +1037,11 @@ class Consensus:
 
             # print('debug name hsv cluster',feature['properties']['name'],feature['properties']['cluster'],feature['properties']['hsv'])
             html.value = '''
-                <h3><b>{}</b></h3>
-                <h4>Cluster: {:2d} </h4> 
-                <h4>Cluster colour mix: {}</h4>
-                <h4>Prob in a cluster: {}</h4>
-                <h4>Prob this cluster: {}</h4>
+                <h3 style="font-size:12px"><b>{}</b></h3>
+                <h4 style="font-size:10px">Cluster: {:2d} </h4> 
+                <h4 style="font-size:10px">Cluster colour mix: {}</h4>
+                <h4 style="font-size:10px">Prob in a cluster: {}</h4>
+                <h4 style="font-size:10px">Prob this cluster: {}</h4>
             '''.format(feature['properties']['name'],
                        feature['properties']['cluster'],
                        #"%.3f %.3f %.3f" % tuple(feature['properties']['hsv']))
@@ -1072,8 +1077,10 @@ class Consensus:
             style_callback = style_function)
         #print('now setting up country control')
         html = HTML('''Selected Country''')
-        html.layout.margin = '0px 20px 20px 20px'
-        control = ipyleaflet.WidgetControl(widget=html, position='topright')
+        html.layout.margin = '0px 10px 10px 10px'
+        control = ipyleaflet.WidgetControl(widget=html, position='bottomleft')
+        control.max_height= 140
+        control.max_width= 220
         #print('now implementing map')
         m = ipyleaflet.Map(center = (20,10), zoom = 2)
         m.add_layer(layer)
