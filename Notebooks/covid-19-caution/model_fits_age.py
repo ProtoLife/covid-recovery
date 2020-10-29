@@ -42,9 +42,11 @@ import copy
 import pprint
 ppr = pprint.PrettyPrinter()
 
-print('loading data.py...')
-from data import *
-print('done with data.py.')
+import data_config
+if not data_config.data_loaded:
+    print('loading data.py...')
+    from data import *
+    print('done with data.py.')
 
 savefigs = False # whether to save specific figures for paper to .../figures directory
 
@@ -1144,7 +1146,7 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     return fullmodel
 
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
-smodels = ['SIR','SC2IR','SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
+smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list, others can be added if required from notebook
 # samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4'] # age structured models (one still missing U)
 samodels = []
 # Initialize all models

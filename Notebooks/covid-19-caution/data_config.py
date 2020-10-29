@@ -1,4 +1,6 @@
 # configuration for data loading
+data_loaded = False
+cluster_data_loaded = False
 report_correct = True
 database = 'JHU'
 daysync = 23

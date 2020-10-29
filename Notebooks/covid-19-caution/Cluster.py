@@ -60,8 +60,11 @@ from skfda.representation.basis import BSpline, Fourier, Monomial
 ## cases_adj_nonlin   ( = old longshort_cases_adj_c)
 ## cases_adj_nonlinr
 
-from data import *
 import data_config
+if not data_config.data_loaded:
+    from data import *
+    data_config.data_loaded = True
+
 database = data_config.database  # 'OWID' or ' JHU'
 report_correct = data_config.report_correct
 daysync = data_config.daysync # 23
@@ -70,148 +73,153 @@ mindays = data_config.mindays # 150
 mindeaths = data_config.mindeaths
 mindeathspm = data_config.mindeathspm
 
-print('Constructing common synchronized deaths, case and testing data...');
-print('mindeaths',mindeaths,'mindeathspm',mindeathspm)
-print('database',database,'report correction',report_correct)
-print('daysync',daysync,'thresh for deaths',thresh,'mindays',mindays)
+if data_config.cluster_data_loaded:
+    print('cluster data already loaded')
+else:
+    print('Constructing common synchronized deaths, case and testing data...');
+    print('mindeaths',mindeaths,'mindeathspm',mindeathspm)
+    print('database',database,'report correction',report_correct)
+    print('daysync',daysync,'thresh for deaths',thresh,'mindays',mindays)
 
-"""
-Basic data series:
-total_deaths
-new_deaths_spm
-new_cases_spm
+    """
+    Basic data series:
+    total_deaths
+    new_deaths_spm
+    new_cases_spm
 
-where spm = 'smoothed per million'
+    where spm = 'smoothed per million'
 
-The code below chooses between
--- OWID or JHU
--- outlier corrected (report_correct==True) or not
+    The code below chooses between
+    -- OWID or JHU
+    -- outlier corrected (report_correct==True) or not
 
-"""
+    """
 
-if database == 'OWID':
-    if report_correct:
-        total_deaths = total_deaths_cs_owid
-        new_deaths_spm = new_deaths_c_spm_owid
-        new_cases_spm = new_cases_c_spm_owid
-    else:
-        total_deaths = total_deaths_s_owid
-        new_deaths_spm = new_deaths_spm_owid
-        new_cases_spm = new_cases_spm_owid
-elif database == 'JHU':
-    if report_correct:
-        total_deaths = total_deaths_cs_jhu     
-        new_deaths_spm = new_deaths_c_spm_jhu
-        new_cases_spm = new_cases_c_spm_jhu
-    else:
-        total_deaths = total_deaths_s_jhu
-        new_deaths_spm = new_deaths_spm_jhu
-        new_cases_spm = new_cases_spm_jhu
+    if database == 'OWID':
+        if report_correct:
+            total_deaths = total_deaths_cs_owid
+            new_deaths_spm = new_deaths_c_spm_owid
+            new_cases_spm = new_cases_c_spm_owid
+        else:
+            total_deaths = total_deaths_s_owid
+            new_deaths_spm = new_deaths_spm_owid
+            new_cases_spm = new_cases_spm_owid
+    elif database == 'JHU':
+        if report_correct:
+            total_deaths = total_deaths_cs_jhu     
+            new_deaths_spm = new_deaths_c_spm_jhu
+            new_cases_spm = new_cases_c_spm_jhu
+        else:
+            total_deaths = total_deaths_s_jhu
+            new_deaths_spm = new_deaths_spm_jhu
+            new_cases_spm = new_cases_spm_jhu
 
-"""
-Clustering data:
--- align initial boundary for death threshold
--- filter for at least 150 days
-basic data to start with are big and big_cases, with bcountries, set in data.py, filtering common_countries (common to owid & jhu)
-"""
+    """
+    Clustering data:
+    -- align initial boundary for death threshold
+    -- filter for at least 150 days
+    basic data to start with are big and big_cases, with bcountries, set in data.py, filtering common_countries (common to owid & jhu)
+    """
 
-# mindeaths = 100
-# mindeathspm = 0.5 
-bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
-bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
-print('No of big common countries is',len(bcountries))
-print('---------------------------------')
-# from data.py:
-# bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
-# bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
+    # mindeaths = 100
+    # mindeathspm = 0.5 
+    bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
+    bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
+    print('No of big common countries is',len(bcountries))
+    print('---------------------------------')
+    # from data.py:
+    # bcountries_1 = [cc for cc in countries_common if (max(total_deaths_cs_jhu[cc])>=mindeaths and max(total_deaths_cs_owid[cc])>=mindeaths)]
+    # bcountries = [cc for cc in bcountries_1 if (max(new_deaths_c_spm_jhu[cc])>=mindeathspm and max(new_deaths_c_spm_owid[cc])>=mindeathspm)]
 
-big = {cc:new_deaths_spm[cc] for cc in bcountries}
-big_cases = {cc:new_cases_spm[cc] for cc in bcountries}
-print('number of countries in total_deaths)',len(total_deaths))
-print('number of countries in big',len(big))
-
-
-# badspikes = ['Peru','Bolivia','Chile','China','Equador','Kyrgystan']   # eliminate Peru and a few other countries because of bad spikes.
-
-# synchronization method : by threshold on total deaths
-print('synchronizing and trimming time series to common length...')
-short_deaths = {}
-short_cases = {}
-short_testing = {}
-short_reg_testing = {}
-first_thresh = {}
-# thresh = 10   # better to use day when #total_deaths (ie cumulative) absolute first reaches 10 or perhaps 30 absolute as sync point & keep entire rest of trace
-for cc in bcountries:
-    tdates = len(total_deaths['Germany'])  # changed to a particular common country to get database indept (formerly using 'dates' entry in total_Deaths_x)
-    for i in range(tdates):
-        if total_deaths[cc][i] >= thresh:
-            short_deaths[cc] = [big[cc][j] for j in range(i,len(big[cc]))]
-            short_cases[cc] = [big_cases[cc][j] for j in range(i,len(big_cases[cc]))]
-            short_testing[cc] = [testing[cc][j] for j in range(i,len(testing[cc]))]
-            short_reg_testing[cc] = [reg_testing[cc][j] for j in range(i,len(reg_testing[cc]))]
-            first_thresh.update({cc:i})
-            break;
-short_deaths_est =  min([len(short_deaths[x]) for x in short_deaths])
-short_deaths_c = {cc:short_deaths[cc][:short_deaths_est] for cc in short_deaths} # this crops all country time series to the shortest one, currently not used
-short_cases_est =  min([len(short_cases[x]) for x in short_cases])
-short_cases_c = {cc:short_cases[cc][:short_cases_est] for cc in short_cases}
-short_testing_est = min([len(short_testing[x]) for x in short_testing])
-short_reg_testing_est = min([len(short_reg_testing[x]) for x in short_reg_testing])
-short_testing_c = {cc:short_testing[cc][:short_testing_est] for cc in short_testing}
-short_reg_testing_c = {cc:short_reg_testing[cc][:short_reg_testing_est] for cc in short_reg_testing} 
-
-# choose subset of time series data that must have at least len mindays=150
-# mindays = 150 # changed from 160 to include more countries on Sep 24
-longshort = {cc:short_deaths[cc] for cc in short_deaths if (len(short_deaths[cc])>=mindays)};
-longshortest =  min([len(longshort[x]) for x in longshort])
-longshort_c = {cc:longshort[cc][:longshortest] for cc in longshort}
-lcountries = [cc for cc in longshort_c]
-
-# scaled_cases = {cc:new_cases_spm[cc]/max(new_cases_spm[cc]) for cc in lcountries} # note that lcountries determined by death data
-
-# select only traces with minimum length of mindays
-longshort_cases = {cc:short_cases[cc] for cc in short_cases if (len(short_cases[cc])>=mindays)};
-longshort_cases_est =  min([len(longshort_cases[x]) for x in longshort_cases])
-clusdata_len = longshort_cases_est
-longshort_cases_c = {cc:longshort_cases[cc][:longshort_cases_est] for cc in longshort_cases}
-lccountries = longshort_cases.keys()
+    big = {cc:new_deaths_spm[cc] for cc in bcountries}
+    big_cases = {cc:new_cases_spm[cc] for cc in bcountries}
+    print('number of countries in total_deaths)',len(total_deaths))
+    print('number of countries in big',len(big))
 
 
-longshort_testing_c = {cc:short_testing[cc][:clusdata_len] for cc in short_testing}
-longshort_reg_testing_c = {cc:short_reg_testing[cc][:clusdata_len] for cc in short_reg_testing}
-big_testing_c = longshort_reg_testing_c
+    # badspikes = ['Peru','Bolivia','Chile','China','Equador','Kyrgystan']   # eliminate Peru and a few other countries because of bad spikes.
+
+    # synchronization method : by threshold on total deaths
+    print('synchronizing and trimming time series to common length...')
+    short_deaths = {}
+    short_cases = {}
+    short_testing = {}
+    short_reg_testing = {}
+    first_thresh = {}
+    # thresh = 10   # better to use day when #total_deaths (ie cumulative) absolute first reaches 10 or perhaps 30 absolute as sync point & keep entire rest of trace
+    for cc in bcountries:
+        tdates = len(total_deaths['Germany'])  # changed to a particular common country to get database indept (formerly using 'dates' entry in total_Deaths_x)
+        for i in range(tdates):
+            if total_deaths[cc][i] >= thresh:
+                short_deaths[cc] = [big[cc][j] for j in range(i,len(big[cc]))]
+                short_cases[cc] = [big_cases[cc][j] for j in range(i,len(big_cases[cc]))]
+                short_testing[cc] = [testing[cc][j] for j in range(i,len(testing[cc]))]
+                short_reg_testing[cc] = [reg_testing[cc][j] for j in range(i,len(reg_testing[cc]))]
+                first_thresh.update({cc:i})
+                break;
+    short_deaths_est =  min([len(short_deaths[x]) for x in short_deaths])
+    short_deaths_c = {cc:short_deaths[cc][:short_deaths_est] for cc in short_deaths} # this crops all country time series to the shortest one, currently not used
+    short_cases_est =  min([len(short_cases[x]) for x in short_cases])
+    short_cases_c = {cc:short_cases[cc][:short_cases_est] for cc in short_cases}
+    short_testing_est = min([len(short_testing[x]) for x in short_testing])
+    short_reg_testing_est = min([len(short_reg_testing[x]) for x in short_reg_testing])
+    short_testing_c = {cc:short_testing[cc][:short_testing_est] for cc in short_testing}
+    short_reg_testing_c = {cc:short_reg_testing[cc][:short_reg_testing_est] for cc in short_reg_testing} 
+
+    # choose subset of time series data that must have at least len mindays=150
+    # mindays = 150 # changed from 160 to include more countries on Sep 24
+    longshort = {cc:short_deaths[cc] for cc in short_deaths if (len(short_deaths[cc])>=mindays)};
+    longshortest =  min([len(longshort[x]) for x in longshort])
+    longshort_c = {cc:longshort[cc][:longshortest] for cc in longshort}
+    lcountries = [cc for cc in longshort_c]
+
+    # scaled_cases = {cc:new_cases_spm[cc]/max(new_cases_spm[cc]) for cc in lcountries} # note that lcountries determined by death data
+
+    # select only traces with minimum length of mindays
+    longshort_cases = {cc:short_cases[cc] for cc in short_cases if (len(short_cases[cc])>=mindays)};
+    longshort_cases_est =  min([len(longshort_cases[x]) for x in longshort_cases])
+    clusdata_len = longshort_cases_est
+    longshort_cases_c = {cc:longshort_cases[cc][:longshort_cases_est] for cc in longshort_cases}
+    lccountries = longshort_cases.keys()
 
 
-deaths_raw = longshort_c
-cases_raw = longshort_cases_c
-             
-dat = np.array([longshort_cases_c[cc] for cc in longshort_cases_c])
-testingtmp = np.linspace(0.1,1.0,len(dat[0]))
-dat = [dd/testingtmp for dd in dat]
-cases_adj_lin2020 = {lcountries[i]:dat[i] for i in range(len(dat))}
-
-# cases w/ piecewise linear fit testing rampup
-# testing = np.linspace(0.1,1.0,len(longshort_cases_c['Germany']))
-
-reg_testing_lc = {cc:np.array(longshort_reg_testing_c[cc]) for cc in lcountries}
-dat = np.array([longshort_cases_c[cc]/reg_testing_lc[cc] for cc in lcountries])
-# dat = np.array([longshort_cases_c[cc]/testing_lc[cc][first_thresh[cc]:first_thresh[cc]+len(longshort_cases_c[cc])] for cc in lcountries])
-cases_adj_pwlfit = {lcountries[i]:dat[i] for i in range(len(dat))}
+    longshort_testing_c = {cc:short_testing[cc][:clusdata_len] for cc in short_testing}
+    longshort_reg_testing_c = {cc:short_reg_testing[cc][:clusdata_len] for cc in short_reg_testing}
+    big_testing_c = longshort_reg_testing_c
 
 
-print('making cases with nonlinear testing adjustment...')
-cases_adj_nonlin = make_cases_adj_nonlin(longshort_testing_c,longshort_cases_c,K=2)
-cases_adj_nonlinr = make_cases_adj_nonlin(longshort_reg_testing_c,longshort_cases_c,K=2)              
-print('done.')
-print('to change the nonlinear correction function, call make_cases_adj_nonlin(K), K=2 by default')
+    deaths_raw = longshort_c
+    cases_raw = longshort_cases_c
+                 
+    dat = np.array([longshort_cases_c[cc] for cc in longshort_cases_c])
+    testingtmp = np.linspace(0.1,1.0,len(dat[0]))
+    dat = [dd/testingtmp for dd in dat]
+    cases_adj_lin2020 = {lcountries[i]:dat[i] for i in range(len(dat))}
 
-clusdata_all = {}
-clusdata_all['deaths'] = deaths_raw
-clusdata_all['cases'] = cases_raw
-clusdata_all['cases_lin2020'] = cases_adj_lin2020
-clusdata_all['cases_pwlfit'] = cases_adj_pwlfit
-clusdata_all['cases_nonlin'] = cases_adj_nonlin
-clusdata_all['cases_nonlinr'] = cases_adj_nonlinr
+    # cases w/ piecewise linear fit testing rampup
+    # testing = np.linspace(0.1,1.0,len(longshort_cases_c['Germany']))
+
+    reg_testing_lc = {cc:np.array(longshort_reg_testing_c[cc]) for cc in lcountries}
+    dat = np.array([longshort_cases_c[cc]/reg_testing_lc[cc] for cc in lcountries])
+    # dat = np.array([longshort_cases_c[cc]/testing_lc[cc][first_thresh[cc]:first_thresh[cc]+len(longshort_cases_c[cc])] for cc in lcountries])
+    cases_adj_pwlfit = {lcountries[i]:dat[i] for i in range(len(dat))}
+
+
+    print('making cases with nonlinear testing adjustment...')
+    cases_adj_nonlin = make_cases_adj_nonlin(longshort_testing_c,longshort_cases_c,K=2)
+    cases_adj_nonlinr = make_cases_adj_nonlin(longshort_reg_testing_c,longshort_cases_c,K=2)              
+    print('done.')
+    print('to change the nonlinear correction function, call make_cases_adj_nonlin(K), K=2 by default')
+
+    clusdata_all = {}
+    clusdata_all['deaths'] = deaths_raw
+    clusdata_all['cases'] = cases_raw
+    clusdata_all['cases_lin2020'] = cases_adj_lin2020
+    clusdata_all['cases_pwlfit'] = cases_adj_pwlfit
+    clusdata_all['cases_nonlin'] = cases_adj_nonlin
+    clusdata_all['cases_nonlinr'] = cases_adj_nonlinr
+
+    data_config.cluster_data_loaded = True
 
 
 def plot_adj(country, data, adj = None, testing=None,  ndays=250, axis = None):
@@ -322,4 +330,4 @@ print('----------------------------------------')
 ###########################################################
 # to get ModelFit class definition:
 exec(open('ClusterFit.py','r').read())
-###########################################################
+    ###########################################################
