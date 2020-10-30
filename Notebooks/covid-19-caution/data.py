@@ -28,7 +28,7 @@ def Float(x):
     return rtn
 
 data_days = -1
-final_date = "10/09/20" # 9th October 2020 as cutoff for paper (8th October for JHU, since better sync offset by 1)
+final_date = "10/27/20" # 27th October 2020 as cutoff for paper (26th October for JHU, since better sync offset by 1)
 
 def get_data(jhu_file, lastdate=None):
     global data_days
@@ -65,7 +65,8 @@ def get_data(jhu_file, lastdate=None):
     dbdates = [datetime.datetime.strptime(dd,fmt) for dd in popdat0[1:] ]
     if lastdate:
         lastdate_d = datetime.datetime.strptime(lastdate,fmt)
-        if (lastdate_d-dbdates[-1]).days <= 0:
+        # print('DEBUG',dbdates[-1],lastdate_d,lastdate_d-dbdates[-1],(lastdate_d-dbdates[-1]).days)
+        if (lastdate_d-dbdates[-1]).days > 0:   # changed from <=
             print('Error: provided last date parameter after end of data in JHU database, using all')
             lastdate_d = datetime.datetime.strptime(popdat0[-1],fmt)
     else:
@@ -290,6 +291,7 @@ def expand_data(covid_ts,database='jhu'):
                 data_diff.update({'dates':data['dates']})
             else:
                 data_cc = data[cc] 
+                # print('debug',cc,'n',n,'len(data_cc)',len(data_cc))
                 diff_ts = np.zeros(n,dtype=float)
                 for t in range(n):
                     if t == 0:
@@ -572,7 +574,9 @@ def get_country_data_nyw(country_s='World', datatype='confirmed', firstdate=None
     xxf = [float(x) for x in range(len(yyf))]
     return xxf,yyf 
 
-def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync = 0):
+def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync = 0,exclude=[]):
+    # does not use lastdate, but lastdate should be chosen to have same data length as jhu data from get_data
+    # using global parameter data_days set in get_data
     import numpy as np
     import datetime
     import matplotlib.dates as mdates
@@ -632,27 +636,33 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
         key = None
         return
    
-    countries = np.unique(np.array([dd['location'] for dd in covid_owid]))
-    dates = np.unique(np.array([dd['date'] for dd in covid_owid]))
+    countries = np.unique(np.array([dd['location'] for dd in covid_owid if dd['location'] not in exclude]))
+    dates = np.unique(np.array([dd['date'] for dd in covid_owid if dd['location'] not in exclude]))
     dates.sort()
     fmt = '%Y-%m-%d'
     dates_t = [datetime.datetime.strptime(dd,fmt) for dd in dates ]
     firstdate = dates[daysync]
     lastdate = dates[-1]
     firstdate_t =  dates_t[daysync]
-    # print('debug: data_days',data_days,'len dates',len(dates_t),'daysync+data_days',daysync+data_days-1)
-    lastdate_t =  dates_t[daysync+data_days-1]
+    # print('debug: data_days',data_days,'len dates',len(dates_t),'daysync+data_days-1',daysync+data_days-1)
+    lastdate_t =  dates_t[daysync+data_days-1] # data_days is number of days read from jhu data set
+    # print('debug:    lastdate_t',   lastdate_t)
     # lastdate_t =  dates_t[-1]
 
     daystart = 0
-    daystop = (lastdate_t-firstdate_t).days
+    daystop = (lastdate_t-firstdate_t).days # number of day at which data stops
     
-    popkeyed = {country: np.zeros(daystop+1,dtype=float) for country in countries} 
+    popkeyed = {country: np.zeros(daystop+1,dtype=float) for country in countries}  # indices 0 up to daystop allowed, length daystop+1
     
+    # print('debug','daystop',daystop,'firstdate_t',firstdate_t,'lastdate_t',lastdate_t)
     for dd in covid_owid:
         country = dd['location']
-        day = (datetime.datetime.strptime(dd['date'],fmt)-firstdate_t).days
-        popkeyed[country][day] = float(dd[key]) if not dd[key]=='' else 0.0 
+        if country not in exclude:
+            day = (datetime.datetime.strptime(dd['date'],fmt)-firstdate_t).days
+            if day >= 0 and day <= daystop:
+                popkeyed[country][day] = float(dd[key]) if not dd[key]=='' else 0.0 
+            # else:
+            #    print('day out of range',country,day)
         
     # popkeyed = {country: np.transpose(np.array([[dd['date'],dd[key]] for dd in covid_owid if dd['location'] == country])) for country in countries}
     # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
@@ -668,7 +678,7 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
             popkeyed.update({country:sumdata})
 
     fmt_jhu = '%-m/%-d/%y'
-    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t[daysync:]]})   # dates are set to strings in jhu date format for compatibility
+    popkeyed.update({'dates': [date.strftime(fmt_jhu) for date in dates_t[daysync:daysync+data_days]]})   # dates are set to strings in jhu date format for compatibility
     return popkeyed
 
 def get_data_owid_key(key, daysync = 0):
@@ -932,17 +942,23 @@ print('done with JHU data (covid_ts dictionary keys: confirmed, deaths, recovere
 # ## OWID data
 print('getting owid data...')
 
+# daysync = 0      # needs to be same as value in Cluster.py
 daysync = 23      # needs to be same as value in Cluster.py
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
-confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync=daysync)
+
+# get population data first to exclude countries without population data
+population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily',daysync=daysync) # NB use [-2] to get non-zero set of populations from 2nd last time point
+countries_nopopulation = [cc for cc in population_owid.keys() if (cc != 'dates' and population_owid[cc][-2] == 0)]
+print('countries without population data excluded:',countries_nopopulation)
+
+confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync=daysync,exclude=countries_nopopulation)
 print('owid data selected from',confirmed_owid['dates'][0],'to',confirmed_owid['dates'][-1])
 recovered_owid = None                                                         # NB OWID database has no recovered data, substitute with JHU data!
-deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative',daysync=daysync)
-tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative',daysync=daysync)
-stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily',daysync=daysync)
-population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily',daysync=daysync) # NB use [-2] to get non-zero set of populations from 2nd last time point
-population_density_owid = get_data_owid(owid_file,datatype='population_density',dataaccum = 'daily',daysync=daysync)
-gdp_per_capita_owid = get_data_owid(owid_file,datatype='gdp_per_capita',dataaccum = 'daily',daysync=daysync)
+deaths_owid=get_data_owid(owid_file,datatype='deaths',dataaccum = 'cumulative',daysync=daysync,exclude=countries_nopopulation)
+tests_owid=get_data_owid(owid_file,datatype='tests',dataaccum = 'cumulative',daysync=daysync,exclude=countries_nopopulation)
+stringency_owid=get_data_owid(owid_file,datatype='stringency',dataaccum = 'daily',daysync=daysync,exclude=countries_nopopulation)
+population_density_owid = get_data_owid(owid_file,datatype='population_density',dataaccum = 'daily',daysync=daysync,exclude=countries_nopopulation)
+gdp_per_capita_owid = get_data_owid(owid_file,datatype='gdp_per_capita',dataaccum = 'daily',daysync=daysync,exclude=countries_nopopulation)
 
 covid_owid_ts= {'confirmed':confirmed_owid,'deaths':deaths_owid,'recovered':recovered_owid, 'tests': tests_owid , 'stringency': stringency_owid,
                  'population':population_owid,'population_density':population_density_owid,'gdp_per_capita':gdp_per_capita_owid}
@@ -967,7 +983,7 @@ jhu_to_owid_str_country=jhu_to_owid_str_country_md(countries_owid)
 owid_to_jhu_str_country = owid_to_jhu_str_country_md(countries_owid)
 
 countries_jhu_overseas= [cc for cc in countries_jhu if '_Overseas' in cc[0]]
-countries_jhu_non_special = [cc for cc in countries_jhu if  cc[0] not in ['Diamond Princess', 'MS Zaandam']]
+countries_jhu_non_special = [cc for cc in countries_jhu if  cc[0] not in ['Diamond Princess', 'MS Zaandam']+countries_nopopulation]
 countries_jhu_4_owid = countries_jhu_non_special
 countries_jhu_2_owid=[jhu_to_owid_str_country[cc[0]] for cc in countries_jhu_4_owid ]
 countries_owid_to_jhu=[owid_to_jhu_country(cc) for cc in countries_jhu_2_owid]
