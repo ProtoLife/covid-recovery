@@ -568,6 +568,35 @@ def dic_compare(dic1,dic2):
                 cnt = cnt+1
     return df
 
+def dic2df(dic):
+    rtn = {k:dic[k].copy() for k in dic}
+    keys = [x for x in dic]
+    lenmx = 0
+    for k in keys:
+        if len(dic[k])>lenmx:
+            lenmx = len(dic[k])
+            kmx = k
+    for k in keys:
+        if len(dic[k])<lenmx:
+            for _ in range(lenmx-len(dic[k])):
+                rtn[k].append('')
+    return pd.DataFrame.from_dict(rtn)
+    #return rtn
+
+def dic_invert(d):
+    inv = {}
+    for k, v in d.items():
+        if isinstance(v,list):
+            for vv in v:
+                keys = inv.setdefault(vv, [])
+                keys.append(k)                
+        else:
+            keys = inv.setdefault(v, [])
+            keys.append(k)
+    for k in inv:
+        if len(inv[k]) == 1:
+            inv[k] = inv[k][0]
+    return inv
 
 class Consensus:
     def __init__(self,
@@ -901,7 +930,7 @@ class Consensus:
         ax.set_xticks(range(len(rep)))
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
         ax.set_xticklabels(rep,rotation='vertical')
-        plt.show()
+        # plt.show()
         return fig
         
     def make_map(self):
