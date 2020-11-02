@@ -138,8 +138,8 @@ class ClusterData:
 
         if cluster_data:  # read in cluster data from file
             start=time()
-            print('reading in data from',self.cluster_data,'...')
-            with open('./pks/'+self.cluster_data+'.pk','rb') as fp:
+            print('reading in data from','./pks/data_cluster_'+self.clusdtype+'.pk','...')
+            with open('./pks/data_cluster_'+self.clusdtype+'.pk','rb') as fp:
                 foo = pk.load(fp)
             print('elapsed: ',time()-start)
 

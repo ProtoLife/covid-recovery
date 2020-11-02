@@ -600,6 +600,7 @@ def dic_invert(d):
 
 class Consensus:
     def __init__(self,
+                 cldata,
                  cases = ['deaths', 'cases', 'cases_lin2020', 'cases_pwlfit', 'cases_nonlin', 'cases_nonlinr'],
                  ncomp = range(2,16),
                  minc = range(3,10),
@@ -614,12 +615,13 @@ class Consensus:
         self.ncomp = ncomp
         self.minc = minc
         self.min_samples = min_samples
-        self.countries = list(clusdata_all[cases[0]].keys()) # save countries in first data set as list
+        self.countries = list(cldata.clusdata_all[cases[0]].keys()) # save countries in first data set as list
         self.satthresh = satthresh
         self.clusdata = None
         self.swcountries=None
+        self.cldata=cldata
 
-    def scan(self,diag=False):
+    def scan(self,diag=False,progress=True):
         countries = self.countries
         maxvalid = [None,None,None,None,None,None]
         maxvalidval= 0.0
@@ -631,7 +633,7 @@ class Consensus:
         minscore2val = 999.
         self.report = [' ']*4*len(self.cases)
         self.reportdata = [None]*4*len(self.cases)
-        runlen = len(clusdata_all[cases[0]])
+        runlen = len(self.cldata.clusdata_all[self.cases[0]])
         self.probdata=np.zeros((4*6,runlen),dtype=float)
         self.outlierdata=np.zeros((4*6,runlen),dtype=float)
         self.clusdata = np.zeros((4*6,len(countries)),dtype=np.int64)
@@ -639,9 +641,9 @@ class Consensus:
         infomax =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         cnt=0
 
-        for ic,case in tqdm(list(enumerate(self.cases)), desc='loop over cases' ,disable= not diag): # loop with progress bar instead of just looping over enumerate(cases)
-        # for ic,case in enumerate(cases):
-            data = clusdata_all[case]
+        for ic,case in tqdm(list(enumerate(self.cases)), desc='loop over cases' ,disable= not progress): # loop with progress bar instead of just looping over enumerate(cases)
+        # for ic,case in enumerate(self.cases):
+            data = self.cldata.clusdata_all[case]
             dat = np.array([data[cc] for cc in data]).astype(float)
             for i in range(len(dat)):   # normalize data
                 mx = max(dat[i])
@@ -935,6 +937,7 @@ class Consensus:
         
     def make_map(self):
         global geog,geog1,clusters,geo_json_data
+        cldata = self.cldata
         def load_data(url, filename, file_type):
             r = requests.get(url)
             with open(filename, 'w') as f:
@@ -1078,8 +1081,9 @@ class Consensus:
                        "%.3f" % feature['properties']['hsv'][1],
                        "%.3f" % feature['properties']['hsv'][2])
 
-        def myplot(dataname='deaths',country='Australia'):
-            plt.plot(clusdata_all[dataname][country])
+        def myplot(cons, dataname='deaths',country='Australia'):
+            if country in cons.countries:
+                plt.plot(cons.cldata.clusdata_all[dataname][country])
 
         def on_clicked(feature,  **kwargs):
             global chosen_country
