@@ -96,9 +96,10 @@ class ClusterData:
         cases_adj_nonlin = {cc:np.array([self.CaCo(cases[cc][i],self.regtests(testing_0p1_c,cc)[i],2)*cases[cc][i] for i in range(len(cases[cc]))]) for cc in cases if cc != 'dates'}
         return cases_adj_nonlin
 
-    def __init__(self,base_data='data_all_base',cluster_data=False,report_correct=True,database='JHU',daysync=23,thresh=10,
+    def __init__(self,clusdtype='std',base_data='data_all_base',cluster_data=False,report_correct=True,database='JHU',daysync=23,thresh=10,
                  mindays=150, mindeaths=200,mindeathspm=0.1,syncat='first major peak',K=2):
 
+        self.clusdtype=clusdtype
         self.base_data=base_data
         self.cluster_data=cluster_data
         self.report_correct=report_correct
@@ -297,7 +298,6 @@ class ClusterData:
             self.cases_adj_nonlin = self.make_cases_adj_nonlin(self.longshort_testing_c,self.longshort_cases_c,self.K)
             self.cases_adj_nonlinr = self.make_cases_adj_nonlin(self.longshort_reg_testing_c,self.longshort_cases_c,self.K)              
             print('done.')
-            print('to change the nonlinear correction function, call make_cases_adj_nonlin(K), K=2 by default')
 
             self.clusdata_all = {}
             self.clusdata_all['deaths'] = self.deaths_raw
