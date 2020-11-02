@@ -269,7 +269,7 @@ class ClusterData:
             self.longshort_cases_est =  min([len(self.longshort_cases[x]) for x in self.longshort_cases])
             self.clusdata_len = self.longshort_cases_est
             self.longshort_cases_c = {cc:self.longshort_cases[cc][:self.longshort_cases_est] for cc in self.longshort_cases}
-            self.lccountries = self.longshort_cases.keys()
+            self.lccountries = list(self.longshort_cases.keys())
 
 
             self.longshort_testing_c = {cc:self.short_testing[cc][:self.clusdata_len] for cc in self.short_testing}
