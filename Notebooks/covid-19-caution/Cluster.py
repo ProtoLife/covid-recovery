@@ -61,6 +61,29 @@ from skfda.representation.basis import BSpline, Fourier, Monomial
 ## cases_adj_nonlin   ( = old longshort_cases_adj_c)
 ## cases_adj_nonlinr
 
+class BaseData:
+    def __init__(self,base_data='data_all_base'):
+        if base_data:                           # read in base data from file
+            start=time()
+            print('reading in data from',base_data,'...')
+            try:
+                with open('./pks/'+base_data+'.pk','rb') as fp:
+                    foo = pk.load(fp)
+                print('elapsed: ',time()-start)
+
+                # make each element of the dictionary a variable named with key:
+                for x in foo:
+                    stmp = "self."+x+"= foo['"+x+"']"
+                    exec(stmp)
+                self.data_loaded = True
+                self.base_data = base_data
+            except:
+                print('Error: database pk file not found','./pks/'+base_data+'.pk')
+                return                
+        else:
+            print('Error: base_data not defined')
+            return
+
 class ClusterData:
 
     def regtests(self,testing,country,trampday1=50):
@@ -96,11 +119,11 @@ class ClusterData:
         cases_adj_nonlin = {cc:np.array([self.CaCo(cases[cc][i],self.regtests(testing_0p1_c,cc)[i],2)*cases[cc][i] for i in range(len(cases[cc]))]) for cc in cases if cc != 'dates'}
         return cases_adj_nonlin
 
-    def __init__(self,clusdtype='std',base_data='data_all_base',cluster_data=False,report_correct=True,database='JHU',daysync=23,thresh=10,
+    def __init__(self,based,clusdtype='std',cluster_data=False,report_correct=True,database='JHU',daysync=23,thresh=10,
                  mindays=150, mindeaths=200,mindeathspm=0.1,syncat='first major peak',K=2):
 
         self.clusdtype=clusdtype
-        self.base_data=base_data
+        # self.base_data=bd
         self.cluster_data=cluster_data
         self.report_correct=report_correct
         self.database=database
@@ -112,22 +135,6 @@ class ClusterData:
         self.syncat=syncat
         self.K=K
 
-
-        if base_data:                           # read in base data from file
-            start=time()
-            print('reading in data from',self.base_data,'...')
-            with open('./pks/'+self.base_data+'.pk','rb') as fp:
-                foo = pk.load(fp)
-            print('elapsed: ',time()-start)
-
-            # make each element of the dictionary a variable named with key:
-            for x in foo:
-                stmp = "self."+x+"= foo['"+x+"']"
-                exec(stmp)
-            self.data_loaded = True
-        else:
-            print('Error: base_data not defined')
-            return
 
         if cluster_data:  # read in cluster data from file
             start=time()
@@ -164,22 +171,22 @@ class ClusterData:
 
             if self.database == 'OWID':
                 if report_correct:
-                    self.total_deaths = self.total_deaths_cs_owid
-                    self.new_deaths_spm = self.new_deaths_c_spm_owid
-                    self.new_cases_spm = self.new_cases_c_spm_owid
+                    self.total_deaths = based.total_deaths_cs_owid
+                    self.new_deaths_spm = based.new_deaths_c_spm_owid
+                    self.new_cases_spm = based.new_cases_c_spm_owid
                 else:
-                    self.total_deaths = self.total_deaths_s_owid
-                    self.new_deaths_spm = self.new_deaths_spm_owid
-                    self.new_cases_spm = self.new_cases_spm_owid
+                    self.total_deaths = based.total_deaths_s_owid
+                    self.new_deaths_spm = based.new_deaths_spm_owid
+                    self.new_cases_spm = based.new_cases_spm_owid
             elif self.database == 'JHU':
                 if report_correct:
-                    self.total_deaths = self.total_deaths_cs_jhu     
-                    self.new_deaths_spm = self.new_deaths_c_spm_jhu
-                    self.new_cases_spm = self.new_cases_c_spm_jhu
+                    self.total_deaths = based.total_deaths_cs_jhu     
+                    self.new_deaths_spm = based.new_deaths_c_spm_jhu
+                    self.new_cases_spm = based.new_cases_c_spm_jhu
                 else:
-                    self.total_deaths = self.total_deaths_s_jhu
-                    self.new_deaths_spm = self.new_deaths_spm_jhu
-                    self.new_cases_spm = self.new_cases_spm_jhu
+                    self.total_deaths = based.total_deaths_s_jhu
+                    self.new_deaths_spm = based.new_deaths_spm_jhu
+                    self.new_cases_spm = based.new_cases_spm_jhu
 
             """
             Clustering data:
@@ -189,9 +196,10 @@ class ClusterData:
             """
 
             # mindeaths = 100
-            # mindeathspm = 0.5 
-            self.bcountries_1 = [cc for cc in self.countries_common if (max(self.total_deaths_cs_jhu[cc])>=self.mindeaths and max(self.total_deaths_cs_owid[cc])>=self.mindeaths)]
-            self.bcountries = [cc for cc in self.bcountries_1 if (max(self.new_deaths_c_spm_jhu[cc])>=self.mindeathspm and max(self.new_deaths_c_spm_owid[cc])>=self.mindeathspm)]
+            # mindeathspm = 0.5
+            self.countries_common = based.countries_common
+            self.bcountries_1 = [cc for cc in self.countries_common if (max(based.total_deaths_cs_jhu[cc])>=self.mindeaths and max(based.total_deaths_cs_owid[cc])>=self.mindeaths)]
+            self.bcountries = [cc for cc in self.bcountries_1 if (max(based.new_deaths_c_spm_jhu[cc])>=self.mindeathspm and max(based.new_deaths_c_spm_owid[cc])>=self.mindeathspm)]
             print('No of big common countries is',len(self.bcountries))
             print('---------------------------------')
             # from data.py:
@@ -208,10 +216,7 @@ class ClusterData:
 
             # synchronization method : by threshold on total deaths
             print('synchronizing and trimming time series to common length...')
-            self.short_deaths = {}
-            self.short_cases = {}
-            self.short_testing = {}
-            self.short_reg_testing = {}
+
             self.first_peak = {}
             self.first_thresh = {}
             self.tdates = len(self.total_deaths['Germany'])  # changed to a particular common country to get database indept (formerly using 'dates' entry in total_Deaths_x)
@@ -236,6 +241,11 @@ class ClusterData:
                         if self.total_deaths[cc][i] >= self.thresh:
                             self.first_thresh.update({cc:i})
                             break;
+            self.short_deaths = {}
+            self.short_cases = {}
+            self.short_testing = {}
+            self.short_reg_testing = {}
+
             for cc in self.bcountries:
                 if self.syncat == 'first major peak':
                     i = self.first_peak[cc]-self.minfirstpeak
@@ -243,8 +253,8 @@ class ClusterData:
                     i = self.first_thresh[cc]
                 self.short_deaths[cc] = [self.big[cc][j] for j in range(i,len(self.big[cc]))]
                 self.short_cases[cc] = [self.big_cases[cc][j] for j in range(i,len(self.big_cases[cc]))]
-                self.short_testing[cc] = [self.testing[cc][j] for j in range(i,len(self.testing[cc]))]
-                self.short_reg_testing[cc] = [self.reg_testing[cc][j] for j in range(i,len(self.reg_testing[cc]))]
+                self.short_testing[cc] = [based.testing[cc][j] for j in range(i,len(based.testing[cc]))]
+                self.short_reg_testing[cc] = [based.reg_testing[cc][j] for j in range(i,len(based.reg_testing[cc]))]
 
             self.short_deaths_est =  min([len(self.short_deaths[x]) for x in self.short_deaths])
             self.short_deaths_c = {cc:self.short_deaths[cc][:self.short_deaths_est] for cc in self.short_deaths} # this crops all country time series to the shortest one, currently not used
@@ -285,9 +295,6 @@ class ClusterData:
             dat = [dd/testingtmp for dd in dat]
             self.cases_adj_lin2020 = {self.lcountries[i]:dat[i] for i in range(len(dat))}
 
-            # cases w/ piecewise linear fit testing rampup
-            # testing = np.linspace(0.1,1.0,len(longshort_cases_c['Germany']))
-
             self.reg_testing_lc = {cc:np.array(self.longshort_reg_testing_c[cc]) for cc in self.lcountries}
             dat = np.array([self.longshort_cases_c[cc]/self.reg_testing_lc[cc] for cc in self.lcountries])
             # dat = np.array([longshort_cases_c[cc]/testing_lc[cc][first_thresh[cc]:first_thresh[cc]+len(longshort_cases_c[cc])] for cc in lcountries])
@@ -295,6 +302,8 @@ class ClusterData:
 
 
             print('making cases with nonlinear testing adjustment...')
+            # note that we could instead construct these from cases_adj_nonlin(r)_(jhu,owid) by making daily and then synchronizing as above
+            # this would be faster but more complicated 
             self.cases_adj_nonlin = self.make_cases_adj_nonlin(self.longshort_testing_c,self.longshort_cases_c,self.K)
             self.cases_adj_nonlinr = self.make_cases_adj_nonlin(self.longshort_reg_testing_c,self.longshort_cases_c,self.K)              
             print('done.')
@@ -306,7 +315,7 @@ class ClusterData:
             self.clusdata_all['cases_pwlfit'] = self.cases_adj_pwlfit
             self.clusdata_all['cases_nonlin'] = self.cases_adj_nonlin
             self.clusdata_all['cases_nonlinr'] = self.cases_adj_nonlinr
-
+            self.datasets = [c for c in self.clusdata_all]
             self.cluster_data_loaded = True
         print('----------------------------------------')
         print('Finished loading Cluster module')
