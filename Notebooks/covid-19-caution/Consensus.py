@@ -330,7 +330,8 @@ def plot_clusalign(countries,data,report,cols=None):
     ax.set_xticks(range(len(rep)))
     plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
     ax.set_xticklabels(rep,rotation='vertical')
-    plt.show()
+    #plt.show()
+    return fig
 
 
 # Note that the colours are best understood as hue with value v = intensity related to membership prob
@@ -858,7 +859,7 @@ class Consensus:
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
         ax.set_xticklabels(self.report,rotation='vertical')
         # fig.colorbar(img)
-        plt.show()
+        #plt.show()
         return fig
 
     def plot_all_stages(self):
@@ -891,7 +892,7 @@ class Consensus:
         ax.set_xticklabels(self.report,rotation='vertical')
 
         fig.tight_layout(pad=2.0)
-        plt.show()
+        #plt.show()
         return fig        
 
     def swizzle(self,cols=None,satthresh=None):
