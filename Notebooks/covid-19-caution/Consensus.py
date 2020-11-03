@@ -1089,8 +1089,11 @@ class Consensus:
             global chosen_country
             global country_display
             chosen_country = feature['properties']['name']
-            country_display.children[1].value=chosen_country
-            print("Country selected",chosen_country)
+            if chosen_country in self.cldata.countries:
+                country_display.children[1].value=chosen_country
+                print("Country selected",chosen_country)
+            else:
+                print("Country not in cluster countries",chosen_country)
 
         def getvalue(change):
             # make the new value available
@@ -1098,7 +1101,11 @@ class Consensus:
             #widget.unobserve(getvalue, value)
             global chosen_country,chosen_country_widget
             chosen_country = change.new['properties']['name']
-            print("Country selected is",chosen_country)
+            if chosen_country not in self.cldata.countries:
+                print("Country selected was",chosen_country,"not in cluster countries, reset to default")
+                chosen_country = 'Australia'
+            else:
+                print("Country selected is",chosen_country)
          
         #print('now forming chloropleth layer')   
         layer = ipyleaflet.Choropleth(
