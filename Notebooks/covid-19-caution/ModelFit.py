@@ -248,7 +248,8 @@ class ModelFit:
             # line.set_dashes([2,2,2+age,2])
 
     def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axis=None,
-                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None, outfile = None,datasets=['confirmed_corrected_smoothed'],age_groups=None):
+                  scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None,
+                  outfile = None,datasets=['confirmed_corrected_smoothed'],age_groups=None):
         """
         solve ODEs and plot for fitmodel indicated
         
@@ -274,6 +275,10 @@ class ModelFit:
         else:
             lspecies = species
             ldatasets = datasets
+
+        for dt in ldatasets:
+            if dt not in [x for x in self.data]:
+                print('Error:  ',dt,'not in data')
 
         dspecies = [dt if dt != 'caution_fraction' else 'stringency' for dt in lspecies]
         mags = [mag[dt] if dt in mag.keys() else 1 for dt in dspecies]
@@ -509,7 +514,6 @@ class ModelFit:
             rtn[ls]['data'] = weight*np.array(fitdata[ls])
             rtn[ls]['soln'] = weight*np.sum(self.soln[:,slices[ls]],axis=1) #  sum over all species in 'confirmed' or only one species for 'deaths'
             rtn[ls]['resid'] = rtn[ls]['soln']-rtn[ls]['data']
-
         return rtn
 
     def solve4fitlog(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
@@ -663,7 +667,6 @@ class ModelFit:
                     rmsres2 = np.sqrt(np.sum(np.square(resd)))
                     self.residall.append(rmsres2)                    
                     self.paramall.append(pars.copy())
-                print('params_lmf:',params_lmf)
                 outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
                 # outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)
 
@@ -839,19 +842,17 @@ class ModelFit:
             daystart = 0
             self.dates = [startdate_t + datetime.timedelta(days=x) for x in range(datadays)] # fake dates
             stopdate_t = self.dates[-1]
+            self.tsim = np.linspace(0, datadays -1, datadays)
             if simdays:
-                self.tsim = np.linspace(0, simdays -1, simdays)
-            else:
-                self.tsim = np.linspace(0,0,0)
+                self.tsim = np.concatenate(self.tsim,np.linspace(0, simdays -1, simdays))
             self.tdata = np.linspace(0, datadays -1, datadays)
         else:
             print("Error:  can't deal with data_src", data_src)
             return None
                 
-
-        if datatypes == 'all' or not datatypes:
-            datatypes = [x for x in ts] 
-  
+        if datatypes == 'all':
+            datatypes = [x for x in ts]
+        
         self.data = {}
         for dt in datatypes:
             if dt not in ts:
