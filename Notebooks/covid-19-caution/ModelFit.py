@@ -689,7 +689,9 @@ class ModelFit:
 
         ## set model params to fitted values, dump to file --------------------------------------------------------------------
         if 'outfit' in locals():
+            print('----------',len(outfit.params))
             for x in outfit.params:
+                print(x)
                 if x in self.params:
                     self.set_param(x, outfit.params[x].value)
                 elif 'logI_0' in outfit.params:
@@ -790,13 +792,9 @@ class ModelFit:
             return None
 
         self.country_str = country_str = country
-        if data_src == 'owid':
-            self.country = country
-        elif data_src == 'jhu':
+        if data_src == 'jhu':
             self.country = country = (self.country_str,'')
         else:
-            print('data_src not yet implemented, using default owid')
-            data_src = 'owid'
             self.country = country
 
         self.population = basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
@@ -833,15 +831,24 @@ class ModelFit:
                 simdays = datadays
             self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
         elif data_src == 'cluster':
-            datadays = len(clusdata['deaths'][country])
+            datadays = len(ts['deaths'][country])
             if simdays: # simdays allowed greater than datadays to enable predictions
                 if simdays < datadays:
                     datadays = simdays
-            start_d = datetime.datetime.strptime('02/01/20',fmt_jhu) # fake first date for cluster time series
+            startdate = '02/01/20' # fake first date for cluster time series
+            startdate_t = datetime.datetime.strptime(startdate,fmt_jhu)
             daystart = 0
-            self.dates = [start_d + datetime.timedelta(days=x) for x in range(datadays)] # fake dates
-            self.tsim = np.linspace(0, simdays -1, simdays)
+            self.dates = [startdate_t + datetime.timedelta(days=x) for x in range(datadays)] # fake dates
+            stopdate_t = self.dates[-1]
+            if simdays:
+                self.tsim = np.linspace(0, simdays -1, simdays)
+            else:
+                self.tsim = np.linspace(0,0,0)
             self.tdata = np.linspace(0, datadays -1, datadays)
+        else:
+            print("Error:  can't deal with data_src", data_src)
+            return None
+                
 
         if datatypes == 'all' or not datatypes:
             datatypes = [x for x in ts] 
