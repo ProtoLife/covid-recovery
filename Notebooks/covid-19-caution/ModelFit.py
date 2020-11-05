@@ -705,14 +705,16 @@ class ModelFit:
             print('Problem with fit, model params not changed')
 
 
-    def __init__(self,modelname,model=None,country='Germany',run_id='',datatypes='all',data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
+    def __init__(self,modelname,basedata=None,data=None,model=None,country='Germany',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
         except that if run_id starts with character '_', it is appended to the default run_id,
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
-        global make_model,covid_ts,covid_owid_ts,possmodels
+        if basedata==None:
+            print("Error:  must specify base data with arg basedata.")
+        global make_model,possmodels
         dirnm = os.getcwd()
         # construct default name for file / run_id
         if country != '':
@@ -778,101 +780,71 @@ class ModelFit:
                     self.fbparams = model_d['fbparams']
                     self.dbparams = model_d['dbparams']
                     self.initial_values = model_d['initial_values']
-                    
         self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams)
+
+        ################################################################
         # set up data and times for simulation
-        if data_src == 'jhu':
-            ts = covid_ts
-        elif data_src == 'owid':
-            ts = covid_owid_ts
-        else:
+        ts = data
+        if data_src not in ['jhu','owid','cluster']:
             print('data_src',data_src,'not yet hooked up: OWID data used instead')
-            ts = covid_owid_ts
+            return None
 
         self.country_str = country_str = country
         if data_src == 'owid':
             self.country = country
         elif data_src == 'jhu':
-            if country in ['Australia', 'China', 'Denmark', 'France', 'Netherlands', 'United Kingdom']:
-                # self.country = country = (self.country_str,'Total')
-                self.country = country = (self.country_str,'')  # now amalgamated with territories or summed from states
-            else:
-                self.country = country = (self.country_str,'')
+            self.country = country = (self.country_str,'')
         else:
             print('data_src not yet implemented, using default owid')
             data_src = 'owid'
             self.country = country
 
-        self.population = population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
+        self.population = basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
 
         fmt_jhu = '%m/%d/%y'
-        dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['confirmed']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
-        firstdate_t =  dates_t[0]
-        lastdate_t =  dates_t[-1]
-        if startdate:
-            startdate_t = datetime.datetime.strptime(startdate,fmt_jhu)
-        else:
-            startdate_t = firstdate_t
-        if stopdate:
-            stopdate_t = datetime.datetime.strptime(stopdate,fmt_jhu)
-            print('stopdate',stopdate) 
-        else:
-            stopdate_t = lastdate_t
-        if (startdate_t - firstdate_t).days < 0:
-            print('start date out of data range, setting to data first date',ts['confirmed']['dates'][0])
-            startdate_t = firstdate_t
+        if data_src == 'owid' or data_src == 'jhu':
+            dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['deaths']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
+            firstdate_t =  dates_t[0]
+            lastdate_t =  dates_t[-1]
+            if startdate:
+                startdate_t = datetime.datetime.strptime(startdate,fmt_jhu)
+            else:
+                startdate_t = firstdate_t
+            if stopdate:
+                stopdate_t = datetime.datetime.strptime(stopdate,fmt_jhu)
+                print('stopdate',stopdate) 
+            else:
+                stopdate_t = lastdate_t
+            if (startdate_t - firstdate_t).days < 0:
+                print('start date out of data range, setting to data first date',ts['confirmed']['dates'][0])
+                startdate_t = firstdate_t
+                daystart = 0
+            else:
+                daystart = (startdate_t- firstdate_t).days
+            if (stopdate_t - startdate_t).days > (lastdate_t - startdate_t).days:
+                print('stop date out of data range, setting to data last date',ts['confirmed']['dates'][-1])
+                stopdate_t = lastdate_t
+            datadays = (stopdate_t-startdate_t).days + 1            
+            if simdays: # simdays allowed greater than datadays to enable predictions
+                if simdays < datadays:
+                    stopdate_t = startdate_t + datetime.timedelta(days=simdays-1)  # if simulation for shorter time than data, restrict data to this
+                    datadays = (stopdate_t-startdate_t).days + 1    
+            else:
+                simdays = datadays
+            self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
+        elif data_src == 'cluster':
+            datadays = len(clusdata['deaths'][country])
+            if simdays: # simdays allowed greater than datadays to enable predictions
+                if simdays < datadays:
+                    datadays = simdays
+            start_d = datetime.datetime.strptime('02/01/20',fmt_jhu) # fake first date for cluster time series
             daystart = 0
-        else:
-            daystart = (startdate_t- firstdate_t).days
-        if (stopdate_t - startdate_t).days > (lastdate_t - startdate_t).days:
-            print('stop date out of data range, setting to data last date',ts['confirmed']['dates'][-1])
-            stopdate_t = lastdate_t
-        datadays = (stopdate_t-startdate_t).days + 1            
-        if simdays: # simdays allowed greater than datadays to enable predictions
-            if simdays < datadays:
-                stopdate_t = startdate_t + datetime.timedelta(days=simdays-1)  # if simulation for shorter time than data, restrict data to this
-                datadays = (stopdate_t-startdate_t).days + 1    
-        else:
-            simdays = datadays
-        self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
-        self.tsim = np.linspace(0, simdays -1, simdays)
-        self.tdata = np.linspace(0, datadays -1, datadays)
+            self.dates = [start_d + datetime.timedelta(days=x) for x in range(datadays)] # fake dates
+            self.tsim = np.linspace(0, simdays -1, simdays)
+            self.tdata = np.linspace(0, datadays -1, datadays)
 
         if datatypes == 'all' or not datatypes:
-            # NHP: Oct 25, 2020:  For the moment, installing datatypes lists obtained from covid_ts (for jhu) and covid_owid_ts (for owid)
-            # # note that others also available for new_ with _pm (per million) suffix e.g. new_confirmed_nonlin_corrected_smoothed_pm
-            # if data_src == 'owid':
-            #     datatypes = ['confirmed','deaths','tests', 'stringency','deaths_corrected_smoothed','confirmed_corrected_smoothed',
-            #     'confirmed_linr_corrected_smoothed','confirmed_nonlin_corrected_smoothed','confirmed_nonlinr_corrected_smoothed',
-            #     'new_confirmed_linr_corrected_smoothed','new_confirmed_nonlin_corrected_smoothed','new_confirmed_nonlinr_corrected_smoothed',
-            #     'new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed']
-            # else:
-            #     datatypes = ['confirmed','deaths','recovered','deaths_corrected_smoothed','confirmed_corrected_smoothed','recovered_corrected_smoothed',
-            #     'confirmed_linr_corrected_smoothed','confirmed_nonlin_corrected_smoothed','confirmed_nonlinr_corrected_smoothed',
-            #     'new_confirmed_linr_corrected_smoothed','new_confirmed_nonlin_corrected_smoothed','new_confirmed_nonlinr_corrected_smoothed',               
-            #     'new_deaths_corrected_smoothed','new_confirmed_corrected_smoothed','new_recovered_corrected_smoothed']
-            if data_src == 'owid':
-                datatypes = ['confirmed', 'deaths', 'tests', 'stringency', 'population', 'population_density', 'gdp_per_capita',
-                             'new_deaths', 'new_deaths_smoothed', 'deaths_smoothed', 'new_deaths_corrected', 'new_deaths_corrected_smoothed',
-                             'deaths_corrected_smoothed', 'new_confirmed', 'new_confirmed_smoothed', 'confirmed_smoothed', 'new_confirmed_corrected',
-                             'new_confirmed_corrected_smoothed', 'confirmed_corrected_smoothed', 'confirmed_linr_corrected_smoothed',
-                             'new_confirmed_nonlin_corrected_smoothed', 'confirmed_nonlin_corrected_smoothed', 'new_confirmed_nonlinr_corrected_smoothed',
-                             'confirmed_nonlinr_corrected_smoothed']
-            elif data_src == 'jhu':
-                datatypes = ['confirmed', 'deaths', 'recovered', 
-                             'new_deaths', 'new_deaths_smoothed', 'deaths_smoothed', 'new_deaths_corrected', 'new_deaths_corrected_smoothed',
-                             'deaths_corrected_smoothed', 'new_confirmed', 'new_confirmed_smoothed', 'confirmed_smoothed', 'new_confirmed_corrected',
-                             'new_confirmed_corrected_smoothed', 'confirmed_corrected_smoothed', 'confirmed_linr_corrected_smoothed',
-                             'new_confirmed_nonlin_corrected_smoothed', 'confirmed_nonlin_corrected_smoothed', 'new_confirmed_nonlinr_corrected_smoothed',
-                             'confirmed_nonlinr_corrected_smoothed']
-            else:
-                print("ERROR:  don't know datatypes for data_src",data_src)
-                return None
-                
-        # old code (John)            
-        # self.data = {}
-        # for dt in datatypes:
-        #    self.data.update({dt:ts[dt][country][daystart:datadays]}) 
+            datatypes = [x for x in ts] 
   
         self.data = {}
         for dt in datatypes:
@@ -880,11 +852,13 @@ class ModelFit:
                 print('datatype error:')
                 print(dt,'not in ts for data_src',data_src)
                 return None
-            self.data.update({dt:ts[dt][country][daystart:datadays]}) 
+            if ts[dt] is not None:
+                self.data[dt] = ts[dt][country][daystart:datadays].copy()
+            #self.data.update({dt:ts[dt][country][daystart:datadays]}) 
 
         self.startdate = startdate_t.strftime(fmt_jhu)
         self.stopdate = stopdate_t.strftime(fmt_jhu)
 
-        self.fit_targets = ['deaths']
+        self.fit_targets = fit_targets
         self.fit_data = 'default'
 
