@@ -45,67 +45,6 @@ from ipywidgets import link, FloatSlider, HTML
 from branca.colormap import linear
 from matplotlib import colors as mpcolors
 
-
-def clust(clustering_a,clustering_b,colors_a,colors_b): 
-    """ relables clustering b to match clustering a
-        if more than one cluster in a optimally matches a particular cluster in b, then color of b is merger of colors in a
-        if more than one cluster in b optimally matches a particular cluster in a, then colors in a merged and split for b
-    """
-    labels_a = set(clustering_a)
-    labels_b = set(clustering_b)
-    
-    if len(labels_a) != len(colors_a): print('error wrong color list length for a')
-    if len(labels_b) != len(colors_b): print('error wrong color list length for b')
-            
-    a_to_b = {}
-    b_to_a = {}
-    a_cols = {a : colors_a[i] for i,a in enumerate(labels_a)}
-    b_cols = {b : colors_b[i] for i,b in enumerate(labels_b)}
-    
-    for a in labels_a:
-        maxscore = 0
-        maxlab = -2
-        for b in labels_b:
-            score = score_int(matchset(clustering_a,a),matchset(clustering_b,b))
-            if score > maxscore:
-                maxscore = score
-                maxlab = b
-        a_to_b.update({a:maxlab})
-
-    for b in labels_b:
-        maxscore = 0
-        maxlab = -2
-        for a in labels_a:
-            score = score_int(matchset(clustering_a,a),matchset(clustering_b,b))
-            if score > maxscore:
-                maxscore = score
-                maxlab = a
-        b_to_a.update({b:maxlab})
-    
-    for b in labels_b:   # first adjust colors in b to match mapped clusters from a (transfer and merge)
-        amap = [a for a in labels_a if a_to_b[a] == b]
-        if len(amap) > 0:
-            h = sum([mpcolors.rgb_to_hsv(a_cols[a])[0] for a in amap])/len(amap) # average hue from amap
-            s = mpcolors.rgb_to_hsv(b_cols[b])[1] # take s saturation from b
-            v = mpcolors.rgb_to_hsv(b_cols[b])[2] # take v from b
-            b_cols[b] = mpcolors.hsv_to_rgb([h,s,v]) # back to rgb
-
-    for a in labels_a:   # now readjust colors in b that both map to same a (split)
-        bmap = [b for b in labels_b if b_to_a[b] == a]
-        if len(bmap)>1:
-            h = sum([mpcolors.rgb_to_hsv(b_cols[b])[0] for b in bmap])/len(bmap) # average hue from bmap  
-            ha = mpcolors.rgb_to_hsv(a_cols[a])[0]
-            hb = np.linspace(abs(h-ha/4.),abs(h+ha/4.),len(bmap))
-            #print('hb[',hb[0],hb[1],']',h,ha,ha/4.,abs(h-ha/4.),abs(h+ha/4.))
-            for i,b in enumerate(bmap):
-                s = mpcolors.rgb_to_hsv(b_cols[b])[1] # take s saturation from b
-                #print('s',s)
-                v = mpcolors.rgb_to_hsv(b_cols[b])[2] # take v from b
-                #print('v',v)
-                b_cols[b]= mpcolors.hsv_to_rgb([hb[i],s,v])
-                #print('hb[i],b_cols[b]',hb[i],b_cols[b])
-    return b_cols,a_to_b,b_to_a
-
 def corcl(a,b):
     if len(set(a)) > 0 or len(set(b)) > 0:
         return len(set(a).intersection(set(b)))/float(len(set(a).union(set(b))))
@@ -157,6 +96,9 @@ def closest_hue(hue,huelist):
 def color_mean_rgb_to_hsv(rgb_colours,weights=None,modal=False): 
     """ the hue is a circular quantity, so mean needs care
         see https://en.wikipedia.org/wiki/Mean_of_circular_quantities
+        inputs: rgb_colors 1D array of rgb colours with entries [r,g,b]
+                weights: None,'all' or same length array of weights in 0. to 1. for biasing entries
+                modal: if Ture then chose hue as mode of hues, otherwise circular mean
     """
     pi = np.pi
     eps = 0.0001
@@ -243,22 +185,32 @@ def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True):
     """ relables clustering b to match clustering a
         if more than one cluster in a optimally matches a particular cluster in b, then color of b is merger of colors in a
         if more than one cluster in b optimally matches a particular cluster in a, then colors in a merged and split for b
+        inputs: clustering_a,b are lists of cluster labels by country, colors_a,b are lists of rgb colors by country in same order  
+        returns: newcolors_b in rgb format
+        NB. colors_b are only used to preserve s,v values relating to probs of cluster membership for b in final colors
+        NB. the hues of b_cols are determined by the matching of clustering b with clustering a
+        NB. all elts of same cluster have the same hue
     """
     labels_a = list(set(clustering_a))
     labels_b = list(set(clustering_b))
     newcolors_b = np.zeros((len(colors_b),3),dtype=float)
-    newcolors_b[:,:] = colors_b[:,:]
+    newcolors_b[:,:] = colors_b[:,:]   # initialized as copy of colors_b, colors for each country in clustering b
             
     a_to_b = {}
     b_to_a = {}
     a_cols = {}
     b_cols = {}
+        
+    #    a_to_b mapping of labels a to the label b (+ its match score in a tuple) with largest matching score: ratio of intersecting countries to union
+    #    maxvals_a_to_b are list of max scores for each label in labels_a
+    #    reorder_a is the largest to smallest order of max scores 
+    #    labels_a_sort is labels_a reordered by reorder_a :i.e. the labels in a with the best matches to a label in b first
     
     for a in labels_a:
         maxscore = 0
         maxlab = -2
         for b in labels_b:
-            score = score_int_union(matchset(clustering_a,a),matchset(clustering_b,b))
+            score = score_int_union(matchset(clustering_a,a),matchset(clustering_b,b)) # length intersection divided by length union (result 0. to 1. for identity)
             if score > maxscore:
                 maxscore = score
                 maxlab = b
@@ -267,6 +219,7 @@ def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True):
     reorder_a = np.flip(np.argsort(maxvals_a_to_b))
     labels_a_sort = [labels_a[r] for r in list(reorder_a)]
 
+    # same as above for b_to_a
     for b in labels_b:
         maxscore = 0
         maxlab = -2
@@ -280,22 +233,31 @@ def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True):
     reorder_b = np.flip(np.argsort(maxvals_b_to_a))
     labels_b_sort = [labels_b[r] for r in list(reorder_b)]    
 
+    #print('before relabel')
+
+    # relabeling uses labels_b_sort, labels_a_sort, a_to_b, as well as colors_a,b and clustering_a,b
     if relabel:    
         for b in labels_b_sort:   # first adjust colors_b to match mapped clusters from a (transfer and merge)
-            amap = [a for a in labels_a_sort if a_to_b[a][0] == b]
+            amap = [a for a in labels_a_sort if a_to_b[a][0] == b] # the labels a that prefer b as best match
             for a in amap:
-                alist = matchset(clustering_a,a)
-                a_cols[a] = colors_a[alist[0]]
-            blist = matchset(clustering_b,b)
-            amap_t = list(set(amap)-set([-1]))
-            if len(amap_t) > 0: # some non-unclustered (ie not -1) clusters in a map to b
+                alist = matchset(clustering_a,a) # the positions in country list with label a (non empty since a is a label of clustering_a)
+                # a_cols[a] = colors_a[alist[0]]   # dictionary of colors chosen as color of first country in alist of a
+                a_cols.update({(b,a) : mpcolors.hsv_to_rgb(color_mean_rgb_to_hsv([colors_a[al] for al in alist]))})   # average color of alist for b chosen as color
+                # print('in relabel a,b,a_cols',a,b,a_cols[(b,a)])
+            blist = matchset(clustering_b,b)     # the positions in country list with label b
+            amap_t = list(set(amap)-set([-1]))   # the labels of real clusters (excluding unclustered set with label -1) that prefer b 
+            if len(amap_t) > 0: # some non-unclustered (ie not -1) clusters that prefer to map to b
                 # h = sum([mpcolors.rgb_to_hsv(a_cols[a])[0] for a in amap])/len(amap) # average hue from amap
-                h = color_mean_rgb_to_hsv([a_cols[a] for a in amap_t],[a_to_b[a][1] for a in amap_t])[0]
-                for j in blist:
+                h = color_mean_rgb_to_hsv([a_cols[(b,a)] for a in amap_t],[a_to_b[a][1] for a in amap_t])[0]
+                for j in blist:                             # indices of countries with label b
                     s = mpcolors.rgb_to_hsv(colors_b[j])[1] # take s saturation from b
-                    v = mpcolors.rgb_to_hsv(colors_b[j])[2] # take v from b
+                    v = mpcolors.rgb_to_hsv(colors_b[j])[2] # take v value from b
                     newcolors_b[j,:] = mpcolors.hsv_to_rgb([h,s,v]) # back to rgb  
-            b_cols[b] = newcolors_b[blist[0]] # first matching elt colour (to extract hue)
+            # b_cols[b] = newcolors_b[blist[0]] # first matching elt colour (to extract hue)
+            b_cols[b] = mpcolors.hsv_to_rgb(color_mean_rgb_to_hsv([newcolors_b[bl] for bl in blist]))   # average color of blist chosen as color
+
+    #print('before merge')
+
             
     if merge:
         for a in labels_a_sort:   # now readjust colors in b that both map to same a (split)
@@ -304,12 +266,16 @@ def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True):
                 for i,b in enumerate(bmap):
                     blist = matchset(clustering_b,b)
                     # h = (mpcolors.rgb_to_hsv(b_cols[b])[0] + mpcolors.rgb_to_hsv(a_cols[a])[0])/2
-                    h = color_mean_rgb_to_hsv([b_cols[b],a_cols[a]])[0]
+                    if (b,a) in list(a_cols.keys()):
+                        h = color_mean_rgb_to_hsv([b_cols[b],a_cols[(b,a)]])[0] # mean hue
+                    else:
+                        h = mpcolors.rgb_to_hsv(colors_b[j])[0]
                     for j in blist:                     
-                        s = mpcolors.rgb_to_hsv(b_cols[b])[1] # take s saturation from b
-                        v = mpcolors.rgb_to_hsv(b_cols[b])[2] # take v from b
+                        # s = mpcolors.rgb_to_hsv(b_cols[b])[1] # take s saturation from b   # these two lines cause all elts to have same value as first for s and v
+                        # v = mpcolors.rgb_to_hsv(b_cols[b])[2] # take v from b
+                        s = mpcolors.rgb_to_hsv(colors_b[j])[1] # take s saturation from b
+                        v = mpcolors.rgb_to_hsv(colors_b[j])[2] # take v from b
                         newcolors_b[j,:]= mpcolors.hsv_to_rgb([h,s,v])
-
     return newcolors_b
 
 # the final cluster alignment
@@ -782,6 +748,8 @@ class Consensus:
         clus_argsort = np.lexsort((countries,self.clusdata[self.refclustering]))  # lexicographical sort of countries by reference clustering and name
         scountries = [countries[clus_argsort[i]] for i in range(len(countries))]  #  sorted country names as above
         self.scountries = scountries
+        self.sidx = clus_argsort
+        # self.sinvidx = 
 
         self.probdata_s = self.probdata2.copy()                                   # sort the cluster ids and probs to match scountries
         self.clusdata_s = self.clusdata.copy()
@@ -804,13 +772,14 @@ class Consensus:
         `coldata`, `coldata_adj` and `coldata_adj2` are 3-d matrices: rows labeled by countries, columns labeled by report string (from max scoring), and 3 values for RGB in z-dim.
         """                
         rawdata = np.transpose(self.probdata_s)
-        cindex = np.transpose(self.clusdata_s)
+        cindex = np.transpose(self.clusdata_s) 
         ncols = len(set(self.clusdata.flatten()))
         if ncols>16:
             print('currently only 16 different colours allowed', ncols )
         colors = np.array([[1,1,1],[1,0,0],[0,1,0],[0,0,1],[1.,1.,0.],[1.,0.,1.],[0.,1.,1.],[0.5,1.,0.],
                            [0,1,0.5],[0.5,0,1],[0.5,1,0.5],[0.3,0.7,0.5],[0.5,0.7,0.3],[0.7,0.5,0.3],[0.1,0.7,0.7],[0.7,0.1,0.7]]) # black,red,green,blue,yellow,cyan,magenta,...
         colors = np.concatenate((colors,colors))
+        self.basecolors = colors
         cluscols = np.transpose(colors[cindex[:,:]+1],(2,0,1)) # transpose to allow elementwise multiplication with rawdata with separate r,g,b
         self.coldata = np.transpose((cluscols+3*cluscols*rawdata)/4.,(1,2,0))   # transpose back to have colours as elements of 2D array
         
@@ -909,8 +878,10 @@ class Consensus:
         self.swdat = np.array([self.coldata_adj2[i] for i in idx])       # swdat is swizzle3 sorted coldata_adj2
         self.swcountries = [self.scountries[i] for i in idx]             # swcountries is swizzle3 sorted scountries
         self.swdic = dic
+        self.swidx = idx
+        self.rgbdic = {cc:mpcolors.hsv_to_rgb(hsvdic[cc][1:4]) for cc in hsvdic} 
         self.hsvdic = hsvdic
-        self.rgblist = rgblist                                           # already swizzle ordered by swizzle3
+        self.rgblist = rgblist                                           # already swizzle ordered by swizzle3 
         
 
     def plot_swiz(self):
