@@ -663,6 +663,7 @@ class ModelFit:
                     rmsres2 = np.sqrt(np.sum(np.square(resd)))
                     self.residall.append(rmsres2)                    
                     self.paramall.append(pars.copy())
+                print('params_lmf:',params_lmf)
                 outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
                 # outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)
 
@@ -689,9 +690,7 @@ class ModelFit:
 
         ## set model params to fitted values, dump to file --------------------------------------------------------------------
         if 'outfit' in locals():
-            print('----------',len(outfit.params))
             for x in outfit.params:
-                print(x)
                 if x in self.params:
                     self.set_param(x, outfit.params[x].value)
                 elif 'logI_0' in outfit.params:
