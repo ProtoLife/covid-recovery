@@ -420,9 +420,18 @@ def mxcor(m,n,nclus=3):
 # for i in range(len(classes)):
 #     corclasses[i,i] = 1.0
     
+def get_cluster_data(clusdtype):
+    #ClData=ClusterData(bd,clusdtype='JRP1',cluster_data=True)  # ideally this should be made to work
+    print('reading in data from','./pks/data_cluster_'+clusdtype+'.pk','...')
+    with open('./pks/data_cluster_'+clusdtype+'.pk','rb') as fp:
+        foo = pk.load(fp)
+    return foo['ClData']
+
 
 ###########################################################
 # will want to move this !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # to get ModelFit class definition:
 # exec(open('ClusterFit.py','r').read())
-    ###########################################################
+###########################################################
+
+    
