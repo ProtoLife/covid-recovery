@@ -241,7 +241,6 @@ def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True):
             amap = [a for a in labels_a_sort if a_to_b[a][0] == b] # the labels a that prefer b as best match
             for a in amap:
                 alist = matchset(clustering_a,a) # the positions in country list with label a (non empty since a is a label of clustering_a)
-                # a_cols[a] = colors_a[alist[0]]   # dictionary of colors chosen as color of first country in alist of a
                 a_cols.update({(b,a) : mpcolors.hsv_to_rgb(color_mean_rgb_to_hsv([colors_a[al] for al in alist]))})   # average color of alist for b chosen as color
                 # print('in relabel a,b,a_cols',a,b,a_cols[(b,a)])
             blist = matchset(clustering_b,b)     # the positions in country list with label b
@@ -267,16 +266,86 @@ def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True):
                     blist = matchset(clustering_b,b)
                     # h = (mpcolors.rgb_to_hsv(b_cols[b])[0] + mpcolors.rgb_to_hsv(a_cols[a])[0])/2
                     if (b,a) in list(a_cols.keys()):
-                        h = color_mean_rgb_to_hsv([b_cols[b],a_cols[(b,a)]])[0] # mean hue
+                        h,s0,v0 = color_mean_rgb_to_hsv([b_cols[b],a_cols[(b,a)]]) # mean of current color and that of a class that prefers this b
                     else:
-                        h = mpcolors.rgb_to_hsv(colors_b[j])[0]
+                        # h = mpcolors.rgb_to_hsv(colors_b[j])[0]
+                        h,s0,v0 = mpcolors.rgb_to_hsv(b_cols[b])
                     for j in blist:                     
                         # s = mpcolors.rgb_to_hsv(b_cols[b])[1] # take s saturation from b   # these two lines cause all elts to have same value as first for s and v
                         # v = mpcolors.rgb_to_hsv(b_cols[b])[2] # take v from b
                         s = mpcolors.rgb_to_hsv(colors_b[j])[1] # take s saturation from b
                         v = mpcolors.rgb_to_hsv(colors_b[j])[2] # take v from b
                         newcolors_b[j,:]= mpcolors.hsv_to_rgb([h,s,v])
+                    b_cols[b]=mpcolors.hsv_to_rgb([h,s0,v0])
+
     return newcolors_b
+
+def cluster_map_colors(cons1,cons2,relabel=True,merge=True):
+    """ recalculate colors of countries in consensus clustering cons2, based on alignment with clustering cons1
+        input: two consensus clusterings with completed scans
+               relabel abnd merge options (default True) as for clust 
+        output: colors2 : the matched coloring of cons2
+        side_effect : places inverse mapping iidx in cons2 to allow country order alignment
+    """
+    refc1 = cons1.refclustering
+    refc2 = cons2.refclustering
+    clusdat1 = np.array([cons1.clusdata[refc1][i] for i in cons1.sidx])
+    clusdat2 =  np.array([cons2.clusdata[refc2][i] for i in cons1.sidx])   # NB not cons2.sidx
+    if len(clusdat1) != len(clusdat2): 
+        print('Error: country list lengths not equal')
+        return None
+    else: ncountries = len(clusdat2)
+    cons2.iidx = [None]*ncountries
+    for i, j in zip(range(ncountries), cons2.sidx): cons2.iidx[j] = i # undo cons2.idx reordering
+    colors1 = np.array(cons1.rgblist)
+    colors2_c = np.array([cons2.rgblist[cons2.iidx[i]] for i in range(ncountries)] ) # change order back to match countries
+    colors2 = np.array([colors2_c[cons2.sidx[i]] for i in range(ncountries)] ) # change order to match scountries of cons1
+    # print(np.array(list(zip(clusdat2,mpcolors.rgb_to_hsv(colors2)))))
+    #colors2 = clust(clusdat1,clusdat2,colors1,colors2,relabel=False,merge=False)
+    colors2 = clust(clusdat1,clusdat2,colors1,colors2,relabel=True,merge=True)
+    #for i in range(len(colors2)):
+    #    print(i,clusdat1[i],clusdat2[i],mpcolors.rgb_to_hsv(colors1[i]),mpcolors.rgb_to_hsv(colors2[i]))
+    return colors1,colors2
+
+def cmap_sankey(clus1,clus2,colors1,colors2,hue_only=True):
+    cmap12 = {}
+    for ci in set(clus1):
+        for i,lab in enumerate(clus1): 
+            if lab == ci:
+                tmp = colors1[i]
+                break
+        cmap12.update({'a'+str(ci):tmp})
+
+    for ci in set(clus2):
+        for i,lab in enumerate(clus2): 
+            if lab == ci:
+                tmp = colors2[i]
+                # print(ci,mpcolors.rgb_to_hsv(tmp))
+                break  
+        cmap12.update({'b'+str(ci):tmp})
+    if hue_only:
+        # reset colors to full saturation and value unless sat is 0
+        cmap12h = {elt:mpcolors.hsv_to_rgb([mpcolors.rgb_to_hsv(cmap12[elt])[0],1,1] if mpcolors.rgb_to_hsv(cmap12[elt])[1]!=0 else [0,0,0]) for elt in cmap12}
+    else:
+        cmap12h = cmap12
+    return cmap12h
+
+def sankey(cons1,cons2,cons1_name='cons1',cons2_name='cons2',relabel=True,merge=True,hue_only=True):
+    # extract refclustering data and order it according to the scountries list of cons1=cons 
+    # set up dictionary lists of countries for each label
+    if len(cons1.countries) != len(cons2.countries):
+        print('Error: lengths of countries not equal',len(cons1.countries),len(cons2.countries))
+        return
+    clus1 = [cons1.clusdata[cons1.refclustering][i] for i in cons1.sidx]
+    clus2 = [cons2.clusdata[cons2.refclustering][i] for i in cons1.sidx]
+    colors1,colors2=cluster_map_colors(cons1,cons2,relabel=relabel,merge=merge)
+    cmap12=cmap_sankey(clus1,clus2,colors1,colors2,hue_only=hue_only)
+    dic1 = {lab:[cc for i,cc in enumerate(cons1.scountries) if clus1[i]==lab] for lab in set(clus1)}
+    dic2 = {lab:[cc for i,cc in enumerate(cons1.scountries) if clus2[i]==lab] for lab in set(clus2)}
+    df = dic_compare(dic1,dic2)
+    h1 = hv.Sankey(df,kdims=['c1','c2'],vdims=['val'])
+    h1.opts(title=cons1_name+' vs '+cons2_name, cmap=cmap12,  node_color='index', edge_color='c1', node_alpha=1.0, edge_alpha=0.7)
+    return h1
 
 # the final cluster alignment
 def plot_clusalign(countries,data,report,cols=None):
@@ -600,10 +669,11 @@ class Consensus:
         minscore2val = 999.
         self.report = [' ']*4*len(self.cases)
         self.reportdata = [None]*4*len(self.cases)
-        runlen = len(self.cldata.clusdata_all[self.cases[0]])
+        # runlen = len(self.cldata.clusdata_all[self.cases[0]])
+        runlen = len(countries)
         self.probdata=np.zeros((4*6,runlen),dtype=float)
         self.outlierdata=np.zeros((4*6,runlen),dtype=float)
-        self.clusdata = np.zeros((4*6,len(countries)),dtype=np.int64)
+        self.clusdata = np.zeros((4*6,runlen),dtype=np.int64)
         self.info =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         infomax =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         cnt=0
@@ -611,7 +681,8 @@ class Consensus:
         for ic,case in tqdm(list(enumerate(self.cases)), desc='loop over cases' ,disable= not progress): # loop with progress bar instead of just looping over enumerate(cases)
         # for ic,case in enumerate(self.cases):
             data = self.cldata.clusdata_all[case]
-            dat = np.array([data[cc] for cc in data]).astype(float)
+            #dat = np.array([data[cc] for cc in data]).astype(float)
+            dat = np.array([data[cc] for cc in countries]).astype(float)
             for i in range(len(dat)):   # normalize data
                 mx = max(dat[i])
                 dat[i] = [dd/mx for dd in dat[i]]
@@ -734,7 +805,8 @@ class Consensus:
             print('must run a scan to define and fill clusdata first: starting scan')
             self.scan()
         countries = self.countries
-        
+        if diag:
+            print(len(countries),'countries')
         if refclustering == 'auto' or refclustering >= 4*len(self.cases):
             nrep = len(self.reportdata)
             scores = [rep[7] for rep in self.reportdata[3:nrep:4]] # optimal score 2 subset of data reports 
@@ -750,6 +822,7 @@ class Consensus:
         self.scountries = scountries
         self.sidx = clus_argsort
         # self.sinvidx = 
+
 
         self.probdata_s = self.probdata2.copy()                                   # sort the cluster ids and probs to match scountries
         self.clusdata_s = self.clusdata.copy()
