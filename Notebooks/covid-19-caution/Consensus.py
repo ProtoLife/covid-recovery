@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 from matplotlib import colors as mpcolors
 
 import numpy as np
+from scipy.optimize import linear_sum_assignment
 import pandas as pd
 
 # Jupyter Specifics
@@ -180,7 +181,18 @@ def size_order(clusterings):
         order = np.flip(np.argsort(sizes))
         clusterings_o[i,:] = [order[c] if c != -1 else c for c in clustering]
     return clusterings_o
-                      
+
+def clust_assign(clustering_a,clustering_b,colors_a,colors_b):
+    """ relables clustering b to match clustering a optimally
+        according tot he Hungarian algorithm, implemented in scipy
+    """    
+    labels_a = list(set(clustering_a))
+    labels_b = list(set(clustering_b))
+    scores = np.zeros((len(labels_a),len(labels_b)),dtype=float)
+    for i,a in enumerate(labels_a):
+        for j,b in enumerate(labels_b):
+            scores[i,j] = score_int_union(matchset(clustering_a,a),matchset(clustering_b,b)) # length intersection divided by length union (result 0. to 1. for identity)
+    assign_a_to_b,assign_b_to_a=scipy.optimize.linear_sum_assignment(scores)              
 def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True): 
     """ relables clustering b to match clustering a
         if more than one cluster in a optimally matches a particular cluster in b, then color of b is merger of colors in a
@@ -297,12 +309,14 @@ def cluster_map_colors(cons1,cons2,relabel=True,merge=True):
     else: ncountries = len(clusdat2)
     cons2.iidx = [None]*ncountries
     for i, j in zip(range(ncountries), cons2.sidx): cons2.iidx[j] = i # undo cons2.idx reordering
-    colors1 = np.array(cons1.rgblist)
-    colors2_c = np.array([cons2.rgblist[cons2.iidx[i]] for i in range(ncountries)] ) # change order back to match countries
-    colors2 = np.array([colors2_c[cons2.sidx[i]] for i in range(ncountries)] ) # change order to match scountries of cons1
+    colors1 = np.array([cons1.basecolors[clus+1] for clus in clusdat1])
+    colors2_c = np.array([cons2.basecolors[clusdat2[cons2.iidx[i]]+1] for i in range(ncountries)] ) 
+    colors2_0 = np.array([colors2_c[cons2.sidx[i]] for i in range(ncountries)] )
+    #colors1 = np.array(cons1.rgblist) # already ordered like scountries
+    #colors2_c = np.array([cons2.rgblist[cons2.iidx[i]] for i in range(ncountries)] ) # change order back to match countries  # DEBUG 
+    #colors2 = np.array([colors2_c[cons2.sidx[i]] for i in range(ncountries)] ) # change order to match scountries of cons1   # DEBUG
     # print(np.array(list(zip(clusdat2,mpcolors.rgb_to_hsv(colors2)))))
-    #colors2 = clust(clusdat1,clusdat2,colors1,colors2,relabel=False,merge=False)
-    colors2 = clust(clusdat1,clusdat2,colors1,colors2,relabel=True,merge=True)
+    colors2 = clust(clusdat1,clusdat2,colors1,colors2_0,relabel=relabel,merge=merge)
     #for i in range(len(colors2)):
     #    print(i,clusdat1[i],clusdat2[i],mpcolors.rgb_to_hsv(colors1[i]),mpcolors.rgb_to_hsv(colors2[i]))
     return colors1,colors2
@@ -336,7 +350,7 @@ def sankey(cons1,cons2,cons1_name='cons1',cons2_name='cons2',relabel=True,merge=
     if len(cons1.countries) != len(cons2.countries):
         print('Error: lengths of countries not equal',len(cons1.countries),len(cons2.countries))
         return
-    clus1 = [cons1.clusdata[cons1.refclustering][i] for i in cons1.sidx]
+    clus1 = [cons1.clusdata[cons1.refclustering][i] for i in cons1.sidx]  # ordered like scountries
     clus2 = [cons2.clusdata[cons2.refclustering][i] for i in cons1.sidx]
     colors1,colors2=cluster_map_colors(cons1,cons2,relabel=relabel,merge=merge)
     cmap12=cmap_sankey(clus1,clus2,colors1,colors2,hue_only=hue_only)
@@ -657,7 +671,7 @@ class Consensus:
         self.swcountries=None
         self.cldata=cldata
 
-    def scan(self,diag=False,progress=True):
+    def scan(self,diag=False,progress=True,name=''):
         countries = self.countries
         maxvalid = [None,None,None,None,None,None]
         maxvalidval= 0.0
@@ -678,7 +692,7 @@ class Consensus:
         infomax =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         cnt=0
 
-        for ic,case in tqdm(list(enumerate(self.cases)), desc='loop over cases' ,disable= not progress): # loop with progress bar instead of just looping over enumerate(cases)
+        for ic,case in tqdm(list(enumerate(self.cases)), desc=name+'loop over cases' ,disable= not progress): # loop with progress bar instead of just looping over enumerate(cases)
         # for ic,case in enumerate(self.cases):
             data = self.cldata.clusdata_all[case]
             #dat = np.array([data[cc] for cc in data]).astype(float)
