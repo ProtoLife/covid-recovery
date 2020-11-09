@@ -161,7 +161,7 @@ class ModelFit:
     def plotdata(self,dtypes=['confirmed','deaths']):
         if type(dtypes)==str:
             dtypes = [dtypes]
-        xx = np.array(range(len(self.tdata)-1))
+        xx = np.array(range(len(self.tsim)-1))
         print(len(xx))
         print([(x,len(self.data[x])) for x in dtypes])
 
@@ -824,13 +824,9 @@ class ModelFit:
             if (stopdate_t - startdate_t).days > (lastdate_t - startdate_t).days:
                 print('stop date out of data range, setting to data last date',ts['confirmed']['dates'][-1])
                 stopdate_t = lastdate_t
-            datadays = (stopdate_t-startdate_t).days + 1            
-            if simdays: # simdays allowed greater than datadays to enable predictions
-                if simdays < datadays:
-                    stopdate_t = startdate_t + datetime.timedelta(days=simdays-1)  # if simulation for shorter time than data, restrict data to this
-                    datadays = (stopdate_t-startdate_t).days + 1    
+                datadays = (stopdate_t-startdate_t).days + 1            
             else:
-                simdays = datadays
+                datadays = (lastdate_t-startdate_t).days + 1
             self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
         elif data_src == 'cluster':
             datadays = len(ts['deaths'][country])
@@ -842,14 +838,20 @@ class ModelFit:
             daystart = 0
             self.dates = [startdate_t + datetime.timedelta(days=x) for x in range(datadays)] # fake dates
             stopdate_t = self.dates[-1]
-            self.tsim = np.linspace(0, datadays -1, datadays)
-            if simdays:
-                self.tsim = np.concatenate(self.tsim,np.linspace(0, simdays -1, simdays))
-            self.tdata = np.linspace(0, datadays -1, datadays)
         else:
             print("Error:  can't deal with data_src", data_src)
             return None
-                
+
+        if simdays: # simdays allowed greater than datadays to enable predictions
+            if simdays < datadays:
+                stopdate_t = startdate_t + datetime.timedelta(days=simdays-1)  # if simulation for shorter time than data, restrict data to this
+                datadays = (stopdate_t-startdate_t).days + 1    
+                self.tsim = np.linspace(0, datadays -1, datadays)
+            else:
+                self.tsim = np.linspace(0, simdays -1, simdays)
+        else:
+            self.tsim = np.linspace(0, datadays -1, datadays)
+
         if datatypes == 'all':
             datatypes = [x for x in ts]
         
@@ -860,7 +862,12 @@ class ModelFit:
                 print(dt,'not in ts for data_src',data_src)
                 return None
             if ts[dt] is not None:
-                self.data[dt] = ts[dt][country][daystart:datadays].copy()
+                try:
+                    self.data[dt] = ts[dt][country][daystart:datadays].copy()
+                except Exception as e:
+                    print('problem with',dt,'country',country)
+                    print(e)
+                    
             #self.data.update({dt:ts[dt][country][daystart:datadays]}) 
 
         self.startdate = startdate_t.strftime(fmt_jhu)
