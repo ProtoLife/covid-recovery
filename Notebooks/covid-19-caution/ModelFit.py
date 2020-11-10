@@ -163,11 +163,11 @@ class ModelFit:
             dtypes = [dtypes]
         xx = np.array(range(len(self.tsim)-1))
         print(len(xx))
-        print([(x,len(self.data[x])) for x in dtypes])
+        print([(x,len(self.tsdata[x])) for x in dtypes])
 
         for dt in dtypes:
             try:
-                yy = self.data[dt]
+                yy = self.tsdata[dt]
             except:
                 print("data type '"+dt+"' not found.")
             try:
@@ -277,7 +277,7 @@ class ModelFit:
             ldatasets = datasets
 
         for dt in ldatasets:
-            if dt not in [x for x in self.data]:
+            if dt not in [x for x in self.tsdata]:
                 print('Error:  ',dt,'not in data')
 
         dspecies = [dt if dt != 'caution_fraction' else 'stringency' for dt in lspecies]
@@ -285,8 +285,8 @@ class ModelFit:
 
         tvec = self.tsim
         tvec1 = tvec[1:]
-        if not self.data is {}:
-            fitdata = np.transpose(np.array([self.data[dt] for dt in datasets]))
+        if not self.tsdata is {}:
+            fitdata = np.transpose(np.array([self.tsdata[dt] for dt in datasets]))
             fitsmoothed = False
             for dt in datasets:
                 if 'smoothed' in dt:
@@ -469,17 +469,17 @@ class ModelFit:
         tvec = self.tsim
         tvec1 = tvec[1:]
         fitdata = {}
-        if not self.data is {}:
+        if not self.tsdata is {}:
             for i,ls in enumerate(lspecies):
                 ds = ldatasets[i]
                 if ls == 'confirmed':     
-                    datmp = self.data[ds] # confirmed cases data, corrected by FracConfirmedDet
+                    datmp = self.tsdata[ds] # confirmed cases data, corrected by FracConfirmedDet
                     fitdata[ls] = [x/self.fbparams['FracConfirmedDet']/self.population for x in datmp]
                 elif ls == 'deaths':
-                    datmp = self.data[ds] # deaths cases data, corrected by FracDeathsDet
+                    datmp = self.tsdata[ds] # deaths cases data, corrected by FracDeathsDet
                     fitdata[ls] = [x/self.fbparams['FracDeathsDet']/self.population for x in datmp]
                 else:
-                    fitdata[ls] = np.array(self.data[ds])
+                    fitdata[ls] = np.array(self.tsdata[ds])
 
         else:
             print('missing fit data')
@@ -667,57 +667,75 @@ class ModelFit:
                     rmsres2 = np.sqrt(np.sum(np.square(resd)))
                     self.residall.append(rmsres2)                    
                     self.paramall.append(pars.copy())
-                outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
-                # outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)
+                fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
+                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)
 
                 print('elapsed time = ',time()-start)
-                lmfit.report_fit(outfit)
+                lmfit.report_fit(fit_output)
             elif report:
-                # outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
+                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
                 if (fit_method == 'leastsq') and conf_interval:
                     mini = lmfit.Minimizer(resid, params_lmf, fcn_args=(self,),**fit_kws)
-                    outfit = mini.minimize()
-                    lmfit.report_fit(outfit)
+                    fit_output = mini.minimize()
+                    lmfit.report_fit(fit_output)
                     print('calculating Confidence Intervals')
-                    ci = lmfit.conf_interval(mini, outfit)
+                    ci = lmfit.conf_interval(mini, fit_output)
                     print('Confidence Intervals')
                     lmfit.printfuncs.report_ci(ci)
                 else:
-                    outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
-                    lmfit.report_fit(outfit)
+                    fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
+                    lmfit.report_fit(fit_output)
             else:
-                outfit = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
+                fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
         except Exception as e:
             print('Problem with fit...')
             print(e)
 
         ## set model params to fitted values, dump to file --------------------------------------------------------------------
-        if 'outfit' in locals():
-            for x in outfit.params:
+        if 'fit_output' in locals():
+            for x in fit_output.params:
                 if x in self.params:
-                    self.set_param(x, outfit.params[x].value)
-                elif 'logI_0' in outfit.params:
-                    self.set_I0(outfit.params['logI_0'].value)
-                elif 'I0' in outfit.params:
-                    logI_0 = np.log10(outfit.params['I0'])
+                    self.set_param(x, fit_output.params[x].value)
+                elif 'logI_0' in fit_output.params:
+                    self.set_I0(fit_output.params['logI_0'].value)
+                elif 'I0' in fit_output.params:
+                    logI_0 = np.log10(fit_output.params['I0'])
                     self.set_I0(logI_0)                    
                     
             ## dump new fitted values.
-            self.outfit = outfit
+            self.fit_output = fit_output
+            all_params = {'params':self.params, 
+                          'sbparams':self.sbparams,
+                          'fbparams':self.fbparams,
+                          'cbparams':self.cbparams,
+                          'dbparams':self.dbparams,
+                          'initial_values':self.initial_values 
+            }
+            self.all_params = all_params
             self.dumpparams()
         else:
             print('Problem with fit, model params not changed')
 
 
-    def __init__(self,modelname,basedata=None,data=None,model=None,country='Germany',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
+    def __init__(self,modelname,basedata=None,data=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
         except that if run_id starts with character '_', it is appended to the default run_id,
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
+        self.data_src = data_src
         if basedata==None:
             print("Error:  must specify base data with arg basedata.")
+        if data==None:
+            print("Error:  must specify data with arg data.")
+        self.data = data
+        self.basedata = basedata
+        self.startdate = startdate
+        self.stopdate = stopdate
+        self.simdays = simdays
+        self.datatypes = datatypes
+        self.fit_targets = fit_targets
         global make_model,possmodels
         dirnm = os.getcwd()
         # construct default name for file / run_id
@@ -787,32 +805,36 @@ class ModelFit:
         self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams)
 
         ################################################################
-        # set up data and times for simulation
-        ts = data
-        if data_src not in ['jhu','owid','cluster']:
+        # For scan, country='' and will be set up in scan loop
+        if country != '':
+            self.setup_data(country)
+
+    def setup_data(self,country):
+        ts = self.data
+        if self.data_src not in ['jhu','owid','cluster']:
             print('data_src',data_src,'not yet hooked up: OWID data used instead')
             return None
 
         self.country_str = country_str = country
-        if data_src == 'jhu':
+        if self.data_src == 'jhu':
             self.country = country = (self.country_str,'')
         else:
             self.country = country
 
-        self.population = basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
+        self.population = self.basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
 
         fmt_jhu = '%m/%d/%y'
-        if data_src == 'owid' or data_src == 'jhu':
+        if self.data_src == 'owid' or self.data_src == 'jhu':
             dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['deaths']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
             firstdate_t =  dates_t[0]
             lastdate_t =  dates_t[-1]
-            if startdate:
-                startdate_t = datetime.datetime.strptime(startdate,fmt_jhu)
+            if self.startdate:
+                startdate_t = datetime.datetime.strptime(self.startdate,fmt_jhu)
             else:
                 startdate_t = firstdate_t
-            if stopdate:
-                stopdate_t = datetime.datetime.strptime(stopdate,fmt_jhu)
-                print('stopdate',stopdate) 
+            if self.stopdate:
+                stopdate_t = datetime.datetime.strptime(self.stopdate,fmt_jhu)
+                #print('stopdate',self.stopdate) 
             else:
                 stopdate_t = lastdate_t
             if (startdate_t - firstdate_t).days < 0:
@@ -828,42 +850,42 @@ class ModelFit:
             else:
                 datadays = (lastdate_t-startdate_t).days + 1
             self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
-        elif data_src == 'cluster':
+        elif self.data_src == 'cluster':
             datadays = len(ts['deaths'][country])
-            if simdays: # simdays allowed greater than datadays to enable predictions
-                if simdays < datadays:
-                    datadays = simdays
-            startdate = '02/01/20' # fake first date for cluster time series
-            startdate_t = datetime.datetime.strptime(startdate,fmt_jhu)
+            if self.simdays: # simdays allowed greater than datadays to enable predictions
+                if self.simdays < datadays:
+                    datadays = self.simdays
+            self.startdate = '02/01/20' # fake first date for cluster time series
+            startdate_t = datetime.datetime.strptime(self.startdate,fmt_jhu)
             daystart = 0
             self.dates = [startdate_t + datetime.timedelta(days=x) for x in range(datadays)] # fake dates
             stopdate_t = self.dates[-1]
         else:
-            print("Error:  can't deal with data_src", data_src)
+            print("Error:  can't deal with data_src", self.data_src)
             return None
 
-        if simdays: # simdays allowed greater than datadays to enable predictions
-            if simdays < datadays:
-                stopdate_t = startdate_t + datetime.timedelta(days=simdays-1)  # if simulation for shorter time than data, restrict data to this
+        if self.simdays: # simdays allowed greater than datadays to enable predictions
+            if self.simdays < datadays:
+                stopdate_t = startdate_t + datetime.timedelta(days=self.simdays-1)  # if simulation for shorter time than data, restrict data to this
                 datadays = (stopdate_t-startdate_t).days + 1    
                 self.tsim = np.linspace(0, datadays -1, datadays)
             else:
-                self.tsim = np.linspace(0, simdays -1, simdays)
+                self.tsim = np.linspace(0, self.simdays -1, self.simdays)
         else:
             self.tsim = np.linspace(0, datadays -1, datadays)
 
-        if datatypes == 'all':
-            datatypes = [x for x in ts]
-        
-        self.data = {}
-        for dt in datatypes:
+        if self.datatypes == 'all':
+            self.datatypes = [x for x in ts]
+
+        self.tsdata = {}
+        for dt in self.datatypes:
             if dt not in ts:
                 print('datatype error:')
-                print(dt,'not in ts for data_src',data_src)
+                print(dt,'not in ts for data_src',self.data_src)
                 return None
             if ts[dt] is not None:
                 try:
-                    self.data[dt] = ts[dt][country][daystart:datadays].copy()
+                    self.tsdata[dt] = ts[dt][country][daystart:datadays].copy()
                 except Exception as e:
                     print('problem with',dt,'country',country)
                     print(e)
@@ -873,6 +895,78 @@ class ModelFit:
         self.startdate = startdate_t.strftime(fmt_jhu)
         self.stopdate = stopdate_t.strftime(fmt_jhu)
 
-        self.fit_targets = fit_targets
+        for targ in self.fit_targets:
+            if targ not in self.tsdata:
+                print('Error: fit target',targ,'is not available in datatypes',self.datatypes)
+                return None
         self.fit_data = 'default'
 
+class Scan(ModelFit):
+    def __init__(self,*,countries,scanplot=True,params_init_min_max,**kwargs):
+        super().__init__(**kwargs)
+        cnt=0
+        # max_rows = 2   # for short test...
+        
+        self.countries = countries
+        self.scanplot = scanplot
+        self.params_init_min_max = params_init_min_max
+        self.scan_params = {}
+        self.scan_fitdata = {}
+        self.run_id = self.run_id+'_scan'
+        #for idx, country  in enumerate(short_countries):
+
+    def scan(self):
+        start = time()
+        cnt=0
+        max_cols=8
+        max_rows=int(len(self.countries)/max_cols) + 1
+        if max_rows==1:
+            max_rows = 2
+        if self.scanplot:
+            fig, axes = plt.subplots(nrows=max_rows, ncols=max_cols, figsize=(24,2.6*max_rows))
+
+        for idx, country  in enumerate(self.countries):
+            print(idx,country)
+            row = idx // max_cols
+            col = idx % max_cols
+            ###############################################
+            ## do the fit
+            try:
+                self.setup_data(country)
+                super().fit(self.params_init_min_max,fit_method='leastsq',diag=False,fit_targets=['deaths'],fit_data=['deaths_corrected_smoothed'],report=False)
+                if self.scanplot:
+                    super().solveplot(species=['deaths'],datasets=['deaths_corrected_smoothed'],axis=axes[row,col],newplot=False)  
+                self.scan_params[country] = self.all_params
+                self.scan_fitdata[country] = self.fit_output
+            except Exception as e:
+                print('Problem...')
+                print(sys.exc_info()[0])
+                print(e)
+            if self.scanplot:
+                axes[row,col].set_title(country)
+            cnt = cnt+1
+            #if cnt==15:   # for short test
+            #    break
+            ###############################################
+
+        if self.scanplot:
+            for idx in range(cnt,max_rows*max_cols):
+                row = idx // max_cols
+                col = idx % max_cols
+                axes[row, col].axis("off")
+            fig.tight_layout()
+            plt.savefig(self.run_id+'.pdf')
+            plt.show()
+        self.dump()
+        finish = time()
+        print('Total elapsed time for ',len(self.countries),'countries:',finish-start)
+        print('Time per country:',float(finish-start)/len(self.countries))
+
+    def dump(self):
+        filename = './pks/'+self.run_id+'.pk'
+        scan_all = {}
+        scan_all['params'] = self.scan_params
+        scan_all['fitdata'] = self.scan_fitdata
+        with open(filename,'bw') as fp:
+            pk.dump(scan_all,fp)
+        
