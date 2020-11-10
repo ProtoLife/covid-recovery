@@ -298,14 +298,15 @@ def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True):
 
 def clust_lsa(clustering_a,clustering_b,colors_a,colors_b,base_colors=None,relabel=True,merge=True): 
     """ relables clustering b to match clustering a
-        uses Hungarian linear_sum_assignment algorithm in scipy, with -1 : -1 unclustered class mapping fixed
-        produces new label if match quality lkess than 20%
+        if more than one cluster in a optimally matches a particular cluster in b, then color of b is merger of colors in a
+        if more than one cluster in b optimally matches a particular cluster in a, then colors in a merged and split for b
         inputs: clustering_a,b are lists of cluster labels by country, colors_a,b are lists of rgb colors by country in same order  
         returns: newcolors_b in rgb format
         NB. colors_b are only used to preserve s,v values relating to probs of cluster membership for b in final colors
         NB. the hues of b_cols are determined by the matching of clustering b with clustering a
         NB. all elts of same cluster have the same hue
     """
+    # print('in clust_lsa')
     labels_a = list(set(clustering_a))
     labels_b = list(set(clustering_b))
     labels_a_clus = list(set(clustering_a)-set([-1])) # all except unclustered class
@@ -321,6 +322,8 @@ def clust_lsa(clustering_a,clustering_b,colors_a,colors_b,base_colors=None,relab
     row_ind,col_ind=linear_sum_assignment(scores)
     
     # construct forward and backward dictionary assignments
+    if len(row_ind) != len(col_ind):
+        print('Error: row and col indices have different lengths',row_ind,col_ind)
     dic_a_2_b = {labels_a_clus[row_ind[i]]:labels_b_clus[col_ind[i]] for i in range(len(row_ind))}
     dic_a_2_b.update({-1:-1})
     dic_b_2_a = {labels_b_clus[col_ind[i]]:labels_a_clus[row_ind[i]] for i in range(len(row_ind))}
@@ -333,7 +336,10 @@ def clust_lsa(clustering_a,clustering_b,colors_a,colors_b,base_colors=None,relab
         if a not in dic_a_2_b.keys():
             dic_a_2_b.update({a:None})
         else:
-            relabel_b[dic_a_2_b[a]]=a       
+            relabel_b[dic_a_2_b[a]]=a   
+    # print('dic a_2_b',dic_a_2_b)
+    # print('dic b_2_a',dic_b_2_a)
+    # print('relabel_b I',relabel_b)
     for b in labels_b: #unmatched labels b are given new cluster labels
         if b not in relabel_b.keys():
             maxlabel = maxlabel+1
@@ -343,6 +349,7 @@ def clust_lsa(clustering_a,clustering_b,colors_a,colors_b,base_colors=None,relab
                 # print('new label',dic_b_2_a[b],b,scoredict[(dic_b_2_a[b] ,b)])
                 maxlabel = maxlabel+1
                 relabel_b[b]=maxlabel
+    # print('relabel_b II',relabel_b)
     new_labels_b = np.array([relabel_b[b] for b in labels_b])
     
     newcolors_b = np.zeros((len(colors_b),3),dtype=float)
@@ -353,9 +360,12 @@ def clust_lsa(clustering_a,clustering_b,colors_a,colors_b,base_colors=None,relab
     if relabel:    
         for b in labels_b:   # first adjust colors_b to match mapped clusters from a (transfer and merge)
             if relabel_b[b] in labels_a:
-                newcol =  colors_a[dic_b_2_a[b]] 
+                a = dic_b_2_a[b]
+                alist = matchset(clustering_a,a)
+                newcol =  colors_a[alist[0]] 
             else:
                 newcol = base_colors[1+relabel_b[b]]
+                # print('new color for b from',b,'to',relabel_b[b],'entry +1',newcol)
             h =  mpcolors.rgb_to_hsv(newcol)[0]
             for j in matchset(clustering_b,b):      # indices of countries with label b
                 s = mpcolors.rgb_to_hsv(colors_b[j])[1] # take s saturation from b
@@ -390,7 +400,7 @@ def cluster_map_colors(cons1,cons2,relabel=True,merge=True):
     #colors2_c = np.array([cons2.rgblist[cons2.iidx[i]] for i in range(ncountries)] ) # change order back to match countries  # DEBUG 
     #colors2 = np.array([colors2_c[cons2.sidx[i]] for i in range(ncountries)] ) # change order to match scountries of cons1   # DEBUG
     # print(np.array(list(zip(clusdat2,mpcolors.rgb_to_hsv(colors2)))))
-    colors2 = clust(clusdat1,clusdat2,colors1,colors2_0,relabel=relabel,merge=merge)
+    colors2 = clust_lsa(clusdat1,clusdat2,colors1,colors2_0,base_colors=cons2.basecolors,relabel=relabel,merge=merge)
     #for i in range(len(colors2)):
     #    print(i,clusdat1[i],clusdat2[i],mpcolors.rgb_to_hsv(colors1[i]),mpcolors.rgb_to_hsv(colors2[i]))
     return colors1,colors2
@@ -953,7 +963,7 @@ class Consensus:
                 clusb = self.clusdata_s[i]
                 cb = coldata_t[i]
                 # newcolors_b = clust(clusa,clusb,ca,cb,True,False)  # only do phase 1 of cluster recolouring
-                newcolors_b = clust_lsa(clusa,clusb,ca,cb,base_colors=colors,relabel=True,merge=False)
+                newcolors_b = clust(clusa,clusb,ca,cb,relabel=True,merge=False)
                 coldata_t[i,:] = newcolors_b[:]
         self.coldata_adj = np.transpose(coldata_t,(1,0,2))         # sorted by countries in reference clustering sorted order
 
@@ -965,8 +975,8 @@ class Consensus:
             if i != self.refclustering:
                 clusb = self.clusdata_s[i]
                 cb = coldata_t2[i]
-                newcolors_b = clust(clusa,clusb,ca,cb,True,True)   # do phases 1 and 2 or cluster recolouring
-                newcolors_b = clust_lsa(clusa,clusb,ca,cb,base_colors=colors,relabel=True,merge=True)
+                # newcolors_b = clust(clusa,clusb,ca,cb,True,True)   # do phases 1 and 2 or cluster recolouring
+                # newcolors_b = clust_lsa(clusa,clusb,ca,cb,base_colors=colors,relabel=True,merge=True)
                 coldata_t2[i,:] = newcolors_b[:]
         self.coldata_adj2 = np.transpose(coldata_t2,(1,0,2))       # sorted by countries in reference clustering sorted order
 
