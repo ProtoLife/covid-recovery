@@ -297,9 +297,9 @@ def clust(clustering_a,clustering_b,colors_a,colors_b,relabel=True,merge=True):
     return newcolors_b
 
 def clust_lsa(clustering_a,clustering_b,colors_a,colors_b,base_colors=None,relabel=True,merge=True): 
-    """ relables clustering b to match clustering a
-        if more than one cluster in a optimally matches a particular cluster in b, then color of b is merger of colors in a
-        if more than one cluster in b optimally matches a particular cluster in a, then colors in a merged and split for b
+    """ relables clustering b to match clustering a, optimally using first linear_sum_assignment, 
+        then augmenting with new clusters for poorly aligned clusters
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html
         inputs: clustering_a,b are lists of cluster labels by country, colors_a,b are lists of rgb colors by country in same order  
         returns: newcolors_b in rgb format
         NB. colors_b are only used to preserve s,v values relating to probs of cluster membership for b in final colors
