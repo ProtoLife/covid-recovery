@@ -1,4 +1,5 @@
 import lmfit
+import copy
 from time import time
 
 class ModelFit:
@@ -97,7 +98,7 @@ class ModelFit:
         self.params[param] = value
         #tmp = {param:value}
         #self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
-        self.model.parameters =self.params
+        self.model.parameters = self.params
 
 
     def set_base_param(self,param,value):
@@ -932,11 +933,11 @@ class Scan(ModelFit):
             ###############################################
             ## do the fit
             try:
-                self.setup_data(country)
+                super().setup_data(country)
                 super().fit(self.params_init_min_max,fit_method='leastsq',diag=False,fit_targets=['deaths'],fit_data=['deaths_corrected_smoothed'],report=False)
                 if self.scanplot:
                     super().solveplot(species=['deaths'],datasets=['deaths_corrected_smoothed'],axis=axes[row,col],newplot=False)  
-                self.scan_params[country] = self.all_params
+                self.scan_params[country] = copy.deepcopy(self.all_params)
                 self.scan_fitdata[country] = self.fit_output
             except Exception as e:
                 print('Problem...')
@@ -955,7 +956,7 @@ class Scan(ModelFit):
                 col = idx % max_cols
                 axes[row, col].axis("off")
             fig.tight_layout()
-            plt.savefig(self.run_id+'.pdf')
+            plt.savefig('./pdfs/'+self.run_id+'.pdf')
             plt.show()
         self.dump()
         finish = time()
