@@ -538,18 +538,21 @@ class ModelFit:
                 slices['confirmed'] = self.model.confirmed
 
         for ls in lspecies:
+            if ls == 'deaths':  # equivalent of weight change in solve4fit
+                offset = 1.0/self.population
+            else:
+                offset = 10.0/self.population
             rtn[ls] = {}
             rtn[ls]['data'] = np.array(fitdata[ls])
-            rtn[ls]['soln'] = self.soln[:,slices[ls]][:,0]
+            rtn[ls]['soln'] = np.sum(self.soln[:,slices[ls]],axis=1) #  sum over all species in 'confirmed'
 
-            mn = min([x for x in fitdata[ls] if x>0])
-            fdat = [x if x > 0 else mn for x in fitdata[ls]]
-            lfdat = np.array([np.log(x) for x in fdat])
+            fdata = rtn[ls]['data']
+            fdat = np.maximum(fdata,0)
+            lfdat = np.log10(offset+fdat)
 
             sdata = rtn[ls]['soln']
-            mn = min([x for x in sdata if x>0])
-            sdat = [x if x > 0 else mn for x in sdata]
-            lsdat = np.array([np.log(x) for x in sdat])
+            sdat = np.maximum(sdata,0)
+            lsdat = np.log10(offset+sdat)
             rtn[ls]['resid'] = lsdat - lfdat
             self.logresid = [sdat,lsdat,fdat,lfdat,lsdat-lfdat]
         return rtn
@@ -644,8 +647,8 @@ class ModelFit:
             if 'logI_0' in params_lmf:
                 modelfit.set_I0(parvals['logI_0'])    
 
-            # maybe try log(1+xxx)
-            fittry = modelfit.solve4fit(modelfit.fit_targets,modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
+            # maybe try log(1+xxx) by using solve4fitlog
+            fittry = modelfit.solve4fitlog(modelfit.fit_targets,modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
             #rmsres2 = np.sqrt(np.sum(np.square(resd)))
             #print('resid: ',rmsres2)
             fitresid = np.concatenate([fittry[fit_target]['resid'] for fit_target in modelfit.fit_targets])
