@@ -1028,7 +1028,7 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
     b = [None,None,None,None]
     g = [None,None,None,None]
     p = [None,None,None]
-    c = [None,None,None]
+    c = [None,None,None,None]
     k = [None,None,None,None]
 
     a=params['alpha']
@@ -1056,6 +1056,8 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
         c[2]=params['c_2']
     if '_A' in modelname: # models with age structure
         c[3]=params['c_3']
+    else:
+        c[3] = 0.
 
 
     if 'U' in modelname: # models with economic correction to caution  
