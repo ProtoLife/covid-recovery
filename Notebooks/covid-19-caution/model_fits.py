@@ -42,9 +42,10 @@ import copy
 import pprint
 ppr = pprint.PrettyPrinter()
 
-print('loading data.py...')
-from data import *
-print('done with data.py.')
+# print('loading data.py...')
+# from data import *
+# print('done with data.py.')
+print('Assuming data already loaded, so no "from data import *" required.')
 
 savefigs = False # whether to save specific figures for paper to .../figures directory
 
@@ -658,6 +659,12 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
         else:
             # params['c_2'] = c[2]*FracCritical  # this can be calculated explicitly in next line
             params['c_2'] = c[2]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
+
+    if '_A' in modelname:
+        if 'I3' in modelname: # models with hospitalization
+            params['c_3'] = c[3]
+        else:
+            params['c_3'] = c[3]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))      
         
     if 'U' in modelname: # models with economic correction to caution  
         params['k_u'] = k[0]
@@ -669,6 +676,9 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
     return params
 
 def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
+    if 'I3' not in modelname:
+        print("Error in params2vector:  must have 'I3' in modelname.")
+        return None
     b = [None,None,None,None]
     g = [None,None,None,None]
     p = [None,None,None]
@@ -695,9 +705,11 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
     N=params['N']
 
     if 'C' in modelname: # models with caution 
-        c[0]=params['c_1']
-        c[1]=params['c_2']
-        c[2]=params['c_3']
+        c[0]=params['c_0']
+        c[1]=params['c_1']
+        c[2]=params['c_2']
+    if '_A' in modelname: # models with age structure
+        c[3]=params['c_3']
 
     if 'U' in modelname: # models with economic correction to caution  
         k[0] = params['k_u']
@@ -708,7 +720,7 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
 
 def base2vectors(sbparams,cbparams,fbparams):
     """ converts dictionary of base parameters to vector of parameters and then to pygom simulation parameters"""
-    global C_2s
+    global C_2s # scaling factor for c_2 (1000) to allow c_2 parameter to be same order of magnitude as other parameters
     Exposure =sbparams['Exposure']
     IncubPeriod = sbparams['IncubPeriod']
     DurMildInf = sbparams['DurMildInf']
@@ -724,6 +736,7 @@ def base2vectors(sbparams,cbparams,fbparams):
     CautionFactor = cbparams['CautionFactor']
     CautionRetention = cbparams['CautionRetention']
     CautionExposure = cbparams['CautionExposure']
+    CautionExposureYoung = cbparams['CautionExposureYoung'] # optional additional parameter, by default CautionExposure
 
     EconomicStriction =  cbparams['EconomicStriction']
     EconomicRetention =  cbparams['EconomicRetention']
@@ -738,7 +751,7 @@ def base2vectors(sbparams,cbparams,fbparams):
     b=np.zeros(4)     # beta
     g=np.zeros(4)     # gamma
     p=np.zeros(3)     # progression
-    c=np.zeros(3)     # caution
+    c=np.zeros(4)     # caution
     k=np.zeros(4)     # economic caution
 
     a=1/IncubPeriod                       # transition rate from exposed to infected
@@ -755,6 +768,7 @@ def base2vectors(sbparams,cbparams,fbparams):
     c[0]=CautionFactor
     c[1]=1/CautionRetention
     c[2]=1/(N*(ICUFrac*C_2s)*CautionExposure)     # this is the rate coefficient giving 1/day at I3 = denominator
+    c[3]=1/(N*(ICUFrac*C_2s)*CautionExposureYoung)
 
     k[0]=1/EconomicStriction              
     k[1]=1/EconomicRetention            
@@ -772,43 +786,68 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
         assumes only one parameter for bvector in the form b*[0,1,0,0]"""
     global C_2s
     Exposure          = b[1]*N # assuming b vector has structure b*[0,1,0,0]
-    IncubPeriod       = a
+    IncubPeriod       = 1.0/a
 
     FracMild          = g[1]/(g[1]+p[1])  
     FracCritical       = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
     #FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2])) 
     FracSevere        = 1 - FracMild -FracCritical            
     CFR               = (u/(g[3]+u))*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
-    IncubPeriod       = 1/(g[1]+p[1])
+    DurMildInf        = 1/(g[1]+p[1])
     DurHosp           = 1/(g[2]+p[2])
-    TimeICUDeath      = 1/(g(3)+u)
+    TimeICUDeath      = 1/(g[3]+u)
 
     CautionFactor     = c[0]
-    CautionRetention  = 1/c[1]
-    CautionExposure    = 1/(N*c[2]*(C_2s*ICUFrac))
+    if c[1]:
+        CautionRetention  = 1/c[1]
+    else:
+        CautionRetention  = None
+    if c[2]:
+        CautionExposure    = 1/(N*c[2]*(C_2s*ICUFrac))
+    else:
+        CautionExposure    = None
+    if c[3]:
+        CautionExposureYoung    = 1/(N*c[3]*(C_2s*ICUFrac))
+    else:
+        CautionExposureYoung    = CautionExposure
     
-    EconomicStriction     =  1/k[0]
-    EconomicRetention     =  1/k[1]
-    EconomyRelaxation     =  1/k[2]
+    if k[0]:
+        EconomicStriction     =  1.0/k[0]
+    else:
+        EconomicStriction     =  None
+    if k[1]:
+        EconomicRetention     =  1.0/k[1]
+    else:
+        EconomicRetention     = None
+    if k[2]:
+        EconomyRelaxation     =  1.0/k[2]
+    else:
+        EconomyRelaxation     = None
     EconomicCostOfCaution =  k[3]
-    
+
     sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
                 'FracMild':FracMild,'FracCritical':FracCritical,'CFR':CFR,
                 'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':np.log10(I0)}
-    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionExposure':CautionExposure,            
+    cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,
+                'CautionExposure':CautionExposure,'CautionExposureYoung':CautionExposureYoung,            
                 'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
                 'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
    
-    return(sbparams,cbparams)
+    return (sbparams,cbparams)
 
-def base2ICs(I0,N,smodel,model):
+def base2ICs(I0,N,smodel,model,age_structure=None):
+
     (x0old,t0) = model.initial_values
     nstates = len(x0old)
     x0 = [0.]*nstates
-    x0[0] = N*(1-I0)
-    if model.I_1 < nstates:
+    if age_structure:
+        first_infected_agegroup = int(age_structure//4)
+    else: 
+        first_infected_agegroup = 0 
+    x0[first_infected_agegroup] = N*(1-I0)   # assumes susceptibles (first in state list)
+    # x0[0] = N*(1-I0)
+    if model.I_1 < nstates: # age structure dealt with in model specific model.I_1
         x0[model.I_1] = N*I0
-
     else:
         print('error, initial infectives location out of bounds',model.I_1,'not <',nstates)
     return (x0,t0)
@@ -837,14 +876,16 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         CautionFactor= 0.1    # Fractional reduction of exposure rate for cautioned individuals
         CautionRetention= 60. # Duration of cautionary state of susceptibles (8 weeks)
         CautionExposure= 0.1  # Rate of transition to caution per (individual per ICU) per day
+        CautionExposureYoung= 0.1  # Rate of transition to caution per (individual per ICU) per day for young people
         EconomicStriction = 30.
         EconomicRetention = 60. # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
         EconomyRelaxation = 60.
         EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
 
-        cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,'CautionExposure':CautionExposure,
-                'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
-                'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
+        cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,
+                    'CautionExposure':CautionExposure,'CautionExposureYoung':CautionExposureYoung,
+                    'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
+                    'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
 
     if not fbparams:          # Model fitting extension to allow for incomplete detection
         FracConfirmedDet=1.0 # Fraction of recovered individuals measured : plots made with this parameter
@@ -859,15 +900,18 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     return [sbparams,cbparams,fbparams,dbparams]
 
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
-def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None):
+def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None,age_structure=None):
     if sbparams == None or cbparams==None or fbparams==None or dbparams==None:
-      [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
-      dbparams['run_name'] = smodel # default value when no country yet
+        [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
+        dbparams['run_name'] = smodel # default value when no country yet
     b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
     fullmodel = make_model(smodel)
     model = fullmodel['model']
     params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
-    model.initial_values = base2ICs(I0,N,smodel,model)
+    if age_structure:
+        model.initial_values = base2ICs(I0,N,smodel,model,age_structure=age_structure)
+    else:
+        model.initial_values = base2ICs(I0,N,smodel,model)
     # model.baseparams = list(sbparams)+list(cbparams)+list(fbparams)
     model.parameters = params_in # sets symbolic name parameters
     fullmodel['params'] = params_in    # sets string params
@@ -875,44 +919,40 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     fullmodel['cbparams'] = cbparams
     fullmodel['fbparams'] = fbparams
     fullmodel['dbparams'] = dbparams
-    fullmodel['initial_values'] = model.initial_values
+    fullmodel['initial_values'] = model.initial_values  # this line probably not required, since already initialized in make_model
     return fullmodel
 
 
 # smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
-smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list for debugging
- 
-# Initialize all models
+smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list, others can be added if required from notebook
+# samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4'] 
+samodels = []
 
+# Initialize all models
 cmodels = {}
 fullmodels = {}
 print('making the models...')
-for smodel in smodels:
-    fullmodel = parametrize_model(smodel)
-    fullmodels[smodel] = fullmodel
-    # take fullmodel['model'] so that modelnm is same model as before
-    # for backward compatibility
-    cmodels[smodel] = fullmodel['model']
-    modelnm = smodel+'_model'
-    exec(modelnm+" = fullmodel['model']")
-    print(smodel)            
-    
-    # fullmodels[smodel] = make_model(smodel)
-    # cmodels[smodel] = fullmodels[smodel]['model']
-    # params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
-    # cmodels[smodel].initial_values = base2ICs(I0,N,smodel,cmodels)
-    # fullmodels[smodel]['model'].parameters = params_in # sets symbolic name parameters
-    # fullmodels[smodel]['model'].params = params_in    # sets string params
-    # cmodels[smodel].parameters = params_in
-    # cmodels[smodel].sbparams = sbparams
-    # cmodels[smodel].cbparams = cbparams
-    # cmodels[smodel].fbparams = fbparams
-    # dbparams['run_name'] = smodel # default value when no country yet
-    # cmodels[smodel].dbparams = dbparams
-    # modelnm = smodel+'_model'
-    # exec(modelnm+" = cmodels[smodel]")
-    # print(smodel)
+for smodel in smodels+samodels:
+    if '_A' in smodel:
+        [smodel_root,age_str] = smodel.split("_A")
+        try:
+            age_structure = int(age_str)
+        except:
+            print("Error in parameterize_model, age suffix is not an integer.")
+    else:
+        smodel_root = smodel
+        age_structure = None
+
+    if smodel_root not in possmodels:
+        print('root model name',smodel_root,'not yet supported')
+    else: 
+        fullmodel = parametrize_model(smodel_root,age_structure=age_structure)
+        fullmodels[smodel] = fullmodel
+        # take fullmodel['model'] so that modelnm is same model as before for backward compatibility
+        cmodels[smodel] = fullmodel['model']
+        modelnm = smodel+'_model'
+        exec(modelnm+" = fullmodel['model']")
+        print(smodel)          
 
 print('done with the models.')
-    

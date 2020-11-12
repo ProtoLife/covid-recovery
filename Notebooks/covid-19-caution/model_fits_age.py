@@ -44,9 +44,11 @@ ppr = pprint.PrettyPrinter()
 
 import data_config
 if not data_config.data_loaded:
-    print('loading data.py...')
+    print('loading data.py...(set data_config.data_loaded=True to avoid, if this already done)')
     from data import *
     print('done with data.py.')
+else:
+    print('data already loaded, so no "from data import *" required.')
 
 savefigs = False # whether to save specific figures for paper to .../figures directory
 
@@ -203,42 +205,45 @@ def make_model(mod_name,age_structure=None):
             return rtn
 
     if mod_name == 'SCIR':
-        state = ['S', 'I', 'R', 'D', 'S_c']
-        param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
+        if age_structure:  # age_structure is integer number of age compartments   
+            print('Error: Age structure NYI for model',mod_name)
+        else:
+            state = ['S', 'I', 'R', 'D', 'S_c']
+            param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
 
-        transition = [
-            Transition(origin='S', destination='I', equation='beta*I*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='S', equation='c_1*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='I', equation='c_0*beta*I*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='R', equation='gamma*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='D', equation='mu*I',
-                       transition_type=TransitionType.T)    
-            ]
+            transition = [
+                Transition(origin='S', destination='I', equation='beta*I*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='S', equation='c_1*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='I', equation='c_0*beta*I*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='R', equation='gamma*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='D', equation='mu*I',
+                           transition_type=TransitionType.T)    
+                ]
 
-        model = DeterministicOde(state, param_list, transition=transition)
-        global SCIR_modelS
-        SCIR_modelS = SimulateOde(state, param_list , transition=transition)
-        model.modelname='SCIR'
-        model.ei=1
-        model.confirmed=slice(1,4)  # cases 1-3 i.e. I, R and D
-        model.recovered=slice(2,3)
-        model.deaths=slice(3,4)
-        model.all_susceptibles=[0,4]
-        model.S_c=4
-        model.I_1 = 1
-        x0_SCIR = [1.0-I_0, I_0, 0.0, 0.0, 0.0]
-        model.initial_values = (x0_SCIR, 0)
+            model = DeterministicOde(state, param_list, transition=transition)
+            global SCIR_modelS
+            SCIR_modelS = SimulateOde(state, param_list , transition=transition)
+            model.modelname='SCIR'
+            model.ei=1
+            model.confirmed=slice(1,4)  # cases 1-3 i.e. I, R and D
+            model.recovered=slice(2,3)
+            model.deaths=slice(3,4)
+            model.all_susceptibles=[0,4]
+            model.S_c=4
+            model.I_1 = 1
+            x0_SCIR = [1.0-I_0, I_0, 0.0, 0.0, 0.0]
+            model.initial_values = (x0_SCIR, 0)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SC2IR':
         if age_structure:                                         # age_structure is integer number of age compartments            
@@ -335,123 +340,132 @@ def make_model(mod_name,age_structure=None):
             return rtn
     
     if mod_name == 'SEIR':
-        state = ['S', 'E', 'I', 'R', 'D']
-        param_list = ['beta', 'alpha', 'gamma', 'mu', 'N']
+        if age_structure:  # age_structure is integer number of age compartments   
+            print('Error: Age structure NYI for model',mod_name)
+        else:
+            state = ['S', 'E', 'I', 'R', 'D']
+            param_list = ['beta', 'alpha', 'gamma', 'mu', 'N']
 
-        transition = [
-            Transition(origin='S', destination='E', equation='beta*I*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='E', destination='I', equation='alpha*E',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='R', equation='gamma*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='D', equation='mu*I',
-                       transition_type=TransitionType.T)    
-            ]
+            transition = [
+                Transition(origin='S', destination='E', equation='beta*I*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='E', destination='I', equation='alpha*E',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='R', equation='gamma*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='D', equation='mu*I',
+                           transition_type=TransitionType.T)    
+                ]
 
-        model = DeterministicOde(state, param_list, transition=transition)
-        model.modelname='SEIR'
-        model.ei=slice(1,3) # cases 1,2 i.e. E and I
-        model.confirmed=slice(2,5)  # cases 2-4 i.e. I, R and D, not E
-        model.recovered=slice(3,4)
-        model.deaths=slice(4,5)
-        model.I_1 = 2
-        x0_SEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0]
-        model.initial_values = (x0_SEIR, 0)
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.modelname='SEIR'
+            model.ei=slice(1,3) # cases 1,2 i.e. E and I
+            model.confirmed=slice(2,5)  # cases 2-4 i.e. I, R and D, not E
+            model.recovered=slice(3,4)
+            model.deaths=slice(4,5)
+            model.I_1 = 2
+            x0_SEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0]
+            model.initial_values = (x0_SEIR, 0)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SCEIR':
-        state = ['S', 'E', 'I', 'R', 'D', 'S_c']
-        param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
+        if age_structure:  # age_structure is integer number of age compartments   
+            print('Error: Age structure NYI for model',mod_name)
+        else:
+            state = ['S', 'E', 'I', 'R', 'D', 'S_c']
+            param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
 
-        transition = [
-            Transition(origin='S', destination='E', equation='beta*I*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='S', equation='c_1*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='E', equation='c_0*beta*I*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='E', destination='I', equation='alpha*E',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='R', equation='gamma*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='D', equation='mu*I',
-                       transition_type=TransitionType.T)    
-            ]
+            transition = [
+                Transition(origin='S', destination='E', equation='beta*I*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='S', equation='c_1*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='E', equation='c_0*beta*I*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='E', destination='I', equation='alpha*E',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='R', equation='gamma*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='D', equation='mu*I',
+                           transition_type=TransitionType.T)    
+                ]
 
-        model = DeterministicOde(state, param_list, transition=transition)
-        model.modelname='SCEIR'
-        model.ei=slice(1,3) # cases 1,2 i.e. E,I
-        model.confirmed=slice(2,5)  # cases 2-4 i.e. I, R and D, not E
-        model.recovered=slice(3,4)
-        model.deaths=slice(4,5)
-        model.all_susceptibles=[0,5]
-        model.S_c=5
-        model.I_1 = 2
-        x0_SCEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0]
-        model.initial_values = (x0_SCEIR, 0)
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.modelname='SCEIR'
+            model.ei=slice(1,3) # cases 1,2 i.e. E,I
+            model.confirmed=slice(2,5)  # cases 2-4 i.e. I, R and D, not E
+            model.recovered=slice(3,4)
+            model.deaths=slice(4,5)
+            model.all_susceptibles=[0,5]
+            model.S_c=5
+            model.I_1 = 2
+            x0_SCEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0]
+            model.initial_values = (x0_SCEIR, 0)
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SC3EIR':
-        state = ['S', 'E', 'I', 'R', 'D', 'I_c', 'S_c', 'E_c']
-        param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
+        if age_structure:  # age_structure is integer number of age compartments   
+            print('Error: Age structure NYI for model',mod_name)
+        else:
+            state = ['S', 'E', 'I', 'R', 'D', 'I_c', 'S_c', 'E_c']
+            param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
 
-        transition = [
-            Transition(origin='S', destination='E', equation='beta*(I+c_0*I_c)*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='S', equation='c_1*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='E', destination='I', equation='alpha*E',
-                       transition_type=TransitionType.T),
-            Transition(origin='E', destination='E_c', equation=c_2s+'c_2*(I+I_c)*E',
-                       transition_type=TransitionType.T),
-            Transition(origin='E_c', destination='I_c', equation='alpha*E_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='E_c', destination='E', equation='c_1*E_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='R', equation='gamma*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I', destination='D', equation='mu*I',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_c', destination='R', equation='gamma*I_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_c', destination='I', equation='c_1*I_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_c', destination='D', equation='mu*I_c',
-                       transition_type=TransitionType.T)
-            ]
+            transition = [
+                Transition(origin='S', destination='E', equation='beta*(I+c_0*I_c)*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='S', equation='c_1*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='E', destination='I', equation='alpha*E',
+                           transition_type=TransitionType.T),
+                Transition(origin='E', destination='E_c', equation=c_2s+'c_2*(I+I_c)*E',
+                           transition_type=TransitionType.T),
+                Transition(origin='E_c', destination='I_c', equation='alpha*E_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='E_c', destination='E', equation='c_1*E_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='R', equation='gamma*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I', destination='D', equation='mu*I',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='R', equation='gamma*I_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='I', equation='c_1*I_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='D', equation='mu*I_c',
+                           transition_type=TransitionType.T)
+                ]
 
-        model = DeterministicOde(state, param_list, transition=transition)
-        model.modelname='SC3EIR'
-        model.ei=slice(1,3) # cases 1,2 i.e. E,I  # note E_c and I_c not included
-        model.confirmed=slice(2,6)  # cases 2-5 i.e. I, R, D, and I_c, not E, E_c
-        model.recovered=slice(3,4)
-        model.deaths=slice(4,5)
-        model.all_susceptibles=[0,6]
-        model.S_c=6
-        model.I_1 = 2
-        x0_SC3EIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        model.initial_values = (x0_SC3EIR, 0)
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.modelname='SC3EIR'
+            model.ei=slice(1,3) # cases 1,2 i.e. E,I  # note E_c and I_c not included
+            model.confirmed=slice(2,6)  # cases 2-5 i.e. I, R, D, and I_c, not E, E_c
+            model.recovered=slice(3,4)
+            model.deaths=slice(4,5)
+            model.all_susceptibles=[0,6]
+            model.S_c=6
+            model.I_1 = 2
+            x0_SC3EIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            model.initial_values = (x0_SC3EIR, 0)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SEI3R':
         if age_structure:                                         # age_structure is integer number of age compartments            
@@ -534,52 +548,55 @@ def make_model(mod_name,age_structure=None):
             return rtn
 
     if mod_name == 'SCEI3R':
-        state = ['S', 'E', 'I_1', 'I_2','I_3','R','D','S_c']
-        param_list = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
-                      'p_1','p_2','mu','c_0','c_1','c_2','N']
+        if age_structure:  # age_structure is integer number of age compartments   
+            print('Error: Age structure NYI for model',mod_name)
+        else:        
+            state = ['S', 'E', 'I_1', 'I_2','I_3','R','D','S_c']
+            param_list = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
+                          'p_1','p_2','mu','c_0','c_1','c_2','N']
 
-        transition = [
-            Transition(origin='S', destination='E', equation='(beta_1*I_1+beta_2*I_2+beta_3*I_3)*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I_3*S',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='S', equation='c_1*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='E', equation='c_0*(beta_1*I_1+beta_2*I_2+beta_3*I_3)*S_c',
-                       transition_type=TransitionType.T),
-            Transition(origin='E', destination='I_1', equation='alpha*E',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_1', destination='R', equation='gamma_1*I_1',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_2', destination='R', equation='gamma_2*I_2',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_3', destination='R', equation='gamma_3*I_3',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_1', destination='I_2', equation='p_1*I_1',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_2', destination='I_3', equation='p_2*I_2',
-                       transition_type=TransitionType.T),
-            Transition(origin='I_3', destination='D', equation='mu*I_3',
-                       transition_type=TransitionType.T)    
-            ]
+            transition = [
+                Transition(origin='S', destination='E', equation='(beta_1*I_1+beta_2*I_2+beta_3*I_3)*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S', destination='S_c', equation=c_2s+'c_2*I_3*S',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='S', equation='c_1*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='E', equation='c_0*(beta_1*I_1+beta_2*I_2+beta_3*I_3)*S_c',
+                           transition_type=TransitionType.T),
+                Transition(origin='E', destination='I_1', equation='alpha*E',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_1', destination='R', equation='gamma_1*I_1',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_2', destination='R', equation='gamma_2*I_2',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_3', destination='R', equation='gamma_3*I_3',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_1', destination='I_2', equation='p_1*I_1',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_2', destination='I_3', equation='p_2*I_2',
+                           transition_type=TransitionType.T),
+                Transition(origin='I_3', destination='D', equation='mu*I_3',
+                           transition_type=TransitionType.T)    
+                ]
 
 
-        model = DeterministicOde(state, param_list, transition=transition)
-        model.modelname='SCEI3R'
-        model.ei=slice(1,5)
-        model.confirmed=slice(2,7)  # cases 2-6 i.e. I1, I2, I3, R and D
-        model.recovered=slice(5,6)
-        model.deaths=slice(6,7)
-        model.all_susceptibles=[0,7]
-        model.S_c=7
-        model.I_1 = 2
-        x0_SCEI3R = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        model.initial_values = (x0_SCEI3R, 0)
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.modelname='SCEI3R'
+            model.ei=slice(1,5)
+            model.confirmed=slice(2,7)  # cases 2-6 i.e. I1, I2, I3, R and D
+            model.recovered=slice(5,6)
+            model.deaths=slice(6,7)
+            model.all_susceptibles=[0,7]
+            model.S_c=7
+            model.I_1 = 2
+            x0_SCEI3R = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            model.initial_values = (x0_SCEI3R, 0)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SC3EI3R':
         if age_structure:  # age_structure is integer number of age compartments            
@@ -597,7 +614,7 @@ def make_model(mod_name,age_structure=None):
 
             # note that beta_2 and beta_3 are set to zero in default installation, and with age-dept I3 models we enforce this
             transition = []
-            transition = transition_age(transition,'S','E','beta_1*','S',sa,TransitionType.T,age_structure,phi=phi)
+            transition = transition_age(transition,'S','E','beta_1*','S',sa,TransitionType.T,age_structure,phi=phi_1c)
             transition = transition_age(transition,'S_c','E_c','c_0*beta_1*','S_c',sa,TransitionType.T,age_structure,phi=phi_1c) # 'c_0*beta_1*(I_1+c_0*I_c)*S_c'
             transition = transition_age(transition,'S','S_c',c_2s+'c_2*'+sumI_3+'*','S',sa,TransitionType.T,age_structure,
                                         yfactor=c_2s+'c_3*'+sumI_3+'*')  # c_2s+'c_2*I_3*S'
@@ -703,148 +720,225 @@ def make_model(mod_name,age_structure=None):
             return rtn
 
     if mod_name == 'SC2UIR':
-        state = ['S', 'I', 'R', 'D', 'I_c', 'S_c', 'S_u', 'W']
-        param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
+        if age_structure:  # age_structure is integer number of age compartments   
+            print('Error: Age structure NYI for model',mod_name)
+        else:
+            state = ['S', 'I', 'R', 'D', 'I_c', 'S_c', 'S_u', 'W']
+            param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
 
-        transition = [
-            Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-%f*c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
-            Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+%f*c_2*(I+I_c)*S-k_u*(1-W)*S_c' % C_2s),
-            Transition(origin='S_u', equation='-beta*(I+c_0*I_c)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
-            Transition(origin='I', equation='beta*(I+c_0*I_c)*S-gamma*I-mu*I+c_1*I_c-%f*c_2*(I+I_c)*I' % C_2s),
-            Transition(origin='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c-gamma*I_c-mu*I_c-c_1*I_c+%f*c_2*(I+I_c)*I' % C_2s),
-            Transition(origin='R', equation='gamma*(I+I_c)'),
-            Transition(origin='D', equation='mu*(I+I_c)'),
-            Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)')
-            ]
+            transition = [
+                Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-%f*c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
+                Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+%f*c_2*(I+I_c)*S-k_u*(1-W)*S_c' % C_2s),
+                Transition(origin='S_u', equation='-beta*(I+c_0*I_c)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
+                Transition(origin='I', equation='beta*(I+c_0*I_c)*S-gamma*I-mu*I+c_1*I_c-%f*c_2*(I+I_c)*I' % C_2s),
+                Transition(origin='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c-gamma*I_c-mu*I_c-c_1*I_c+%f*c_2*(I+I_c)*I' % C_2s),
+                Transition(origin='R', equation='gamma*(I+I_c)'),
+                Transition(origin='D', equation='mu*(I+I_c)'),
+                Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)')
+                ]
 
-        model = DeterministicOde(state, param_list, ode=transition)
-        model.modelname='SC2UIR'
-        model.ei=1                  # case 1 i.e. I  # note I_c not included
-        model.confirmed=slice(1,5)  # cases 1-4 i.e. I, R, D, and I_c
-        model.recovered=slice(2,3)
-        model.deaths=slice(3,4)
-        model.all_susceptibles=[0,5,6]
-        model.S_c=5
-        model.I_1 = 1
-        x0_SC2UIR = [1.0-I_0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-        model.initial_values = (x0_SC2UIR, 0)
+            model = DeterministicOde(state, param_list, ode=transition)
+            model.modelname='SC2UIR'
+            model.ei=1                  # case 1 i.e. I  # note I_c not included
+            model.confirmed=slice(1,5)  # cases 1-4 i.e. I, R, D, and I_c
+            model.recovered=slice(2,3)
+            model.deaths=slice(3,4)
+            model.all_susceptibles=[0,5,6]
+            model.S_c=5
+            model.I_1 = 1
+            x0_SC2UIR = [1.0-I_0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+            model.initial_values = (x0_SC2UIR, 0)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SC2UIR':
-        state = ['S', 'I', 'R', 'D', 'I_c', 'S_c', 'S_u', 'W']
-        param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
+        if age_structure:  # age_structure is integer number of age compartments   
+            print('Error: Age structure NYI for model',mod_name)
+        else:
+            state = ['S', 'I', 'R', 'D', 'I_c', 'S_c', 'S_u', 'W']
+            param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
 
-        transition = [
-            Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S', transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S', transition_type=TransitionType.T),
-            Transition(origin='S', destination='S_u', equation='k_u*(1-W)*S', transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='S', equation='c_1*S_c', transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c', transition_type=TransitionType.T),
-            Transition(origin='S_c', destination='S_u', equation='k_u*(1-W)*S_c', transition_type=TransitionType.T),
-            Transition(origin='S_u', destination='S', equation='k_1*S_u', transition_type=TransitionType.T),   
-            Transition(origin='S_u', destination='I', equation='beta*(I+c_0*I_c)*S_u', transition_type=TransitionType.T),    
-            Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I', transition_type=TransitionType.T),    
-            Transition(origin='I', destination='R', equation='gamma*I', transition_type=TransitionType.T), 
-            Transition(origin='I', destination='D', equation='mu*I', transition_type=TransitionType.T), 
-            Transition(origin='I_c', destination='I', equation='c_1*I_c', transition_type=TransitionType.T),
-            Transition(origin='I_c', destination='R', equation='gamma*I_c', transition_type=TransitionType.T), 
-            Transition(origin='I_c', destination='D', equation='mu*I_c', transition_type=TransitionType.T),
-            Transition(origin='W', destination='D', equation='0*W', transition_type=TransitionType.T)
-            ]
-        bdlist =     [Transition(origin='W',equation='k_w*W*(1-kappa*S_c-W)', transition_type=TransitionType.B)
-            ]
-        model = DeterministicOde(state, param_list, transition=transition)
-        model.birth_death_list = bdlist
-        model.modelname='SC2UIR'
-        model.ei=1                  # case 1 i.e. I  # note I_c not included
-        model.confirmed=slice(1,5)  # cases 1-4 i.e. I, R, D, and I_c
-        model.recovered=slice(2,3)
-        model.deaths=slice(3,4)
-        model.all_susceptibles=[0,5,6]
-        model.S_c=5
-        model.I_1 = 1
-        x0_SC3UEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-        model.initial_values = (x0_SC3UEIR, 0)
+            transition = [
+                Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S', transition_type=TransitionType.T),
+                Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S', transition_type=TransitionType.T),
+                Transition(origin='S', destination='S_u', equation='k_u*(1-W)*S', transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='S', equation='c_1*S_c', transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c', transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='S_u', equation='k_u*(1-W)*S_c', transition_type=TransitionType.T),
+                Transition(origin='S_u', destination='S', equation='k_1*S_u', transition_type=TransitionType.T),   
+                Transition(origin='S_u', destination='I', equation='beta*(I+c_0*I_c)*S_u', transition_type=TransitionType.T),    
+                Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I', transition_type=TransitionType.T),    
+                Transition(origin='I', destination='R', equation='gamma*I', transition_type=TransitionType.T), 
+                Transition(origin='I', destination='D', equation='mu*I', transition_type=TransitionType.T), 
+                Transition(origin='I_c', destination='I', equation='c_1*I_c', transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='R', equation='gamma*I_c', transition_type=TransitionType.T), 
+                Transition(origin='I_c', destination='D', equation='mu*I_c', transition_type=TransitionType.T),
+                Transition(origin='W', destination='D', equation='0*W', transition_type=TransitionType.T)
+                ]
+            bdlist =     [Transition(origin='W',equation='k_w*W*(1-kappa*S_c-W)', transition_type=TransitionType.B)
+                ]
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.birth_death_list = bdlist
+            model.modelname='SC2UIR'
+            model.ei=1                  # case 1 i.e. I  # note I_c not included
+            model.confirmed=slice(1,5)  # cases 1-4 i.e. I, R, D, and I_c
+            model.recovered=slice(2,3)
+            model.deaths=slice(3,4)
+            model.all_susceptibles=[0,5,6]
+            model.S_c=5
+            model.I_1 = 1
+            x0_SC3UEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+            model.initial_values = (x0_SC3UEIR, 0)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SC3UEIR':
-        state = ['S', 'E', 'I', 'R', 'D', 'I_c', 'S_c', 'E_c', 'S_u', 'W']
-        param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
+        if age_structure:  # age_structure is integer number of age compartments   
+            print('Error: Age structure NYI for model',mod_name)
+        else:
+            state = ['S', 'E', 'I', 'R', 'D', 'I_c', 'S_c', 'E_c', 'S_u', 'W']
+            param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
 
-        transition = [
-            Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-%f*c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
-            Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+%f*c_2*(I+I_c)*S-k_u*(1-W)*S_c' % C_2s),
-            Transition(origin='S_u', equation='-beta*(I+c_0*I_c)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
-            Transition(origin='E', equation='beta*(I+c_0*I_c)*(S+S_u)-alpha*E+c_1*E_c-%f*c_2*(I+I_c)*E' % C_2s),
-            Transition(origin='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c-alpha*E_c-c_1*E_c+%f*c_2*(I+I_c)*E' % C_2s),
-            Transition(origin='I', equation='alpha*E-gamma*I-mu*I+c_1*I_c-%f*c_2*(I+I_c)*I' % C_2s),
-            Transition(origin='I_c', equation='alpha*E_c-gamma*I_c-mu*I_c-c_1*I_c+%f*c_2*(I+I_c)*I' % C_2s),
-            Transition(origin='R', equation='gamma*(I+I_c)'),
-            Transition(origin='D', equation='mu*(I+I_c)'),
-            Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)')
-            ]
+            transition = [
+                Transition(origin='S', equation='-beta*(I+c_0*I_c)*S+c_1*S_c-%f*c_2*(I+I_c)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
+                Transition(origin='S_c', equation='-c_0*beta*(I+c_0*I_c)*S_c-c_1*S_c+%f*c_2*(I+I_c)*S-k_u*(1-W)*S_c' % C_2s),
+                Transition(origin='S_u', equation='-beta*(I+c_0*I_c)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
+                Transition(origin='E', equation='beta*(I+c_0*I_c)*(S+S_u)-alpha*E+c_1*E_c-%f*c_2*(I+I_c)*E' % C_2s),
+                Transition(origin='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c-alpha*E_c-c_1*E_c+%f*c_2*(I+I_c)*E' % C_2s),
+                Transition(origin='I', equation='alpha*E-gamma*I-mu*I+c_1*I_c-%f*c_2*(I+I_c)*I' % C_2s),
+                Transition(origin='I_c', equation='alpha*E_c-gamma*I_c-mu*I_c-c_1*I_c+%f*c_2*(I+I_c)*I' % C_2s),
+                Transition(origin='R', equation='gamma*(I+I_c)'),
+                Transition(origin='D', equation='mu*(I+I_c)'),
+                Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)')
+                ]
 
-        model = DeterministicOde(state, param_list, ode=transition)
-        model.modelname='SC3UEIR'
-        model.ei=slice(1,3) # cases 1,2 i.e. E,I  # note E_c and I_c not included
-        model.confirmed=slice(2,6)  # cases 2-5 i.e. I, R, D, and I_c, not E, E_c
-        model.recovered=slice(3,4)
-        model.deaths=slice(4,5)
-        model.all_susceptibles=[0,6,8]
-        model.S_c=6
-        model.I_1 = 2
-        x0_SC3UEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-        model.initial_values = (x0_SC3UEIR, 0)
+            model = DeterministicOde(state, param_list, ode=transition)
+            model.modelname='SC3UEIR'
+            model.ei=slice(1,3) # cases 1,2 i.e. E,I  # note E_c and I_c not included
+            model.confirmed=slice(2,6)  # cases 2-5 i.e. I, R, D, and I_c, not E, E_c
+            model.recovered=slice(3,4)
+            model.deaths=slice(4,5)
+            model.all_susceptibles=[0,6,8]
+            model.S_c=6
+            model.I_1 = 2
+            x0_SC3UEIR = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+            model.initial_values = (x0_SC3UEIR, 0)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
 
     if mod_name == 'SC3UEI3R':
-        state = ['S', 'E', 'I_1', 'I_2', 'I_3', 'R', 'D',  'I_c', 'S_c', 'E_c', 'S_u', 'W'] # order important to allow correct plot groupings
-        param_list = ['beta_1', 'beta_2', 'beta_3', 'p_1', 'p_2', 'alpha', 
-                      'gamma_1', 'gamma_2', 'gamma_3','mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w', 'kappa', 'N'] # order also important
+        if age_structure:  # age_structure is integer number of age compartments            
+            state0 = ['S', 'E', 'I_1', 'I_2','I_3', 'R', 'D', 'I_c', 'S_c', 'E_c', 'S_u', 'W']
+            sa,state = state_age(state0,age_structure)
 
-        transition = [
-            Transition(origin='S', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S+c_1*S_c-%f*c_2*(I_3)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
-            Transition(origin='S_c', equation='-c_0*(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_c-c_1*S_c+%f*c_2*(I_3)*S-k_u*(1-W)*S_c' % C_2s),
-            Transition(origin='S_u', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
-            Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)'),
-            Transition(origin='E', equation='beta_1*(I_1+c_0*I_c)*(S+S_u)-alpha*E-%f*c_2*(I_3)*E+c_1*E_c' % C_2s),
-            Transition(origin='E_c', equation='c_0*beta_1*(I_1+c_0*I_c)*S_c-alpha*E_c+%f*c_2*(I_3)*E-c_1*E_c' % C_2s),
-            Transition(origin='I_1', equation='alpha*E-gamma_1*I_1-p_1*I_1-%f*c_2*(I_3)*I_1+c_1*I_c' % C_2s),
-            Transition(origin='I_c', equation='alpha*E_c-gamma_1*I_c-p_1*I_c+%f*c_2*(I_3)*I_1-c_1*I_c' % C_2s), # changed to I_c, prints better
-            Transition(origin='I_2', equation='p_1*(I_1+I_c)-gamma_2*I_2-p_2*I_2'),
-            Transition(origin='I_3', equation='p_2*I_2-gamma_3*I_3-mu*I_3'),     # error corrected, this is equation for I_3 not I_2
-            Transition(origin='R', equation='gamma_1*(I_1+I_c)+gamma_2*I_2+gamma_3*I_3'),
-            Transition(origin='D', equation='mu*I_3')
-            ]
+            param_list0 = ['beta_1', 'beta_2', 'beta_3', 'p_1', 'p_2', 'alpha', 
+                          'gamma_1', 'gamma_2', 'gamma_3','mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w', 'kappa', 'N'] # order also important
+            param_list,contact = param_list_age(param_list0.copy(),age_structure)
 
-        model = DeterministicOde(state, param_list, ode=transition)
-        model.modelname='SC3UEI3R'  # following needs to be adjusted for new models, NB add new species at end to preserve slice subsets
-        model.ei=slice(1,5)         # 1,2,3,4 i.e. E,I_1,I_2,I_3 – not E_c and I_c 
-        model.confirmed=slice(2,8)  # cases 2-7 i.e. I1, I2, I3, R, D and I_c
-        model.recovered=slice(5,6)  # case 5 R
-        model.deaths=slice(6,7)     # case 6 D
-        model.all_susceptibles=[0,8,10]
-        model.S_c=8
-        model.I_1 = 2
-        x0_SC3UEI3R = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-        model.initial_values = (x0_SC3UEI3R, 0)
+            phi = phi_age(contact,sa,'I_1',age_structure)
+            phi_c = phi_age(contact,sa,'I_c',age_structure)
+            phi_1c = [p[0]+'+c_0*'+p[1] for p in zip(phi,phi_c)]   # '(I_1+c_0*I_c)' to corresponding phi combination   
+            sumI_3 = state_sum_age('I_3',sa,age_structure)
+            sumS_c = state_sum_age('S_c',sa,age_structure)
 
-        rtn['state'] = state
-        rtn['param_list'] = param_list
-        rtn['model'] = model
-        return rtn
+            # note that beta_2 and beta_3 are set to zero in default installation, and with age-dept I3 models we enforce this
+            transition = []
+            transition = transition_age(transition,'S','E','beta_1*','S',sa,TransitionType.T,age_structure,phi=phi_1c)
+            transition = transition_age(transition,'S','S_c',c_2s+'c_2*'+sumI_3+'*','S',sa,TransitionType.T,age_structure,
+                                        yfactor=c_2s+'c_3*'+sumI_3+'*')  # c_2s+'c_2*I_3*S'
+            transition = transition_age(transition,'S','S_u','k_u*(1-W)*','S', sa,TransitionType.T,age_structure)       # new
+            transition = transition_age(transition,'S_c','E_c','c_0*beta_1*','S_c',sa,TransitionType.T,age_structure,phi=phi_1c) # 'c_0*beta_1*(I_1+c_0*I_c)*S_c'
+            transition = transition_age(transition,'S_c','S','c_1*','S_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_c','S_u','k_u*(1-W)*','S_c',sa,TransitionType.T,age_structure) #new
+            transition = transition_age(transition,'S_u','S','k_1*','S_u',sa,TransitionType.T,age_structure)   #new
+            transition = transition_age(transition,'S_u','E','beta_1*','S_u',sa,TransitionType.T,age_structure,phi=phi_1c)   #new
+            transition = transition_age(transition,'E','I_1','alpha*','E',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E','E_c',c_2s+'c_2*'+sumI_3+'*','E',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E_c','I_c','alpha*','E_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E_c','E','c_1*','E_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_1','R','gamma_1*','I_1',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_1','I_c',c_2s+'c_2*'+sumI_3+'*','I_1',sa,TransitionType.T,age_structure,
+                                        yfactor=c_2s+'c_3*'+sumI_3+'*')  # c_2s+'c_2*I_3*I_1'
+            transition = transition_age(transition,'I_c','R','gamma_1*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','I_1','c_1*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_2','R','gamma_2*','I_2',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_3','R','gamma_3*','I_3',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_1','I_2','p_1*','I_1',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','I_2','p_1*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_2','I_3','p_2*','I_2',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_3','D','mu*','I_3',sa,TransitionType.T,age_structure)
+            transition.append(Transition(origin='W', destination='D', equation='0*W', transition_type=TransitionType.T))      # new         
+            bdlist = [Transition(origin='W',equation='k_w*W*(1-kappa*('+sumS_c+')-W)', transition_type=TransitionType.B)]     # new
+            model = DeterministicOde(state, param_list, transition=transition)
+            model.birth_death_list = bdlist                                                                                   # new
+            if model == None:
+                print('Error in make_model constructing DeterministicOde (in pygom)')
+            model.modelname='SC3UEI3R'+'_A'+str(age_structure)
+
+            model.ei=slice(1*age_structure,5*age_structure)
+            model.confirmed=slice(2*age_structure,8*age_structure)
+            model.recovered=slice(5*age_structure,6*age_structure)
+            model.deaths=slice(6*age_structure,7*age_structure)
+            model.all_susceptibles=[slice(0,1*age_structure),slice(8*age_structure,9*age_structure),slice(10*age_structure,11*age_structure)]   # CHECK that this works !!!!!!!!!!!!!!!!!!
+            model.S_c=slice(8*age_structure,9*age_structure)
+            model.I_1 = slice(2*age_structure,3*age_structure)
+
+            first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
+            model.I_1 = 1*age_structure + first_infected_agegroup
+            #x0 = [1.0-I_0, I_0, 0.0, 0.0]
+
+            x0_SC3UEI3R = initial_state_age(I_0,state0,'E',first_infected_agegroup,age_structure)
+            model.initial_values = (x0_SC3UEI3R, 0) # 0 for t[0]
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
+        else:
+            state = ['S', 'E', 'I_1', 'I_2', 'I_3', 'R', 'D',  'I_c', 'S_c', 'E_c', 'S_u', 'W'] # order important to allow correct plot groupings
+            param_list = ['beta_1', 'beta_2', 'beta_3', 'p_1', 'p_2', 'alpha', 
+                          'gamma_1', 'gamma_2', 'gamma_3','mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w', 'kappa', 'N'] # order also important
+
+            transition = [
+                Transition(origin='S', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S+c_1*S_c-%f*c_2*(I_3)*S-k_u*(1-W)*S+k_1*S_u' % C_2s),
+                Transition(origin='S_c', equation='-c_0*(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_c-c_1*S_c+%f*c_2*(I_3)*S-k_u*(1-W)*S_c' % C_2s),
+                Transition(origin='S_u', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_u+k_u*(1-W)*(S+S_c)-k_1*S_u'),
+                Transition(origin='W', equation='k_w*W*(1-kappa*S_c-W)'),
+                Transition(origin='E', equation='beta_1*(I_1+c_0*I_c)*(S+S_u)-alpha*E-%f*c_2*(I_3)*E+c_1*E_c' % C_2s),   # note: really need separate class E_u
+                Transition(origin='E_c', equation='c_0*beta_1*(I_1+c_0*I_c)*S_c-alpha*E_c+%f*c_2*(I_3)*E-c_1*E_c' % C_2s),
+                Transition(origin='I_1', equation='alpha*E-gamma_1*I_1-p_1*I_1-%f*c_2*(I_3)*I_1+c_1*I_c' % C_2s),
+                Transition(origin='I_c', equation='alpha*E_c-gamma_1*I_c-p_1*I_c+%f*c_2*(I_3)*I_1-c_1*I_c' % C_2s), # changed to I_c, prints better
+                Transition(origin='I_2', equation='p_1*(I_1+I_c)-gamma_2*I_2-p_2*I_2'),
+                Transition(origin='I_3', equation='p_2*I_2-gamma_3*I_3-mu*I_3'),     # error corrected, this is equation for I_3 not I_2
+                Transition(origin='R', equation='gamma_1*(I_1+I_c)+gamma_2*I_2+gamma_3*I_3'),
+                Transition(origin='D', equation='mu*I_3')
+                ]
+
+            model = DeterministicOde(state, param_list, ode=transition)
+            model.modelname='SC3UEI3R'  # following needs to be adjusted for new models, NB add new species at end to preserve slice subsets
+            model.ei=slice(1,5)         # 1,2,3,4 i.e. E,I_1,I_2,I_3 – not E_c and I_c 
+            model.confirmed=slice(2,8)  # cases 2-7 i.e. I1, I2, I3, R, D and I_c
+            model.recovered=slice(5,6)  # case 5 R
+            model.deaths=slice(6,7)     # case 6 D
+            model.all_susceptibles=[0,8,10]
+            model.S_c=8
+            model.I_1 = 2
+            x0_SC3UEI3R = [1.0-I_0, 0.0, I_0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+            model.initial_values = (x0_SC3UEI3R, 0)
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
     print('make-model:  ERROR:  could not make model',mod_name);
     return None
 
@@ -911,6 +1005,12 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
         else:
             # params['c_2'] = c[2]*FracCritical  # this can be calculated explicitly in next line
             params['c_2'] = c[2]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
+
+    if '_A' in modelname:
+        if 'I3' in modelname: # models with hospitalization
+            params['c_3'] = c[3]
+        else:
+            params['c_3'] = c[3]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))  
         
     if 'U' in modelname: # models with economic correction to caution  
         params['k_u'] = k[0]
@@ -922,6 +1022,9 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
     return params
 
 def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
+    if 'I3' not in modelname:
+        print("Error in params2vector:  must have 'I3' in modelname.")
+        return None
     b = [None,None,None,None]
     g = [None,None,None,None]
     p = [None,None,None]
@@ -948,9 +1051,12 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
     N=params['N']
 
     if 'C' in modelname: # models with caution 
-        c[0]=params['c_1']
-        c[1]=params['c_2']
-        c[2]=params['c_3']
+        c[0]=params['c_0']
+        c[1]=params['c_1']
+        c[2]=params['c_2']
+    if '_A' in modelname: # models with age structure
+        c[3]=params['c_3']
+
 
     if 'U' in modelname: # models with economic correction to caution  
         k[0] = params['k_u']
@@ -1025,38 +1131,56 @@ def base2params(sbparams,cbparams,fbparams,smodel):
 def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     """ converts vector of parameters back to dictionaries of base parameters
         assumes only one parameter for bvector in the form b*[0,1,0,0]"""
-    global C_2s  # scaling factor for c_2 (1000) to allow c_2 parameter to be same order of magnitude as other parameters
+    global C_2s
     Exposure          = b[1]*N # assuming b vector has structure b*[0,1,0,0]
-    IncubPeriod       = a
+    IncubPeriod       = 1.0/a
 
     FracMild          = g[1]/(g[1]+p[1])  
     FracCritical       = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
     #FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2])) 
     FracSevere        = 1 - FracMild -FracCritical            
     CFR               = (u/(g[3]+u))*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
-    IncubPeriod       = 1/(g[1]+p[1])
+    DurMildInf        = 1/(g[1]+p[1])
     DurHosp           = 1/(g[2]+p[2])
-    TimeICUDeath      = 1/(g(3)+u)
+    TimeICUDeath      = 1/(g[3]+u)
 
     CautionFactor     = c[0]
-    CautionRetention  = 1/c[1]
-    CautionExposure    = 1/(N*c[2]*(C_2s*ICUFrac))
-    CautionExposureYoung  = 1/(N*c[3]*(C_2s*ICUFrac))   # additional optional caution parameter for young people
+    if c[1]:
+        CautionRetention  = 1/c[1]
+    else:
+        CautionRetention  = None
+    if c[2]:
+        CautionExposure    = 1/(N*c[2]*(C_2s*ICUFrac))
+    else:
+        CautionExposure    = None
+    if c[3]:
+        CautionExposureYoung    = 1/(N*c[3]*(C_2s*ICUFrac))
+    else:
+        CautionExposureYoung    = CautionExposure
     
-    EconomicStriction     =  1/k[0]
-    EconomicRetention     =  1/k[1]
-    EconomyRelaxation     =  1/k[2]
+    if k[0]:
+        EconomicStriction     =  1.0/k[0]
+    else:
+        EconomicStriction     =  None
+    if k[1]:
+        EconomicRetention     =  1.0/k[1]
+    else:
+        EconomicRetention     = None
+    if k[2]:
+        EconomyRelaxation     =  1.0/k[2]
+    else:
+        EconomyRelaxation     = None
     EconomicCostOfCaution =  k[3]
-    
+
     sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
                 'FracMild':FracMild,'FracCritical':FracCritical,'CFR':CFR,
                 'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':np.log10(I0)}
     cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,
-                'CautionExposure':CautionExposure,'CautionExposureYoung':CautionExposureYoung,             
+                'CautionExposure':CautionExposure,'CautionExposureYoung':CautionExposureYoung,            
                 'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
                 'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
    
-    return(sbparams,cbparams)
+    return (sbparams,cbparams)
 
 def base2ICs(I0,N,smodel,model,age_structure=None):
 
@@ -1067,8 +1191,8 @@ def base2ICs(I0,N,smodel,model,age_structure=None):
         first_infected_agegroup = int(age_structure//4)
     else:
         first_infected_agegroup = 0
-    x0[first_infected_agegroup] = N*(1-I0)
-    if model.I_1 < nstates:
+    x0[first_infected_agegroup] = N*(1-I0)   # assumes susceptibles (first in state list)
+    if model.I_1 < nstates: # age structure dealt with in model specific model.I_1
         x0[model.I_1] = N*I0
     else:
         print('error, initial infectives location out of bounds',model.I_1,'not <',nstates)
@@ -1145,10 +1269,12 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     fullmodel['initial_values'] = model.initial_values  # this line probably not required, since already initialized in make_model
     return fullmodel
 
+# smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
 smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list, others can be added if required from notebook
-# samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4'] # age structured models (one still missing U)
+# samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4'] 
 samodels = []
+
 # Initialize all models
 cmodels = {}
 fullmodels = {}
@@ -1176,4 +1302,3 @@ for smodel in smodels+samodels:
         print(smodel)
 
 print('done with the models.')
-    

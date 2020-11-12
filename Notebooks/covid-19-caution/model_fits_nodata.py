@@ -782,13 +782,19 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
     #FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2])) 
     FracSevere        = 1 - FracMild -FracCritical            
     CFR               = (u/(g[3]+u))*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
-    DurMildInf        = 1/(p[1]+g[1])
+    DurMildInf        = 1/(g[1]+p[1])
     DurHosp           = 1/(g[2]+p[2])
     TimeICUDeath      = 1/(g[3]+u)
 
     CautionFactor     = c[0]
-    CautionRetention  = 1/c[1]
-    CautionExposure    = 1/(N*c[2]*(C_2s*ICUFrac))
+    if c[1]:
+        CautionRetention  = 1/c[1]
+    else:
+        CautionRetention  = None
+    if c[2]:
+        CautionExposure    = 1/(N*c[2]*(C_2s*ICUFrac))
+    else:
+        CautionExposure    = None
     
     if k[0]:
         EconomicStriction     =  1.0/k[0]
