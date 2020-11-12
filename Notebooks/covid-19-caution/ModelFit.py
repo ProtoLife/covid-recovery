@@ -140,7 +140,25 @@ class ModelFit:
         self.initial_values[0][0] = 1.0 - I0
         self.initial_values[0][self.model.I_1] = I0
         # print('Setting I0 value at index',self.model.I_1,'to',I0)
-        
+
+    def refresh_base(self):
+        """
+        converts sim params stored in self.params (obtained after fit) into  base params, 
+        storing in self.sbparams and self.cbparams.
+        Logic:  apply params2vector, followed by vectors2base, both found in model_fits_nodata.py
+        """
+        vec = params2vector(self.params,self.modelname) # returns (b,a,g,p,u,c,k,N)
+        I0 = np.power(10,self.sbparams['logI_0'])
+        ICUFrac = self.sbparams['ICUFrac']
+        sb,cb = vectors2base(*vec,I0,ICUFrac) # returns (sbparams, cbparams)
+        if set([x for x in sb]) != set([x for x in self.sbparams]):
+            print("Error:  sbparams mismatch in refresh_base().  Params unchanged.")
+        else:
+            self.sbparams = copy.deepcopy(sb)
+        if set([x for x in cb]) != set([x for x in self.cbparams]):
+            print("Error:  cbparams mismatch in refresh_base().  Params unchanged.")
+        else:
+            self.cbparams = copy.deepcopy(cb)
 
     def difference(self,datain):
         dataout = np.zeros(np.shape(datain))
@@ -705,8 +723,12 @@ class ModelFit:
                 elif 'I0' in fit_output.params:
                     logI_0 = np.log10(fit_output.params['I0'])
                     self.set_I0(logI_0)                    
-                    
-            ## dump new fitted values.
+            # refresh base prams from any changed sim params
+            # note that user must be careful if optimizing on both base params and sim params.
+            # refresh_base() will convert sim params to base, and use them for current values.
+            self.refresh_base() 
+
+            # bundle fit results
             self.fit_output = fit_output
             all_params = {'params':self.params, 
                           'sbparams':self.sbparams,
@@ -715,7 +737,9 @@ class ModelFit:
                           'dbparams':self.dbparams,
                           'initial_values':self.initial_values 
             }
-            self.all_params = all_params
+            self.all_params = copy.deepcopy(all_params)
+
+            ## dump new fitted values.
             self.dumpparams()
         else:
             print('Problem with fit, model params not changed')

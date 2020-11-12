@@ -669,6 +669,9 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
     return params
 
 def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
+    if 'I3' not in modelname:
+        print("Error in params2vector:  must have 'I3' in modelname.")
+        return None
     b = [None,None,None,None]
     g = [None,None,None,None]
     p = [None,None,None]
@@ -695,9 +698,9 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
     N=params['N']
 
     if 'C' in modelname: # models with caution 
-        c[0]=params['c_1']
-        c[1]=params['c_2']
-        c[2]=params['c_3']
+        c[0]=params['c_0']
+        c[1]=params['c_1']
+        c[2]=params['c_2']
 
     if 'U' in modelname: # models with economic correction to caution  
         k[0] = params['k_u']
@@ -772,26 +775,35 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
         assumes only one parameter for bvector in the form b*[0,1,0,0]"""
     global C_2s
     Exposure          = b[1]*N # assuming b vector has structure b*[0,1,0,0]
-    IncubPeriod       = a
+    IncubPeriod       = 1.0/a
 
     FracMild          = g[1]/(g[1]+p[1])  
     FracCritical       = (g[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
     #FracSevere        = (p[1]/(g[1]+p[1]))*(g[2]/(g[2]+p[2])) 
     FracSevere        = 1 - FracMild -FracCritical            
     CFR               = (u/(g[3]+u))*(p[2]/(g[2]+p[2]))*(p[1]/(g[1]+p[1]))  
-    IncubPeriod       = 1/(g[1]+p[1])
+    DurMildInf        = 1/(p[1]+g[1])
     DurHosp           = 1/(g[2]+p[2])
-    TimeICUDeath      = 1/(g(3)+u)
+    TimeICUDeath      = 1/(g[3]+u)
 
     CautionFactor     = c[0]
     CautionRetention  = 1/c[1]
     CautionExposure    = 1/(N*c[2]*(C_2s*ICUFrac))
     
-    EconomicStriction     =  1/k[0]
-    EconomicRetention     =  1/k[1]
-    EconomyRelaxation     =  1/k[2]
+    if k[0]:
+        EconomicStriction     =  1.0/k[0]
+    else:
+        EconomicStriction     =  None
+    if k[1]:
+        EconomicRetention     =  1.0/k[1]
+    else:
+        EconomicRetention     = None
+    if k[2]:
+        EconomyRelaxation     =  1.0/k[2]
+    else:
+        EconomyRelaxation     = None
     EconomicCostOfCaution =  k[3]
-    
+
     sbparams = {'Exposure':Exposure,'IncubPeriod':IncubPeriod,'DurMildInf':DurMildInf,
                 'FracMild':FracMild,'FracCritical':FracCritical,'CFR':CFR,
                 'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':np.log10(I0)}
@@ -799,7 +811,7 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
                 'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
                 'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
    
-    return(sbparams,cbparams)
+    return (sbparams,cbparams)
 
 def base2ICs(I0,N,smodel,model):
     (x0old,t0) = model.initial_values
