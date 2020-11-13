@@ -6,6 +6,21 @@ class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
 
+    def  print_ode(self):
+        '''
+        Prints the ode in symbolic form onto the screen/console in actual
+        symbols rather than the word of the symbol.
+        
+        Based on the PyGOM built-in but adapted for Jupyter
+        Corrected by John McCaskill to avoid subscript format error
+        '''
+        A = self.model.get_ode_eqn()
+        B = sympy.zeros(A.rows,2)
+        for i in range(A.shape[0]):
+            B[i,0] = sympy.symbols('d' + '{' + str(self.model._stateList[i]) + '}'+ '/dt=')
+            B[i,1] = A[i]
+        return B
+
     def dumpparams(self,run_id=''): # Have to add self since this will become a method
         """stores params in a file './params/Model_Name.pk'
         This stuff needs modules os, sys, pickle as pk.
