@@ -87,6 +87,30 @@ class ModelFit:
             return None
         return True
 
+    def checkparams(self,pinit):
+        cnt = 0
+        for pp in pinit:
+            mn = pinit[pp][1]
+            mx = pinit[pp][2]
+            if pp in self.params:
+                cur = self.params[pp]
+            elif pp == 'logI_0':
+                cur = self.sbparams[pp]
+            else:
+                print("Error: couldn't find param",pp)
+            win = mx-mn
+            if (cur-mn)/win < 0.05:
+                cnt = cnt+1
+                perc = np.round(100*(cur-mn)/win,2)
+                print('Param',pp,'within',perc,'% of min.')
+            if (mx-cur)/win < 0.05:
+                cnt = cnt+1
+                perc = np.round(100*(mx-cur)/win,2)
+                print('Param',pp,'witihin',perc,'% of max.')
+        if cnt==0:
+            print("All params away from boundaries.")
+
+
     def set_param(self,param,value):
         # print('--------------------------- new set param call ----------------------------------')
         # print('In set_param with param',param,'with value',value,'self',self)
@@ -693,7 +717,13 @@ class ModelFit:
                 # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)
 
                 print('elapsed time = ',time()-start)
+                self.checkparams(params_init_min_max)
                 lmfit.report_fit(fit_output)
+                if (fit_method == 'leastsq') and conf_interval:
+                    print('calculating Confidence Intervals')
+                    ci = lmfit.conf_interval(mini, fit_output)
+                    print('Confidence Intervals')
+                    lmfit.printfuncs.report_ci(ci)                    
             elif report:
                 # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
                 if (fit_method == 'leastsq') and conf_interval:
