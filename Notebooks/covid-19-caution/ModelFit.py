@@ -121,7 +121,7 @@ class ModelFit:
             if (mx-cur)/win < 0.05:
                 cnt = cnt+1
                 perc = np.round(100*(mx-cur)/win,2)
-                print('Param',pp,'witihin',perc,'% of max.')
+                print('Param',pp,'within',perc,'% of max.')
         if cnt==0:
             print("All params away from boundaries.")
 
@@ -790,7 +790,7 @@ class ModelFit:
             print('Problem with fit, model params not changed')
 
 
-    def __init__(self,modelname,basedata=None,data=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=False):
+    def __init__(self,modelname,basedata=None,data=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
@@ -885,14 +885,17 @@ class ModelFit:
     def setup_data(self,country):
         ts = self.data
         if self.data_src not in ['jhu','owid','cluster']:
-            print('data_src',data_src,'not yet hooked up: OWID data used instead')
+            print('data_src',data_src,'not yet hooked up: use jhu, owid or cluster data instead')
             return None
 
+        # NB: countries in ts are common countries, keyed using simple string names (common name for datasets) 
         self.country_str = country_str = country
-        if self.data_src == 'jhu':
-            self.country = country = (self.country_str,'')
-        else:
-            self.country = country
+        self.country = country
+
+        #if self.data_src == 'jhu':
+        #    self.country = country = (self.country_str,'')
+        #else:
+        #    self.country = country
 
         self.population = self.basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
 
@@ -960,8 +963,8 @@ class ModelFit:
                 try:
                     self.tsdata[dt] = ts[dt][country][daystart:datadays].copy()
                 except Exception as e:
-                    print('problem with',dt,'country',country)
-                    print(e)
+                        print('problem with',dt,'country',country)
+                        print(e)
                     
             #self.data.update({dt:ts[dt][country][daystart:datadays]}) 
 
