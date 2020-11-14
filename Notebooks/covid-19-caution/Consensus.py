@@ -963,7 +963,7 @@ class Consensus:
                 clusb = self.clusdata_s[i]
                 cb = coldata_t[i]
                 # newcolors_b = clust(clusa,clusb,ca,cb,True,False)  # only do phase 1 of cluster recolouring
-                newcolors_b = clust(clusa,clusb,ca,cb,relabel=True,merge=False)
+                newcolors_b = clust_lsa(clusa,clusb,ca,cb,base_colors=colors,relabel=True,merge=False)
                 coldata_t[i,:] = newcolors_b[:]
         self.coldata_adj = np.transpose(coldata_t,(1,0,2))         # sorted by countries in reference clustering sorted order
 
