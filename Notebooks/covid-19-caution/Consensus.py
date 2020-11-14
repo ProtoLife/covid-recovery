@@ -1078,7 +1078,7 @@ class Consensus:
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
         ax.set_xticklabels(rep,rotation='vertical')
         # plt.show()
-        # return fig
+        return fig
         
     def make_map(self):
         global geog,geog1,clusters,geo_json_data
