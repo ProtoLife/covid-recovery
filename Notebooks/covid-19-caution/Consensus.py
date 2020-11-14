@@ -976,7 +976,7 @@ class Consensus:
                 clusb = self.clusdata_s[i]
                 cb = coldata_t2[i]
                 # newcolors_b = clust(clusa,clusb,ca,cb,True,True)   # do phases 1 and 2 or cluster recolouring
-                # newcolors_b = clust_lsa(clusa,clusb,ca,cb,base_colors=colors,relabel=True,merge=True)
+                newcolors_b = clust_lsa(clusa,clusb,ca,cb,base_colors=colors,relabel=True,merge=True)
                 coldata_t2[i,:] = newcolors_b[:]
         self.coldata_adj2 = np.transpose(coldata_t2,(1,0,2))       # sorted by countries in reference clustering sorted order
 
@@ -1078,7 +1078,7 @@ class Consensus:
         plt.setp(ax.get_xticklabels(), rotation='vertical', family='monospace')
         ax.set_xticklabels(rep,rotation='vertical')
         # plt.show()
-        return fig
+        # return fig
         
     def make_map(self):
         global geog,geog1,clusters,geo_json_data
