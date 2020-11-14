@@ -1207,9 +1207,11 @@ class Consensus:
         def update_html(feature,  **kwargs):
             global chosen_country
             global country_display
+            global display_countries
             chosen_country = feature['properties']['name']
             if country_display:
-                country_display.children[1].value=chosen_country
+                if chosen_country in display_countries:
+                    country_display.children[1].value=chosen_country
 
 
             # print('debug name hsv cluster',feature['properties']['name'],feature['properties']['cluster'],feature['properties']['hsv'])
