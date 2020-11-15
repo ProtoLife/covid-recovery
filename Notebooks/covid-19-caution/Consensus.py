@@ -732,6 +732,29 @@ def dic_invert(d):
             inv[k] = inv[k][0]
     return inv
 
+def sprint(*args, **kwargs):
+    output = io.StringIO()
+    print(*args, file=output, **kwargs)
+    contents = output.getvalue()
+    output.close()
+    return contents
+
+def sprintdic(dic,chosen_country,chosen_class):
+    colwid = max(len(word) for x in dic for word in dic[x]) + 2  # padding
+    rtn = ''
+    if chosen_class == None:
+        #print('Error: chosen_country not classified')
+        rtn + sprint('Unclassified selection')
+    else:
+        rtn = rtn + sprint('class '+str(chosen_class)+':')
+    x = chosen_class
+    for i in range(0,len(dic[x]),2):
+        if i < len(dic[x])-1:
+            rtn = rtn + sprint("".join(word.ljust(colwid) for word in [dic[x][i],dic[x][i+1]]))
+        else:
+            rtn = rtn + sprint(dic[x][i])
+    return rtn
+
 class Consensus:
     def __init__(self,
                  cldata,
@@ -1169,7 +1192,19 @@ class Consensus:
             else:
                 return '#000000'
 
-        def colorfill(feature,colormap,x):
+        def fillopacity(feature,colormap,x):
+            global chosen_country
+            global chosen_country,country_display,display_countries
+            global chosen_class,class_display,chosen_swdic
+            n = feature['properties']['name']
+            if n in chosen_swdic[chosen_class]:
+                o=1.0
+            else:
+                o=0.6
+            return o
+
+
+        def colorfill(feature,colormap,x):            
             c = feature['properties']['cluster']
             h = feature['properties']['hsv'][0]
             s = feature['properties']['hsv'][1]
@@ -1199,19 +1234,28 @@ class Consensus:
         style_function = lambda feature,colormap,x: {"weight":0.5, 
                                     # 'color':'black',
                                     #'fillColor':colormap(x['properties']['hue']), 
-                                    'border_color':colorborder(feature,colormap,x),
-                                    'color': colorborder(feature,colormap,x),
+                                    'border_opacity':0.5,
+                                    'border_color':'gray',
+                                    'color': 'gray',
+                                    # 'border_color':colorborder(feature,colormap,x),
+                                    # 'color': colorborder(feature,colormap,x),
                                     'fillColor':colorfill(feature,colormap,x), 
-                                    'fillOpacity':0.8}
+                                    'fillOpacity':fillopacity(feature,colormap,x)}
+                                    #'fillOpacity':0.7}
 
         def update_html(feature,  **kwargs):
-            global chosen_country
-            global country_display
-            global display_countries
+            global chosen_country,country_display,display_countries
+            global chosen_class,class_display,chosen_swdic
             chosen_country = feature['properties']['name']
             if country_display:
                 if chosen_country in display_countries:
                     country_display.children[1].value=chosen_country
+                    chosen_class = None
+                    for cl in chosen_swdic:
+                        if chosen_country in chosen_swdic[cl]:
+                            chosen_class = cl;
+                            break
+                    class_display.value=sprintdic(chosen_swdic,chosen_country,chosen_class)
 
 
             # print('debug name hsv cluster',feature['properties']['name'],feature['properties']['cluster'],feature['properties']['hsv'])
@@ -1233,26 +1277,33 @@ class Consensus:
                 plt.plot(cons.cldata.clusdata_all[dataname][country])
 
         def on_clicked(feature,  **kwargs):
-            global chosen_country
-            global country_display
+            global chosen_country,country_display,display_countries
+            global chosen_class,class_display,chosen_swdic
             chosen_country = feature['properties']['name']
-            if chosen_country in self.cldata.countries:
+            if chosen_country in display_countries:
                 country_display.children[1].value=chosen_country
-                print("Country selected",chosen_country)
-            else:
-                print("Country not in cluster countries",chosen_country)
+                chosen_class = None
+                for cl in chosen_swdic:
+                    if chosen_country in chosen_swdic[cl]:
+                        chosen_class = cl;
+                        break
+                class_display.value=sprintdic(chosen_swdic,chosen_country,chosen_class)
 
         def getvalue(change):
             # make the new value available
             #future.set_result(change.new)
             #widget.unobserve(getvalue, value)
-            global chosen_country,chosen_country_widget
+            global chosen_country,country_display,display_countries
+            global chosen_class,class_display,chosen_swdic
             chosen_country = change.new['properties']['name']
-            if chosen_country not in self.cldata.countries:
-                print("Country selected was",chosen_country,"not in cluster countries, reset to default")
-                chosen_country = 'Australia'
-            else:
-                print("Country selected is",chosen_country)
+            if chosen_country in display_countries:
+                country_display.children[1].value=chosen_country
+                chosen_class = None
+                for cl in chosen_swdic:
+                    if chosen_country in chosen_swdic[cl]:
+                        chosen_class = cl;
+                        break
+                class_display.value=sprintdic(chosen_swdic,chosen_country,chosen_class)
          
         #print('now forming chloropleth layer')   
         layer = ipyleaflet.Choropleth(
@@ -1261,7 +1312,8 @@ class Consensus:
             colormap=linear.YlOrRd_04,
             #border_color='black',
             #style={'fillOpacity': 0.9, 'dashArray': '5, 5'},
-            style_callback = style_function)
+            style_callback = style_function,
+            hover_style = {'fillOpacity': 0.9, 'dashArray': '5, 5'})
         #print('now setting up country control')
         html = HTML('''Selected Country''')
         html.layout.margin = '0px 10px 10px 10px'
