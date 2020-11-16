@@ -745,6 +745,8 @@ def sprintdic(dic,chosen_country,chosen_class):
     if chosen_class == None:
         #print('Error: chosen_country not classified')
         rtn + sprint('Unclassified selection')
+    elif chosen_class == -1:
+        rtn = rtn + sprint('unclusterd:')
     else:
         rtn = rtn + sprint('class '+str(chosen_class)+':')
     x = chosen_class

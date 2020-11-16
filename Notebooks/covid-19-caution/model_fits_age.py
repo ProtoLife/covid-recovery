@@ -1021,32 +1021,61 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
     params['N'] = N
     return params
 
-def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
-    if 'I3' not in modelname:
-        print("Error in params2vector:  must have 'I3' in modelname.")
-        return None
+def f3inv(x):
+    return x # more complex function of x needed, here dummy
+
+def f4(x):
+    return x # more complex function of x needed, here dummy
+
+def params2vector(self,params,modelname='SC3UEI3R'):  # requires I3 in modelname
     b = [None,None,None,None]
     g = [None,None,None,None]
     p = [None,None,None]
     c = [None,None,None,None]
     k = [None,None,None,None]
+    
+    if 'E' in modelname:
+        a=params['alpha']
+    else:
+        a = 1./self.sbparams['IncubPeriod']  # derive parameter from base parameters if model does not use E (exposed individuals)
+    if 'I3' not in modelname:
+        b_0,a_0,g_0,p_0,u_0,c_0,k_0,N_0,I0_0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)  # only use ratios of g and p to u from base parameters
 
-    a=params['alpha']
+        #irat = 1 + p[1]/(g[2]+p[2]) + p[2]/(g[3]+u)
+        #gamma = (g[1]+g[2]*(p[1]/(g[2]+p[2]))+g[3]*(p[1]/(g[2]+p[2]))*(p[2]/(g[3]+u)))/irat
+        #mu = u*(p[1]/(g[2]+p[2])*(p[2]/(g[3]+u))/irat)
 
-    b[0]=0.0
-    b[1]=params['beta_1']
-    b[2]=params['beta_2']
-    b[3]=params['beta_3']
+        b[0]=0.0
+        b[1]=params['beta']
+        b[2]=0.
+        b[3]=0.
 
-    g[0]=0.0
-    g[1]=params['gamma_1']
-    g[2]=params['gamma_2']
-    g[3]=params['gamma_3']
+        g3_div_p3 = f3inv(params['gamma']/params['beta'])
+        u = params['mu']*f4(g3_div_p3)
 
-    p[0]=0.0
-    p[1]=params['p_1']
-    p[2]=params['p_2']
-    u=params['mu']       # equivalent to p[3]
+        g[3]=u*g3_div_p3
+        g[2]=g[3]*g_0[2]/g_0[3]
+        g[1]=g[3]*g_0[1]/g_0[3]
+        g[0]=0.0
+
+        p[2]=u*p_0[2]/u_0
+        p[1]=u*p_0[1]/u_0
+        p[0]=0.0
+    else:
+        b[0]=0.0
+        b[1]=params['beta_1']
+        b[2]=params['beta_2']
+        b[3]=params['beta_3']
+
+        g[0]=0.0
+        g[1]=params['gamma_1']
+        g[2]=params['gamma_2']
+        g[3]=params['gamma_3']
+
+        p[0]=0.0
+        p[1]=params['p_1']
+        p[2]=params['p_2']
+        u=params['mu']       # equivalent to p[3]
 
     N=params['N']
 
@@ -1066,6 +1095,7 @@ def params2vector(params,modelname='SC3UEI3R'):  # requires I3 in modelname
         k[2] = params['k_w']
         k[3] = params['kappa']
     return (b,a,g,p,u,c,k,N)
+
 
 def base2vectors(sbparams,cbparams,fbparams):
     """ converts dictionary of base parameters to vector of parameters and then to pygom simulation parameters"""
@@ -1271,12 +1301,6 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     fullmodel['initial_values'] = model.initial_values  # this line probably not required, since already initialized in make_model
     return fullmodel
 
-# smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
-# smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
-smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list, others can be added if required from notebook
-# samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4'] 
-samodels = []
-
 sim_param_inits = {
     'SIR':{
         "beta": (0.4, 0.3, 0.8,0.001),
@@ -1373,7 +1397,12 @@ sim_param_inits = {
         "logI_0": (-6.,-10.,0.0,0.01)}
     }
                
-                   
+# smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
+# smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
+smodels = ['SEI3R','SC3EI3R','SC3UEI3R'] # short list, others can be added if required from notebook
+# samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4'] 
+# samodels = ['SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4']
+samodels = []                   
 
 
 # Initialize all models

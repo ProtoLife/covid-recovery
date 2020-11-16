@@ -186,7 +186,9 @@ class ModelFit:
         storing in self.sbparams and self.cbparams.
         Logic:  apply params2vector, followed by vectors2base, both found in model_fits_nodata.py
         """
-        vec = params2vector(self.params,self.modelname) # returns (b,a,g,p,u,c,k,N)
+        vec = params2vector(self,self.params,self.modelname) # returns (b,a,g,p,u,c,k,N)
+        print('params',self.modelname,self.params)
+        print('vec',vec)
         I0 = np.power(10,self.sbparams['logI_0'])
         ICUFrac = self.sbparams['ICUFrac']
         sb,cb = vectors2base(*vec,I0,ICUFrac) # returns (sbparams, cbparams)
