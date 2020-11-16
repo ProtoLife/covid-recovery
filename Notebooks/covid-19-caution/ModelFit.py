@@ -471,7 +471,7 @@ class ModelFit:
                 
         plt.xlabel("Time (days)")
         plt.ylabel("Fraction of population")
-        plt.title(model.modelname +' '+plottitle)
+        plt.title(model.modelname +' '+self.country+' '+plottitle)
         if outfile:
             plt.savefig(outfile,bbox_inches='tight')
         self.dumpparams()       # dump every plot;  could be changed by sliders
