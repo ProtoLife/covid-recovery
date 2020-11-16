@@ -31,7 +31,7 @@ def Float(x):
     return rtn
 
 data_days = -1
-final_date = "10/27/20" # 27th October 2020 as cutoff for paper (26th October for JHU, since better sync offset by 1)
+final_date = "11/14/20" # 14th November earlier 27th October 2020 as cutoff for paper (26th October for JHU, since better sync offset by 1)
 
 def get_data(jhu_file, lastdate=None):
     global data_days
