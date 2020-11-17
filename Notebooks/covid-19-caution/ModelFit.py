@@ -123,7 +123,8 @@ class ModelFit:
                 perc = np.round(100*(mx-cur)/win,2)
                 print('Param',pp,'within',perc,'% of max.')
         if cnt==0:
-            print("All params away from boundaries.")
+            print("All params are away from boundaries.")
+        # print("Finished checkparams.")
 
 
     def set_param(self,param,value):
@@ -187,8 +188,8 @@ class ModelFit:
         Logic:  apply params2vector, followed by vectors2base, both found in model_fits_nodata.py
         """
         vec = params2vector(self,self.params,self.modelname) # returns (b,a,g,p,u,c,k,N)
-        print('params',self.modelname,self.params)
-        print('vec',vec)
+        # print('params',self.modelname,self.params)
+        # print('vec',vec)
         I0 = np.power(10,self.sbparams['logI_0'])
         ICUFrac = self.sbparams['ICUFrac']
         sb,cb = vectors2base(*vec,I0,ICUFrac) # returns (sbparams, cbparams)
@@ -309,7 +310,7 @@ class ModelFit:
 
     def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axis=None,
                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None,
-                  outfile = None,datasets=['confirmed_corrected_smoothed'],age_groups=None):
+                  outfile = None,datasets=['confirmed_corrected_smoothed'],age_groups=None,background='white'):
         """
         solve ODEs and plot for fitmodel indicated
         
@@ -378,6 +379,8 @@ class ModelFit:
             ax = axis = plt.subplot(1,1,1)
         else:
             ax = axis
+        ax.set_facecolor(background)
+
         if scale == 'log': #Plot on log scale
             ax.semilogy()
             ax.set_ylim([0.00000001,1.0])
@@ -477,7 +480,7 @@ class ModelFit:
         if outfile:
             plt.savefig(outfile,bbox_inches='tight')
         self.dumpparams()       # dump every plot;  could be changed by sliders
-        return
+        return ax
 
     def prparams(self,outfile = ''):
         """
@@ -792,7 +795,7 @@ class ModelFit:
             print('Problem with fit, model params not changed')
 
 
-    def __init__(self,modelname,basedata=None,data=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True):
+    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
@@ -802,9 +805,12 @@ class ModelFit:
         self.data_src = data_src
         if basedata==None:
             print("Error:  must specify base data with arg basedata.")
-        if data==None:
-            print("Error:  must specify data with arg data.")
-        self.data = data
+        if self.data_src == 'jhu':
+            self.data = basedata.covid_ts
+        elif self.data_src == 'owid':
+            self.data = basedata.covid_owid_ts
+        else:
+            print("Error:  data_src must be on eof jhu or owid.")
         self.basedata = basedata
         self.startdate = startdate
         self.stopdate = stopdate

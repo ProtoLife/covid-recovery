@@ -746,7 +746,7 @@ def sprintdic(dic,chosen_country,chosen_class):
         #print('Error: chosen_country not classified')
         rtn + sprint('Unclassified selection')
     elif chosen_class == -1:
-        rtn = rtn + sprint('unclusterd:')
+        rtn = rtn + sprint('unclustered:')
     else:
         rtn = rtn + sprint('class '+str(chosen_class)+':')
     x = chosen_class
@@ -1104,6 +1104,60 @@ class Consensus:
         ax.set_xticklabels(rep,rotation='vertical')
         # plt.show()
         return fig
+
+    def plot_quantile(self,dtype,cluster='all',chosen_country=None,title=True):
+        classdic = self.swdic
+        if cluster == 'all':
+            classes = list(classdic.keys())
+        elif isinstance(cluster,list):
+            classes = cluster
+        elif cluster == 'own':
+            for label in classdic:
+                if chosen_country in classdic[label]:
+                    classes= [label]
+                    break
+        else:
+            classes = [cluster]
+        clusdata_all = self.cldata.clusdata_all
+
+        fig, ax = plt.subplots(1,len(classes),figsize=(len(classes)*5,5),squeeze=False)
+        cnt = 0
+        # print('classdic',classdic)
+        for label in classes:   
+            nelts = len(classdic[label])
+            if chosen_country and chosen_country in classdic[label]:
+                maxval=np.amax(clusdata_all[dtype][chosen_country])
+                datchosen = np.maximum(clusdata_all[dtype][chosen_country]/maxval,0.)
+            #dats = [[max(z/max(clusdata_all[dtype][cc]),0.) for z in clusdata_all[dtype][cc]] for cc in classdic[label] ]
+            dats=np.zeros((len(classdic[label]),len(clusdata_all[dtype]['Germany'])),dtype=float)
+            for i,cc in enumerate(classdic[label]):
+                maxval=np.amax(clusdata_all[dtype][cc])
+                dats[i,:] = np.maximum(clusdata_all[dtype][cc]/maxval,0.)
+            dats = np.transpose(np.array(dats))
+            pdats = [pd.Series(dat) for dat in dats]
+            qdats = [[pdat.quantile(q) for q in [0.,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.]] for pdat in pdats]
+            data = np.transpose(np.array(qdats))
+            #print(np.shape(dats))
+            #print(np.shape(data))
+            # data = qdats
+            x = range(len(data[0]))
+            clrs = ['#f0f0f0','#c0c0c0','#505050','#303030','#ff0000','#00ff00','#303030','#505050','#c0c0c0','#f0f0f0'] # clrs[0] not used
+            for i in range(1,len(data)):
+                ax[0,cnt].fill_between(x,data[i-1],data[i],alpha=0.8,color=clrs[i-1]);
+            if label != -1 and title:
+                ax[0,cnt].set_title('Class '+('%d' % label)+(' with %d ' % nelts)+'elts')
+            elif title:
+                ax[0,cnt].set_title('Unclustered'+(' with %d ' % nelts)+'elts')
+            # ax[cnt].set_xticklabels("")  # x labels for cases_nonlinr!
+            if cnt>0:
+                ax[0,cnt].set_yticklabels("")
+            if chosen_country and chosen_country in classdic[label]:
+                #print(len(x),len(datchosen))
+                ax[0,cnt].plot(x,datchosen,alpha=1.0,color='blue');
+            cnt = cnt+1
+        if title:
+            plt.suptitle(dtype);
+        return
         
     def make_map(self):
         global geog,geog1,clusters,geo_json_data
@@ -1195,11 +1249,10 @@ class Consensus:
                 return '#000000'
 
         def fillopacity(feature,colormap,x):
-            global chosen_country
-            global chosen_country,country_display,display_countries
-            global chosen_class,class_display,chosen_swdic
+            global chosen_country,current_country,country_display,display_countries
+            global chosen_class,current_class,class_display,chosen_swdic
             n = feature['properties']['name']
-            if n in chosen_swdic[chosen_class]:
+            if n in chosen_swdic[current_class]:
                 o=1.0
             else:
                 o=0.6
@@ -1246,20 +1299,6 @@ class Consensus:
                                     #'fillOpacity':0.7}
 
         def update_html(feature,  **kwargs):
-            global chosen_country,country_display,display_countries
-            global chosen_class,class_display,chosen_swdic
-            chosen_country = feature['properties']['name']
-            if country_display:
-                if chosen_country in display_countries:
-                    country_display.children[1].value=chosen_country
-                    chosen_class = None
-                    for cl in chosen_swdic:
-                        if chosen_country in chosen_swdic[cl]:
-                            chosen_class = cl;
-                            break
-                    class_display.value=sprintdic(chosen_swdic,chosen_country,chosen_class)
-
-
             # print('debug name hsv cluster',feature['properties']['name'],feature['properties']['cluster'],feature['properties']['hsv'])
             html.value = '''
                 <h3 style="font-size:12px"><b>{}</b></h3>
@@ -1278,16 +1317,19 @@ class Consensus:
             if country in cons.countries:
                 plt.plot(cons.cldata.clusdata_all[dataname][country])
 
-        def on_clicked(feature,  **kwargs):
-            global chosen_country,country_display,display_countries
-            global chosen_class,class_display,chosen_swdic
+        def on_click(feature,  **kwargs):
+            global chosen_country,current_country,country_display,display_countries
+            global chosen_class,current_class,class_display,chosen_swdic
             chosen_country = feature['properties']['name']
+            current_country = feature['properties']['name']
             if chosen_country in display_countries:
                 country_display.children[1].value=chosen_country
                 chosen_class = None
+                current_class = None
                 for cl in chosen_swdic:
                     if chosen_country in chosen_swdic[cl]:
                         chosen_class = cl;
+                        current_class= cl;
                         break
                 class_display.value=sprintdic(chosen_swdic,chosen_country,chosen_class)
 
@@ -1327,8 +1369,8 @@ class Consensus:
         m.add_layer(layer)
 
         m.add_control(control)
+        layer.on_click(on_click)
         layer.on_hover(update_html)
-        layer.on_click(on_clicked)
         layer.observe(getvalue,'change')
         m.add_control(ipyleaflet.FullScreenControl())
 
