@@ -739,7 +739,13 @@ def sprint(*args, **kwargs):
     output.close()
     return contents
 
-def sprintdic(dic,chosen_country,chosen_class):
+def sprintdic(dic,chosen_country):
+    global chosen_class
+    chosen_class = None
+    for label in dic:
+        if chosen_country in dic[label]:
+            chosen_class = label
+            break
     colwid = max(len(word) for x in dic for word in dic[x]) + 2  # padding
     rtn = ''
     if chosen_class == None:
@@ -1141,7 +1147,7 @@ class Consensus:
             #print(np.shape(data))
             # data = qdats
             x = range(len(data[0]))
-            clrs = ['#f0f0f0','#c0c0c0','#505050','#303030','#ff0000','#00ff00','#303030','#505050','#c0c0c0','#f0f0f0'] # clrs[0] not used
+            clrs = ['#f0f0f0','#c0c0c0','#505050','#303030','#00a0a0','#c0c000','#303030','#505050','#c0c0c0','#f0f0f0'] # clrs[0] not used
             for i in range(1,len(data)):
                 ax[0,cnt].fill_between(x,data[i-1],data[i],alpha=0.8,color=clrs[i-1]);
             if label != -1 and title:
@@ -1153,7 +1159,10 @@ class Consensus:
                 ax[0,cnt].set_yticklabels("")
             if chosen_country and chosen_country in classdic[label]:
                 #print(len(x),len(datchosen))
-                ax[0,cnt].plot(x,datchosen,alpha=1.0,color='blue');
+                if 'deaths' in dtype:
+                    ax[0,cnt].plot(x,datchosen,alpha=1.0,color='red');
+                else:
+                    ax[0,cnt].plot(x,datchosen,alpha=1.0,color='green');
             cnt = cnt+1
         if title:
             plt.suptitle(dtype);
@@ -1331,7 +1340,7 @@ class Consensus:
                         chosen_class = cl;
                         current_class= cl;
                         break
-                class_display.value=sprintdic(chosen_swdic,chosen_country,chosen_class)
+                class_display.value=sprintdic(chosen_swdic,chosen_country)
 
         def getvalue(change):
             # make the new value available
@@ -1347,7 +1356,7 @@ class Consensus:
                     if chosen_country in chosen_swdic[cl]:
                         chosen_class = cl;
                         break
-                class_display.value=sprintdic(chosen_swdic,chosen_country,chosen_class)
+                class_display.value=sprintdic(chosen_swdic,chosen_country)
          
         #print('now forming chloropleth layer')   
         layer = ipyleaflet.Choropleth(
