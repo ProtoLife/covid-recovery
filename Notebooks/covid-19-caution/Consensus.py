@@ -507,7 +507,7 @@ def hscore_mode_org(crow,cols):
     return hsvmean
 
 
-def swizzle(countries,data,cols):
+def swizzle_old(countries,data,cols):
     rgb = [None]*len(countries)
     for i in range(len(countries)):
         for j in range(data.shape[1]):
@@ -598,25 +598,29 @@ def swizzle2(countries,data,cols,refcol):
     return rtn,rgblist,hsvdic
 
 
-def swizzle3(countries,data,cols,refcol,satthresh = 0.7):
+def swizzle3(countries,data,cols,refcol,basecolors,refdata,satthresh = 0.7):
     eps = 0.0001
     clus = [None]*len(countries)
     rgblist = [None]*len(countries)
     hsvdic = {}
-    hsvrefs = [mpcolors.rgb_to_hsv(c) for c in data[:,refcol]]
-    huesref  = np.sort(list(set([hsv[0] for hsv in hsvrefs if hsv[1] > eps])))
-    # print('huesref',huesref)
+    #hsvrefs = [mpcolors.rgb_to_hsv(c) for c in data[:,refcol]]
+    refclus = np.sort(list(set(refdata))) # cluster classes in reference column
+    #print('refclus',refclus)
+    #huesref  = np.sort(list(set([hsv[0] for hsv in hsvrefs if hsv[1] > eps])))
+    huesref = [mpcolors.rgb_to_hsv(basecolors[1+i])[0] for i in refclus if i != -1]
+    #print('data shape',np.shape(data))
+    #print('huesref',huesref)
     for i in range(len(countries)):
         # hsvsc = hscore_org(data[i,:,:],cols)
-        # print(countries[i])
         # hsvsc = hscore_mode_org(data[i,:,:],cols) # using modal hue
-        hsvsc = hscore_org(data[i,:,:],cols)      # using color circle mean hue
+        hsvsc = hscore_mode_org(data[i,:,:],cols)      # using color circle mean hue
         hue = hsvsc[0]
         sat = hsvsc[1]
         if sat <= satthresh:  # mean is classed as unclustered
             clus[i] = -1
         else:
             clus[i] = closest_hue(hue,huesref)
+        #print(i,countries[i],hue,clus[i])
         hsvdic.update({countries[i]:hsvsc})
         rgblist[i] = mpcolors.hsv_to_rgb(hsvsc)  
     # print('clus',clus,'len',len(clus))
@@ -788,21 +792,22 @@ class Consensus:
 
     def scan(self,diag=False,progress=True,name=''):
         countries = self.countries
-        maxvalid = [None,None,None,None,None,None]
+        lc = len(self.cases)
+        maxvalid = [None]*lc
         maxvalidval= 0.0
-        maxvalidsc = [None,None,None,None,None,None]
+        maxvalidsc = [None]*lc
         maxvalidscval= 0.0
-        minscore1 = [None,None,None,None,None,None]
+        minscore1 = [None]*lc
         minscore1val = 999.
-        minscore2 = [None,None,None,None,None,None]
+        minscore2 = [None]*lc
         minscore2val = 999.
-        self.report = [' ']*4*len(self.cases)
-        self.reportdata = [None]*4*len(self.cases)
+        self.report = [' ']*4*lc
+        self.reportdata = [None]*4*lc
         # runlen = len(self.cldata.clusdata_all[self.cases[0]])
         runlen = len(countries)
-        self.probdata=np.zeros((4*6,runlen),dtype=float)
-        self.outlierdata=np.zeros((4*6,runlen),dtype=float)
-        self.clusdata = np.zeros((4*6,runlen),dtype=np.int64)
+        self.probdata=np.zeros((4*lc,runlen),dtype=float)
+        self.outlierdata=np.zeros((4*lc,runlen),dtype=float)
+        self.clusdata = np.zeros((4*lc,runlen),dtype=np.int64)
         self.info =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         infomax =  pd.DataFrame(columns=['type','minc','mins','ncomp','clustered','unclustered','validity','validitysc','score1','score2'])
         cnt=0
@@ -906,18 +911,18 @@ class Consensus:
             print('maxvalidsc ',maxvalidsc[ic])
             print('minscore1',minscore1[ic])
             print('minscore2',minscore2[ic])
-            print('making clusters...')
-            self.make_clusters()
-            print('swizzling')
-            self.swizzle()
+            #print('making clusters...')
+            #self.make_clusters()
+            #print('swizzling')
+            #self.swizzle()
         
     def plot_outliers(self):
         Nvars = len(self.cases)*4
-        max_cols = 6
+        max_cols = lc
         max_rows = Nvars // max_cols
         if Nvars % max_cols:
             max_rows = max_rows+1
-        fig,axes = plt.subplots(6,4,figsize=(24,36))
+        fig,axes = plt.subplots(lc,4,figsize=(4*lc,36))
         for n in range(Nvars):
             i = n % max_rows
             j = int (n/max_rows)
@@ -963,7 +968,7 @@ class Consensus:
                 self.clusdata_s[i,j] = self.clusdata[i,clus_argsort[j]]
                 tmp[scountries[j]] = self.clusdata_s[i,j]
             self.dics.append(tmp.copy())
-
+        self.clusdata_rs = self.clusdata_s[self.refclustering,:] 
         """
         This is the basic cluster comparison.  It suffers from the independent ordering of clusters, which makes the colourings different in each column. 
         * In general, given the different number of clusters this is a nontrivial problem in graph matching. We adopt a two phase approach in what follows: 
@@ -977,10 +982,10 @@ class Consensus:
         cindex = np.transpose(self.clusdata_s) 
         ncols = len(set(self.clusdata.flatten()))
         if ncols>16:
-            print('currently only 16 different colours allowed', ncols )
+            print('Error: currently only 16 different colours allowed', ncols )
         colors = np.array([[1,1,1],[1,0,0],[0,1,0],[0,0,1],[1.,1.,0.],[1.,0.,1.],[0.,1.,1.],[0.5,1.,0.],
                            [0,1,0.5],[0.5,0,1],[0.5,1,0.5],[0.3,0.7,0.5],[0.5,0.7,0.3],[0.7,0.5,0.3],[0.1,0.7,0.7],[0.7,0.1,0.7]]) # black,red,green,blue,yellow,cyan,magenta,...
-        colors = np.concatenate((colors,colors))
+        # colors = np.concatenate((colors,colors))
         self.basecolors = colors
         cluscols = np.transpose(colors[cindex[:,:]+1],(2,0,1)) # transpose to allow elementwise multiplication with rawdata with separate r,g,b
         self.coldata = np.transpose((cluscols+3*cluscols*rawdata)/4.,(1,2,0))   # transpose back to have colours as elements of 2D array
@@ -1076,7 +1081,7 @@ class Consensus:
             self.cols=list(range(4*len(self.cases)))
         else:
             self.cols = cols
-        dic,classes,idx,rgblist,hsvdic = swizzle3(self.scountries,self.coldata_adj2,self.cols,self.refclustering,satthresh = satthresh)
+        dic,classes,idx,rgblist,hsvdic = swizzle3(self.scountries,self.coldata_adj2,self.cols,self.refclustering,self.basecolors,self.clusdata_rs,satthresh = satthresh)
         #print(cols.idx)
         self.classes = classes                                           # already swizzle ordered by swizzle3
         self.swdat = np.array([self.coldata_adj2[i] for i in idx])       # swdat is swizzle3 sorted coldata_adj2
