@@ -750,7 +750,7 @@ def sprintdic(dic,chosen_country):
         if chosen_country in dic[label]:
             chosen_class = label
             break
-    colwid = max(len(word) for x in dic for word in dic[x]) + 2  # padding
+
     rtn = ''
     if chosen_class == None:
         #print('Error: chosen_country not classified')
@@ -759,12 +759,18 @@ def sprintdic(dic,chosen_country):
         rtn = rtn + sprint('unclustered:')
     else:
         rtn = rtn + sprint('class '+str(chosen_class)+':')
-    x = chosen_class
-    for i in range(0,len(dic[x]),2):
-        if i < len(dic[x])-1:
-            rtn = rtn + sprint("".join(word.ljust(colwid) for word in [dic[x][i],dic[x][i+1]]))
+    if chosen_class:    
+        countries = np.sort(np.array(dic[chosen_class]))
+    else:
+        countries = []
+    colwid = max(len(cc) for cc in countries[::2]) + 5  # padding
+
+    for i in range(0,len(countries),2):
+        if i < len(countries)-1:
+            rtn = rtn + sprint(countries[i].ljust(colwid)+countries[i+1])
+            # rtn = rtn + sprint("".join(country.ljust(colwid) for country in [countries[i],countries[i+1]]))
         else:
-            rtn = rtn + sprint(dic[x][i])
+            rtn = rtn + sprint(countries[i])
     return rtn
 
 class Consensus:
