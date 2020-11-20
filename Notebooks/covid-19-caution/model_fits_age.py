@@ -23,7 +23,7 @@ import scipy
 import datetime
 import matplotlib.dates as mdates
 from pygom import DeterministicOde, Transition, SimulateOde, TransitionType, SquareLoss
-from scipy.optimize import minimize
+from scipy.optimize import minimize,brentq
 
 import pickle as pk
 import jsonpickle as jpk
@@ -1021,11 +1021,44 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
     params['N'] = N
     return params
 
-def f3inv(x):
-    return x # more complex function of x needed, here dummy
+def gamma_div_mu(gp3,p21,p32,g13,g23):
+    """ calculates gamma/mu : included here for reference and to enable check of algebra
+    """
+    return gp3*p21*(1.+g23*p32*(1+gp3)+g13*p32*p21*(1.+gp3)(1.+g23*p32*gp3))
 
-def f4(x):
-    return x # more complex function of x needed, here dummy
+def f3cubic(x,gamma,mu,p12,p23,g13,g23):
+    """ calculates cubic equation for solving for gp3
+        in the form ax^3+bx^2+cx+d = 0
+        normalized with constant term d = -p12*gamma/mu
+        note that p12 and p23 are inverses of p21 and p32 in gamma_div_mu
+    """
+    if p12==0 or p23==0:
+        print("Error: zero value of p[1] or p[2]")
+        return 1.
+    d = -p12*gamma/mu
+    c = 1.+(g23+g13/p12)/p23
+    b = (g23+g13/p12+g13*g23/(p12*p23))/p23
+    a = g13*g23/(p12*p23*p23)
+
+    return a*x*x*x+b*x*x+c*x+d
+
+def f3inv(f3cubic,gamma,mu,p12,p23,g13,g23):
+    """
+    return real root of f3cubic in range [0,100] using Brent's method (scipy.optimize.brentq)
+    https://en.wikipedia.org/wiki/Root-finding_algorithms#Brent's_method
+    """
+    return brentq(f3cubic,0.,100.,args=(gamma,mu,p12,p23,g13,g23))
+
+def f4(gp3,p12,p23,g23):
+    """ calculates u/mu = p3/mu in terms of
+        gp3 = g3/p3, p23 = p2/p3, g23 = g2/g3
+    """
+    if p12==0 or p23==0:
+        print("Error: zero value of p[1] or p[2]")
+        return 1.
+    fac1 = p12/(1.+g23*gp3/p23)
+    fac2 = p23/(1.+gp3)
+    return (1.+fac1+fac2)/(fac1*fac2)
 
 def params2vector(self,params,modelname='SC3UEI3R'):  # requires I3 in modelname
     b = [None,None,None,None]
@@ -1050,12 +1083,16 @@ def params2vector(self,params,modelname='SC3UEI3R'):  # requires I3 in modelname
         b[2]=0.
         b[3]=0.
 
-        g3_div_p3 = f3inv(params['gamma']/params['beta'])
-        u = params['mu']*f4(g3_div_p3)
+        p12=p_0[1]/p_0[2]
+        p23=p_0[2]/u_0
+        g13=g_0[1]/g_0[3]
+        g23=g_0[2]/g_0[3]
+        gp3 = f3inv(f3cubic,params['gamma'],params['beta'],p12,p23,g13,g23) # finds gp3=g[3]/p[3]=g[3]/u
+        u = params['mu']*f4(gp3,p12,p23,g23)
 
-        g[3]=u*g3_div_p3
-        g[2]=g[3]*g_0[2]/g_0[3]
-        g[1]=g[3]*g_0[1]/g_0[3]
+        g[3]=u*gp3
+        g[2]=g[3]*g23
+        g[1]=g[3]*g13
         g[0]=0.0
 
         p[2]=u*p_0[2]/u_0
