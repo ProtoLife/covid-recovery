@@ -155,7 +155,7 @@ class ModelFit:
         elif param in list(self.fbparams):
             self.fbparams[param] = value 
         b,a,g,p,u,c,k,N,I0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)
-        params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
+        params_in=vector2params(b,a,g,p,u,c,k,N,self.modelname)
         for pm in self.params:
             self.params[pm] = params_in[pm] # NB: vector2params returns all params including for U model
         self.model.parameters = self.params # pygom magic sets the right parameter in the model.parameters dictionary.
@@ -861,7 +861,7 @@ class ModelFit:
                     return
                 else:
                     print('Adding model',modelname,'to stored models.')
-                    fullmodel = parametrize_model(modelname_root,age_structure=age_structure)
+                    fullmodel = parametrize_model(modelname_root,modelname,age_structure=age_structure)
                     fullmodels[modelname] = fullmodel
 
             model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are

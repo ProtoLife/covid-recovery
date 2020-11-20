@@ -1002,15 +1002,13 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
         params['c_1'] = c[1]
         if 'I3' in modelname: # models with hospitalization
             params['c_2'] = c[2]
+            if '_A' in modelname:
+                params['c_3'] = c[3]
         else:
             # params['c_2'] = c[2]*FracCritical  # this can be calculated explicitly in next line
             params['c_2'] = c[2]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
-
-    if '_A' in modelname:
-        if 'I3' in modelname: # models with hospitalization
-            params['c_3'] = c[3]
-        else:
-            params['c_3'] = c[3]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))  
+            if '_A' in modelname:
+                params['c_3'] = c[3]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2])) 
         
     if 'U' in modelname: # models with economic correction to caution  
         params['k_u'] = k[0]
@@ -1060,7 +1058,7 @@ def f4(gp3,p12,p23,g23):
     fac2 = p23/(1.+gp3)
     return (1.+fac1+fac2)/(fac1*fac2)
 
-def params2vector(self,params,modelname='SC3UEI3R'):  # requires I3 in modelname
+def params2vector(self,params,modelname='SC3UEI3R'): 
     b = [None,None,None,None]
     g = [None,None,None,None]
     p = [None,None,None]
@@ -1121,7 +1119,10 @@ def params2vector(self,params,modelname='SC3UEI3R'):  # requires I3 in modelname
         c[1]=params['c_1']
         c[2]=params['c_2']
     if '_A' in modelname: # models with age structure
-        c[3]=params['c_3']
+        if 'c_3' in params:
+            c[3]=params['c_3']
+        else:
+            print('Error: c_3 not in params',params)
     else:
         c[3] = 0.
 
@@ -1315,19 +1316,22 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
     return [sbparams,cbparams,fbparams,dbparams]
 
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
-def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=None,age_structure=None):
+def parametrize_model(rootmodel,modelname,sbparams=None,cbparams=None,fbparams=None,dbparams=None,age_structure=None):
+    """ smodel is root model name
+    """
     if sbparams == None or cbparams==None or fbparams==None or dbparams==None:
         [sbparams,cbparams,fbparams,dbparams] = default_params(sbparams,cbparams,fbparams,dbparams)
-        dbparams['run_name'] = smodel # default value when no country yet
+        dbparams['run_name'] = modelname # default value when no country yet
 
     b,a,g,p,u,c,k,N,I0 = base2vectors(sbparams,cbparams,fbparams)
-    fullmodel = make_model(smodel,age_structure=age_structure)
+    fullmodel = make_model(rootmodel,age_structure=age_structure)
     model = fullmodel['model']
-    params_in=vector2params(b,a,g,p,u,c,k,N,smodel)
+    params_in=vector2params(b,a,g,p,u,c,k,N,modelname)
+    # print('In parametrize_model with rootmodel',rootmodel,'modelname',modelname,'and params',params_in)
     if age_structure:
-        model.initial_values = base2ICs(I0,N,smodel,model,age_structure=age_structure)
+        model.initial_values = base2ICs(I0,N,rootmodel,model,age_structure=age_structure)
     else:
-        model.initial_values = base2ICs(I0,N,smodel,model)
+        model.initial_values = base2ICs(I0,N,rootmodel,model)
     # model.baseparams = list(sbparams)+list(cbparams)+list(fbparams)
     model.parameters = params_in # sets symbolic name parameters
     fullmodel['params'] = params_in    # sets string params
@@ -1338,12 +1342,20 @@ def parametrize_model(smodel,sbparams=None,cbparams=None,fbparams=None,dbparams=
     fullmodel['initial_values'] = model.initial_values  # this line probably not required, since already initialized in make_model
     return fullmodel
 
+# smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC2UIR','SC3UEIR','SC3UEI3R'] # full set
 sim_param_inits = {
     'SIR':{
         "beta": (0.4, 0.3, 0.8,0.001),
         "mu": (.05,0.0,0.5,0.001),
         "logI_0": (-6.,-9.,-3.,0.001)},
     'SCIR':{
+        "beta": (0.4, 0.0, 1.2,0.001),
+        "mu": (.05,0.0,0.5,0.001),
+        "c_0": (0.1, 0.0, 1.0,0.001), 
+        "c_1": (0.07, 0.0, 0.1,0.001),
+        "c_2": (5., 1., 55., 0.01), 
+        "logI_0": (-6.,-12.,-3.,0.001)},
+    'SC2IR':{
         "beta": (0.4, 0.0, 1.2,0.001),
         "mu": (.05,0.0,0.5,0.001),
         "c_0": (0.1, 0.0, 1.0,0.001), 
@@ -1363,11 +1375,6 @@ sim_param_inits = {
         "c_1": (0.07, 0.0, 0.1,0.001),
         "c_2": (5., 1., 55., 0.01), 
         "logI_0": (-6.,-12.,-3.,0.001)},
-    'SEI3R':{
-        "beta": (0.4, 0.3, 0.8,0.001),
-        "alpha": (0.2, 0., 1.,0.001),
-        "mu": (.05,0.0,0.15,0.001),
-        "logI_0": (-6.,-9.,-3.,0.001)},
     'SC3EIR':{
         "beta": (0.4, 0.0, 1.2,0.001),
         "alpha": (0.2, 0., 1.,0.001),
@@ -1377,10 +1384,10 @@ sim_param_inits = {
         "c_2": (5., 1., 55., 0.01), 
         "logI_0": (-6.,-12.,-3.,0.001)},
     'SEI3R':{
-        "beta_1": (0.4, 0.0, 1.2,0.001),
+        "beta_1": (0.4, 0.3, 0.8,0.001),
         "alpha": (0.2, 0., 1.,0.001),
-        "mu": (.05,0.0,0.5,0.001),
-        "logI_0": (-6.,-12.,-3.,0.001)},        
+        "mu": (.05,0.0,0.15,0.001),
+        "logI_0": (-6.,-9.,-3.,0.001)},     
     'SCEI3R':{
         "beta_1": (0.4, 0.0, 1.2,0.001),
         "alpha": (0.2, 0., 1.,0.001),
@@ -1460,7 +1467,7 @@ for smodel in smodels+samodels:
     if smodel_root not in possmodels:
         print('root model name',smodel_root,'not yet supported')
     else: 
-        fullmodel = parametrize_model(smodel_root,age_structure=age_structure)
+        fullmodel = parametrize_model(smodel_root,smodel,age_structure=age_structure)
         fullmodels[smodel] = fullmodel
         # take fullmodel['model'] so that modelnm is same model as before for backward compatibility
         cmodels[smodel] = fullmodel['model']
