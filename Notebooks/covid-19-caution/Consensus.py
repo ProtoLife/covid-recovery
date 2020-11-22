@@ -759,11 +759,13 @@ def sprintdic(dic,chosen_country):
         rtn = rtn + sprint('unclustered:')
     else:
         rtn = rtn + sprint('class '+str(chosen_class)+':')
-    if chosen_class:    
+    if chosen_class is not None:    
         countries = np.sort(np.array(dic[chosen_class]))
     else:
-        countries = []
-    colwid = max(len(cc) for cc in countries[::2]) + 5  # padding
+        print("Error sprintdic: no countries in class",chosen_class)
+        return('')
+
+    colwid = max([len(cc) for cc in countries[::2]]) + 5  # padding
 
     for i in range(0,len(countries),2):
         if i < len(countries)-1:
