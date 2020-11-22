@@ -1183,13 +1183,13 @@ def base2vectors(sbparams,cbparams,fbparams):
     p[1]=(1/DurMildInf)-g[1]
 
     c[0]=CautionFactor
-    c[1]=1/CautionRetention
+    c[1]=1/(30.*CautionRetention)
     c[2]=1/(N*(ICUFrac*C_2s)*CautionExposure)     # this is the rate coefficient giving 1/day at I3 = denominator
     c[3]=1/(N*(ICUFrac*C_2s)*CautionExposureYoung)
 
-    k[0]=1/EconomicStriction              
-    k[1]=1/EconomicRetention            
-    k[2]=1/EconomyRelaxation   
+    k[0]=1/(30.*EconomicStriction)             
+    k[1]=1/(30.*EconomicRetention)            
+    k[2]=1/(30.*EconomyRelaxation)   
     k[3]=EconomicCostOfCaution
     
     return(b,a,g,p,u,c,k,N,I0)
@@ -1229,15 +1229,15 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
         CautionExposureYoung    = CautionExposure
     
     if k[0]:
-        EconomicStriction     =  1.0/k[0]
+        EconomicStriction     =  1.0/(30.*k[0])
     else:
         EconomicStriction     =  None
     if k[1]:
-        EconomicRetention     =  1.0/k[1]
+        EconomicRetention     =  1.0/(30.*k[1])
     else:
         EconomicRetention     = None
     if k[2]:
-        EconomyRelaxation     =  1.0/k[2]
+        EconomyRelaxation     =  1.0/(30.*k[2])
     else:
         EconomyRelaxation     = None
     EconomicCostOfCaution =  k[3]
@@ -1290,12 +1290,12 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
 
     if not cbparams:          # Model extension by John McCaskill to include caution                     # set 2 based on Germany fit
         CautionFactor= 0.1    # Fractional reduction of exposure rate for cautioned individuals
-        CautionRetention= 60. # Duration of cautionary state of susceptibles (8 weeks)
+        CautionRetention= 2.  # Duration of cautionary state of susceptibles (2 months)
         CautionExposure= 0.1  # Rate of transition to caution per (individual per ICU) per day
         CautionExposureYoung= 0.1  # Rate of transition to caution per (individual per ICU) per day for young people
-        EconomicStriction = 30.
-        EconomicRetention = 60. # Duration of economic dominant state of susceptibles (here same as caution, typically longer)
-        EconomyRelaxation = 60.
+        EconomicStriction = 1. # Duration of transition to economic stringency (months)
+        EconomicRetention = 2. # Duration of economic dominant state of susceptibles (here same as caution in months, typically longer)
+        EconomyRelaxation = 2. # Relaxation time for economy (in months)
         EconomicCostOfCaution = 0.5 # Cost to economy of individual exercising caution
 
         cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,
@@ -1314,6 +1314,36 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         dbparams = {'country':'Germany','data_src':'owid'}
 
     return [sbparams,cbparams,fbparams,dbparams]
+
+def default_fit_params(sbparams,cbparams,fbparams):
+    """ supply default fit parameters for base parameters """
+    logI0 = np.log10(0.0000003)
+    fp = {}
+    fp['Exposure']=               (0.4, 0.2, 0.7, 0.001)         # Rate coefficient for exposure per individual in contact per day
+    fp['IncubPeriod']=            (5., 3., 7., 0.01)             # Incubation period, days 
+    fp['DurMildInf']=             (10., 5., 15., 0.01)           # Duration of mild infections, days
+    fp['FracMild']=               (0.7, 0.5, 0.9, 0.01)          # Fraction of infections that are mild
+    fp['FracCritical']=           (0.10, 0.05, 0.15, 0.01)       # Fraction of infections that are critical   # NB upper limit of 1- FracMild NYI
+    fp['CFR']=                    (0.05,0.025,0.1,0.001)         # Case fatality rate (fraction of infections resulting in death)
+    fp['TimeICUDeath']=           (5., 3., 10., 0.01)            # Time from ICU admission to death, days
+    fp['DurHosp']=                (4., 2., 14., 0.01)            # Duration of hospitalization, days
+    fp['ICUFrac']=                (0.001, 0.0001, 0.01, 0.00001) # Fraction of ICUs relative to population size N
+    fp['logI_0'] =                (logI0,-10.,-6.-,0.01)         # Fraction of population initially infected
+        
+    fp['CautionFactor']=          (0.1,0.05,0.5,0.01)            # Fractional reduction of exposure rate for cautioned individuals
+    fp['CautionRetention']=       (2.,2./3.,4.,0.01)             # Duration of cautionary state of susceptibles (8 weeks)
+    fp['CautionExposure']=        (1.0,0.1,10.,0.01)             # Rate of transition to caution per (individual per ICU) per day
+    fp['CautionExposureYoung']=   (0.5,0.1,10.,0.01)             # Rate of transition to caution per (individual per ICU) per day for young people
+    fp['EconomicStriction'] =     (1.,1./3.,3.,0.01)             # Duration of transition to economically motivated non-cautionable state (in months)
+    fp['EconomicRetention'] =     (2.,1./3.,4.,0.01)             # Duration of economic dominant state of susceptibles (in months)
+    fp['EconomyRelaxation'] =     (2.,1./3.,4.,0.01)             # Relaxation time for economy (in months)
+    fp['EconomicCostOfCaution'] = (0.5,0.2,0.8,0.001)            # Cost to economy of individual exercising caution
+
+    fp['FracConfirmedDet']=       (1.0,0.1,1.0,0.01)             # Fraction of recovered individuals measured : plots made with this parameter
+    # FracRecoveredDet=FracConfirmedDet                          # Fraction of recovered individuals measured
+    fp['FracDeathsDet']=          (1.0,0.5,1.0,0.01)
+
+    return fp
 
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
 def parametrize_model(rootmodel,modelname,sbparams=None,cbparams=None,fbparams=None,dbparams=None,age_structure=None):
