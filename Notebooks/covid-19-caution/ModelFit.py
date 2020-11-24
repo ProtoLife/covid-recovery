@@ -1,6 +1,7 @@
 import lmfit
 import copy
 from time import time
+from ipywidgets.widgets import FloatSlider,Layout
 
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
@@ -275,9 +276,14 @@ class ModelFit:
             print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
             return
         slidedict = {}
+        slider_layout = Layout(width='25%', height='12px')
+        style = {'description_width': 'initial'}
+        modelname=self.modelname
         for pm in pimm:
-            slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
-                                style=style,layout=slider_layout,continuous_update=False,readout_format='.3f')})
+            if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname):
+                slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
+                                style=style,layout=slider_layout,
+                                continuous_update=False,readout_format='.3f')})
         return slidedict 
 
     def transfer_fit_to_params_init(self,params_init_min_max):

@@ -22,6 +22,8 @@ debug = False
 # ----------------------------------------- functions for extracting and processing data ---------------------------------
 covid_owid = []               # defined globally to allow access to raw data read in for owid
 owid_to_jhu_str_country = {}  # defined globally for convenience in country conversions
+continent = {}
+continents = []
 
 def Float(x):
     try:
@@ -89,8 +91,8 @@ def get_data(jhu_file, lastdate=None):
     popkeyed.update({'dates':popdat[0][1:days]}) 
     popkeyed.update({('World',''):totals})
     # del popkeyed[('d','a')]
+
     # assemble totals for countries with multiple regions
-  
     total = np.zeros(len(popkeyed['dates']),dtype=int)      
     poptotkeyed = {}                                                  # need to work with new dictionary, since changing a dictionary in a loop is a problem                            
     for country,tseries in popkeyed.items():                          # also because this enables us to assign states only like Canada, Australia and China to ''
@@ -119,6 +121,7 @@ def get_data(jhu_file, lastdate=None):
         if country != 'dates' and country[1] not in ['',' ']:
             del popkeyed[country]
     # print('First four dates:',popkeyed['dates'][0:4])
+
     return popkeyed
 
 def jhu_to_owid_str_country_md(countries_owid): 
@@ -584,7 +587,7 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
     import numpy as np
     import datetime
     import matplotlib.dates as mdates
-    global covid_owid,data_days
+    global covid_owid,data_days,continents,continent
 
     with open(owid_file, 'r', newline='') as csvfile:
         myreader = csv.DictReader(csvfile,delimiter=',')
@@ -641,6 +644,14 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
         return
    
     countries = np.unique(np.array([dd['location'] for dd in covid_owid if dd['location'] not in exclude]))
+    Middle_East = ['Turkey','Syria','Lebanon','Israel','West Bank and Gaza','Jordan','Iraq','Iran','Saudi Arabia','Yemen','Oman','United Arab Emirates','Qatar','Bahrain','Kuwait','Egypt','Libya']
+    continent = {dd['location']:dd['continent'] for dd in covid_owid if (dd['location'] not in exclude and dd['location'] not in Middle_East)}
+    continent.update({cc:'Middle_East' for cc in Middle_East if cc in countries})
+    continents = list(set([continent[cc] for cc in countries if cc != 'World']))+['Middle_East']
+    continent.update({cont:cont for cont in continents})
+    continent['World']='World'
+    # print('continents:',continents)
+
     dates = np.unique(np.array([dd['date'] for dd in covid_owid if dd['location'] not in exclude]))
     dates.sort()
     fmt = '%Y-%m-%d'
@@ -657,7 +668,6 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
     daystop = (lastdate_t-firstdate_t).days # number of day at which data stops
     
     popkeyed = {country: np.zeros(daystop+1,dtype=float) for country in countries}  # indices 0 up to daystop allowed, length daystop+1
-    
     # print('debug','daystop',daystop,'firstdate_t',firstdate_t,'lastdate_t',lastdate_t)
     for dd in covid_owid:
         country = dd['location']
@@ -667,6 +677,14 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
                 popkeyed[country][day] = float(dd[key]) if not dd[key]=='' else 0.0 
             # else:
             #    print('day out of range',country,day)
+
+    # totals over all countries in continents+ME
+    for cont in continents:
+        total = np.zeros(daystop+1,dtype=float)  
+        for cc in countries:
+            if continent[cc] == cont:
+                total = total + popkeyed[cc]
+        popkeyed.update({cont:total.copy()})
         
     # popkeyed = {country: np.transpose(np.array([[dd['date'],dd[key]] for dd in covid_owid if dd['location'] == country])) for country in countries}
     # popkeyed = {country: np.array([float(dd[key]) if not dd[key]=='' else 0.0 for dd in covid_owid if dd['location'] == country]) for country in countries} 
