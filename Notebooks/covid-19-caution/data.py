@@ -24,6 +24,9 @@ covid_owid = []               # defined globally to allow access to raw data rea
 owid_to_jhu_str_country = {}  # defined globally for convenience in country conversions
 continent = {}
 continents = []
+data_days = -1
+final_date = "11/14/20" # 14th November earlier 27th October 2020 as cutoff for paper (26th October for JHU, since better sync offset by 1)
+daystop = None # will be specified in get_data_owid
 
 def Float(x):
     try:
@@ -32,8 +35,20 @@ def Float(x):
         rtn = float('NaN')
     return rtn
 
-data_days = -1
-final_date = "11/14/20" # 14th November earlier 27th October 2020 as cutoff for paper (26th October for JHU, since better sync offset by 1)
+def dic_invert(d):
+    inv = {}
+    for k, v in d.items():
+        if isinstance(v,list):
+            for vv in v:
+                keys = inv.setdefault(vv, [])
+                keys.append(k)                
+        else:
+            keys = inv.setdefault(v, [])
+            keys.append(k)
+    for k in inv:
+        if len(inv[k]) == 1:
+            inv[k] = inv[k][0]
+    return inv
 
 def get_data(jhu_file, lastdate=None):
     global data_days
@@ -587,7 +602,7 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
     import numpy as np
     import datetime
     import matplotlib.dates as mdates
-    global covid_owid,data_days,continents,continent
+    global covid_owid,data_days,continents,continent,countries_in_continent,daystop
 
     with open(owid_file, 'r', newline='') as csvfile:
         myreader = csv.DictReader(csvfile,delimiter=',')
@@ -644,12 +659,16 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
         return
    
     countries = np.unique(np.array([dd['location'] for dd in covid_owid if dd['location'] not in exclude]))
-    Middle_East = ['Turkey','Syria','Lebanon','Israel','West Bank and Gaza','Jordan','Iraq','Iran','Saudi Arabia','Yemen','Oman','United Arab Emirates','Qatar','Bahrain','Kuwait','Egypt','Libya']
-    continent = {dd['location']:dd['continent'] for dd in covid_owid if (dd['location'] not in exclude and dd['location'] not in Middle_East)}
-    continent.update({cc:'Middle_East' for cc in Middle_East if cc in countries})
-    continents = list(set([continent[cc] for cc in countries if cc != 'World']))+['Middle_East']
-    continent.update({cont:cont for cont in continents})
-    continent['World']='World'
+    if not continents:
+        Middle_East = ['Turkey','Syria','Lebanon','Israel','Palestine','Jordan','Iraq','Iran','Saudi Arabia','Yemen','Oman','United Arab Emirates','Qatar','Bahrain','Kuwait','Egypt','Libya']
+        continent = {dd['location']:dd['continent'] for dd in covid_owid if (dd['location'] not in exclude and dd['location'] not in Middle_East)}
+        continent.update({cc:'Middle_East' for cc in Middle_East if cc in countries})
+        continents = list(set([continent[cc] for cc in countries if cc != 'World']))+['Middle_East']
+        continent.update({cont:'World' for cont in continents})
+        continent['World']='Planet'
+        countries_in_continent = dic_invert(continent)
+    #for cont in countries_in_continent.keys():
+    #    print('continent members',cont,countries_in_continent[cont])
     # print('continents:',continents)
 
     dates = np.unique(np.array([dd['date'] for dd in covid_owid if dd['location'] not in exclude]))
@@ -963,8 +982,9 @@ daysync = 23      # needs to be same as value in Cluster.py
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
 
 # get population data first to exclude countries without population data
-population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily',daysync=daysync) # NB use [-2] to get non-zero set of populations from 2nd last time point
+population_owid = get_data_owid(owid_file,datatype='population',dataaccum = 'daily',daysync=daysync,exclude=['International','Hong Kong','']) # NB use [-2] to get non-zero set of populations from 2nd last time point
 countries_nopopulation = [cc for cc in population_owid.keys() if (cc != 'dates' and population_owid[cc][-2] == 0)]
+countries_nopopulation = countries_nopopulation + ['International','Hong Kong','']
 print('countries without population data excluded:',countries_nopopulation)
 
 confirmed_owid=get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysync=daysync,exclude=countries_nopopulation)
@@ -993,10 +1013,10 @@ icu_dict = get_2012_data_ICUs()
 # ## Country mappings and common sets
 print('mapping country names between JHU and OWID and extracting common countries...')
 
-# jhu equivalents   
+# jhu equivalents : lookup dictionary   
 jhu_to_owid_str_country=jhu_to_owid_str_country_md(countries_owid)
 
-# owid equivalents
+# owid equivalents : lookup dictionary
 owid_to_jhu_str_country = owid_to_jhu_str_country_md(countries_owid)
 
 countries_jhu_overseas= [cc for cc in countries_jhu if '_Overseas' in cc[0]]
@@ -1005,8 +1025,8 @@ countries_jhu_4_owid = countries_jhu_non_special
 countries_jhu_2_owid=[jhu_to_owid_str_country[cc[0]] for cc in countries_jhu_4_owid ]
 countries_owid_to_jhu=[owid_to_jhu_country(cc) for cc in countries_jhu_2_owid]
 
-countries_common_x = [cc for cc in countries_jhu_2_owid if cc not in ['dates','World']] + ['dates','World']
-countries_common = [cc for cc in countries_common_x if cc not in ['dates','World']]
+countries_common_x = [cc for cc in countries_jhu_2_owid+continents if cc not in ['dates']] + ['dates'] # World was excluded before, now World and all continents included
+countries_common = [cc for cc in countries_common_x if cc not in ['dates']] ## World was excluded before, now World and all continents included
 
 translate_contact = {x:x for x in countries_common}
 translate_contact.update({
@@ -1067,6 +1087,20 @@ print('getting UN all sex age group data for 2020 ...')
 age_group_dic,countries_common_age= get_data_age_groups()
 
 print('extracting data sets for common countries both databases...')
+
+# do summations of data for continents and world for jhu
+for cont in continents:
+    cont_jhu = (cont,'')
+    deaths[cont_jhu] =  np.zeros(daystop+1,dtype=float)
+    confirmed[cont_jhu] = np.zeros(daystop+1,dtype=float)
+    recovered[cont_jhu] = np.zeros(daystop+1,dtype=float)
+    # print(cont,countries_in_continent[cont])
+    for cc in countries_in_continent[cont]:
+        cc_jhu = owid_to_jhu_country(cc)
+        if cc_jhu in countries_jhu and (cont == 'World' or cc not in continents) and cc != 'World':
+            deaths[cont_jhu] = deaths[cont_jhu] + deaths[cc_jhu] 
+            confirmed[cont_jhu] = confirmed[cont_jhu] + confirmed[cc_jhu]
+            recovered[cont_jhu] = recovered[cont_jhu] + recovered[cc_jhu]
 # JHU
 deaths_jhu = {cc:deaths[owid_to_jhu_country(cc)] for cc in countries_common}
 deaths_jhu.update({'dates':deaths['dates']})  # add dates to dictionary
@@ -1125,9 +1159,9 @@ new_cases_c_spm_owid.update({'dates':covid_owid_ts['new_confirmed_corrected_smoo
 # common big epidemic countries (common to both jhu and owid databases)
 
 print('extracting testing data from OWID database')
-testing_x=get_data_owid(owid_file,datatype='new_tests_smoothed_per_thousand',dataaccum = 'daily',daysync=daysync)
+testing_x=get_data_owid(owid_file,datatype='new_tests_smoothed_per_thousand',dataaccum = 'daily',daysync=daysync, exclude=countries_nopopulation)
 # testing_x = get_data_owid_key('new_tests_smoothed_per_thousand',daysync) 
-testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates' and cc != 'World'}
+testing = {cc:testing_x[cc] for cc in testing_x if cc != 'dates'}
 # print("debug len testing_x['Germany'] len testing_x['dates'] ",len(testing_x['Germany']),len(testing_x['dates']))
 testing_init_ramp = {cc:regtests(testing,cc,trampday1=50) for cc in testing}  # rampup testing linearly from background 0.01 to first reported value from trampday1
 print('doing piecewise linear fits to testing data ... reg_testing');
