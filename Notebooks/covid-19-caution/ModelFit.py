@@ -157,6 +157,9 @@ class ModelFit:
             self.fbparams[param] = value 
         b,a,g,p,u,c,k,N,I0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)
         params_in=vector2params(b,a,g,p,u,c,k,N,self.modelname)
+        #print('in set_base_param',param,value,'------------------')
+        #print('params_in',params_in)
+        #print('params',self.params)
         for pm in self.params:
             self.params[pm] = params_in[pm] # NB: vector2params returns all params including for U model
         self.model.parameters = self.params # pygom magic sets the right parameter in the model.parameters dictionary.
@@ -203,10 +206,13 @@ class ModelFit:
         else:
             self.cbparams = copy.deepcopy(cb)
 
-    def difference(self,datain):
+    def difference(self,datain,exceptions=[]):
         dataout = np.zeros(np.shape(datain))
         for i in range(1,len(datain)):
             dataout[i,...] = datain[i,...]-datain[i-1,...]
+        for ns in exceptions:
+            for i in range(0,len(datain)):
+                dataout[i,ns] = datain[i,ns]
         return dataout
         
     def rolling_average(self,datain,period):
@@ -238,7 +244,7 @@ class ModelFit:
                 print("couldn't plot xx,yy",xx,yy)
         plt.show()
 
-    def slidefitplot(self,param_class='ode',**myparams):
+    def slidefitplot(self,param_class='ode',figsize = (15,15),**myparams):
         """
         perform plot of confirmed cases and deaths with current values of slider parameters
         stored in teh dictionary myparams
@@ -260,7 +266,8 @@ class ModelFit:
                         return
                     else:
                         self.set_base_param(pm,myparams[pm])
-        self.solveplot(species=['deaths','confirmed'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = (15,15))
+                # print('new parameters',self.model.parameters)
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = figsize)
 
     def allsliderparams(self,params_init_min_max={}):
         """
@@ -336,6 +343,10 @@ class ModelFit:
        
         # tmax = self.tsim[-1]
         # tvec=np.arange(0,tmax,1)
+
+        smodel = self.modelname
+        model = self.model
+
         if not isinstance(species,list):
             lspecies = [species]
             ldatasets = [datasets]
@@ -343,17 +354,22 @@ class ModelFit:
             lspecies = species
             ldatasets = datasets
 
+        exceptions = []
+        dexceptions = []
         for dt in ldatasets:
             if dt not in [x for x in self.tsdata]:
                 print('Error:  ',dt,'not in data')
 
         dspecies = [dt if dt != 'caution_fraction' else 'stringency' for dt in lspecies]
         mags = [mag[dt] if dt in mag.keys() else 1 for dt in dspecies]
-
+        if 'economy' in lspecies and 'U' in smodel:
+            exceptions.append(model.W)
+        if 'economy' in ldatasets and 'U' in smodel:
+            dexceptions.append(ldatasets.index('economy'))
         tvec = self.tsim
         tvec1 = tvec[1:]
         if not self.tsdata is {}:
-            fitdata = np.transpose(np.array([self.tsdata[dt] for dt in datasets]))
+            fitdata = np.transpose(np.array([self.tsdata[dt] for dt in ldatasets]))
             fitsmoothed = False
             for dt in datasets:
                 if 'smoothed' in dt:
@@ -373,9 +389,7 @@ class ModelFit:
                 figsize=(8,6)
             plt.figure(figsize=figsize)
             # fig, axeslist = plt.subplots(1, nmodels, figsize=(nmodels*8,6))
-               
-        smodel = self.modelname
-        model = self.model
+            
 
         self.soln = scipy.integrate.odeint(model.ode, model.initial_values[0], tvec[1::])
         # print('debug, calling scipy integrate on self.model with IC', model.initial_values[0])
@@ -392,9 +406,9 @@ class ModelFit:
             ax.set_ylim([0.00000001,1.0])
             
         if summing == 'daily':
-            ssoln = self.difference(self.soln)
+            ssoln = self.difference(self.soln,exceptions=exceptions)
             if not fitdata is None:
-                sfit = self.difference(fitdata)
+                sfit = self.difference(fitdata,exceptions=dexceptions)
         else:
             ssoln = self.soln
             if not fitdata is None:
@@ -410,8 +424,7 @@ class ModelFit:
         else:
             srsoln = ssoln
             if not fitdata is None:
-                srfit = sfit
-                    
+                srfit = sfit             
         for ns,species in enumerate(lspecies):
             if species == 'confirmed':
                 suma = np.sum(srsoln[:,model.confirmed],axis=1)*mags[ns]
@@ -449,16 +462,21 @@ class ModelFit:
                 else:
                     plt.legend(("I"))
             elif species == 'caution_fraction':
-                #print('model name',model.modelname)
-                susc = self.soln[:,model.S_c]
-                suma = np.sum(self.soln[:,model.all_susceptibles],axis=1)
-                old_settings = np.seterr(divide='ignore') #
-                suma = np.divide(susc,suma)
-                np.seterr(**old_settings)  # reset to default
-                if not fitdata is None:
-                    fita = srfit[1::,ns]*mags[ns] # caution fraction from data (stringency) with correciton to unit scale via mags
-                    ax.plot(tvecf1,fita,'o',label=label,color='green')
-                ax.plot(tvec1,suma,label=label,color='green')             
+                if 'C' in smodel:
+                    #print('model name',model.modelname)
+                    susc = self.soln[:,model.S_c]
+                    suma = np.sum(self.soln[:,model.all_susceptibles],axis=1)
+                    old_settings = np.seterr(divide='ignore') #
+                    suma = np.divide(susc,suma)
+                    np.seterr(**old_settings)  # reset to default
+                    if len(lspecies) > 1:
+                        ax1 = ax.twinx()
+                    else:
+                        ax1 = ax
+                    if not fitdata is None and ns<len(ldatasets):
+                        fita = srfit[1::,ns]*mags[ns] # caution fraction from data (stringency) with correciton to unit scale via mags
+                        ax1.plot(tvecf1,fita,'o',label=label,color='orange')
+                    ax1.plot(tvec1,suma,label=label,color='orange')             
             elif species == 'all':
                 ax.plot(tvec1,self.soln,label=label)
                 if 'I3' in model.modelname:
@@ -479,6 +497,18 @@ class ModelFit:
                     else:
                         pspecies=("S","I","R","D","Sc")
                 plt.legend(pspecies)
+            elif species == 'economy':
+                if 'U' in smodel:
+                    suma = srsoln[:,model.W]*mags[ns]
+                    if 'caution_fraction' not in lspecies:
+                        if len(lspecies) > 1:
+                            ax1 = ax.twinx()
+                        else:
+                            ax1 = ax
+                    if not fitdata is None and ns<len(ldatasets):
+                        fita = srfit[1::,ns]*mags[ns] # caution fraction from data (stringency) with correciton to unit scale via mags
+                        ax1.plot(tvecf1,fita,'o',label=label,color='blue')  
+                    ax1.plot(tvec1,suma,label=label,color='blue')                         
                 
         plt.xlabel("Time (days)")
         plt.ylabel("Fraction of population")

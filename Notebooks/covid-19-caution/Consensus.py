@@ -142,8 +142,11 @@ def color_mean_rgb_to_hsv(rgb_colours,weights=None,modal=False):
     if modal:
         hvals = list(hdic.keys())    
         hcnts = [hdic[h1] for h1 in hvals]
-        hmaxcnt = np.argmax(np.array(hcnts)) # problem if hcnts is empty sequence
-    if modal and hcnts[hmaxcnt] >= len(rgb_colours)/4:
+        if len(hcnts) > 0:
+            hmaxcnt = np.argmax(np.array(hcnts)) # problem if hcnts is empty sequence
+        else:
+            hmaxcnt = None
+    if modal and len(hcnts)>0 and hcnts[hmaxcnt] >= len(rgb_colours)/4:
         h = hvals[hmaxcnt]
         # print('using modal hue %f with cnts %d',h,hcnts[hmaxcnt])    
     elif hwsum > eps:

@@ -25,7 +25,7 @@ owid_to_jhu_str_country = {}  # defined globally for convenience in country conv
 continent = {}
 continents = []
 data_days = -1
-final_date = "11/14/20" # 14th November earlier 27th October 2020 as cutoff for paper (26th October for JHU, since better sync offset by 1)
+final_date = "11/24/20" # 24th November earlier 27th October 2020 as cutoff for paper (26th October for JHU, since better sync offset by 1)
 daystop = None # will be specified in get_data_owid
 
 def Float(x):
