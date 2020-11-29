@@ -62,7 +62,8 @@ def Float(x):
 ###########################################################
 # to get ModelFit class definition:
 
-possmodels = ['SIR','SCIR','SC2IR','SC2FIR','SEIR','SCEIR','SCFEIR','SC3EIR','SC3FEIR','SEI3R','SCEI3R','SC3EI3R','SC3FEI3R','SC2UIR','SC2FUIR','SC3UEIR','SC3UEI3R','SC3FUEI3R'] # full root model set
+possmodels = ['SIR','SCIR','SC2IR','SC2FIR','SC2UIR','SC2FUIR',    'SEIR','SCEIR','SC3EIR','SC3FEIR','SC3UEIR',  'SEI3R','SCEI3R','SC3EI3R','SC3FEI3R','SC3UEI3R','SC3FUEI3R'] # full root model set
+agemodels =  ['SIR',       'SC2IR','SC2FIR',                       'SEIR',        'SC3EIR',                      'SEI3R',         'SC3EI3R','SC3FEI3R','SC3UEI3R','SC3FUEI3R']
 exec(open('ModelFit.py','r').read())
 ###########################################################
 
@@ -205,7 +206,7 @@ def make_model(mod_name,age_structure=None):
             rtn['model'] = model
             return rtn
 
-    if mod_name == 'SCIR':
+    if mod_name == 'SCIR': # this is a simpler version of the caution extension, not extended to U,F, or _A 
         if age_structure:  # age_structure is integer number of age compartments   
             print('Error: Age structure NYI for model',mod_name)
         else:
@@ -429,8 +430,39 @@ def make_model(mod_name,age_structure=None):
             return rtn
     
     if mod_name == 'SEIR':
-        if age_structure:  # age_structure is integer number of age compartments   
-            print('Error: Age structure NYI for model',mod_name)
+        if age_structure:                                         # age_structure is integer number of age compartments            
+            state0 = ['S', 'E', 'I', 'R', 'D']
+            sa,state = state_age(state0,age_structure)
+
+            param_list0 = ['beta','alpha', 'gamma','mu','N']
+            param_list,contact = param_list_age(param_list0.copy(),age_structure)
+
+            phi = phi_age(contact,sa,'I',age_structure)  
+            # note that beta_2 and beta_3 are set to zero in default installation, and with age-dept I3 models we enforce this
+            transition = []
+            transition = transition_age(transition,'S','E','beta *','S',sa,TransitionType.T,age_structure,phi=phi)
+            transition = transition_age(transition,'E','I','alpha * ','E',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','R','gamma * ','I',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','D','mu * ','I',sa,TransitionType.T,age_structure)               
+
+            model = DeterministicOde(state, param_list, transition=transition)
+            if model == None:
+                print('Error in make_model constructing DeterministicOde (in pygom)')
+            model.modelname=mod_name+'_A'+str(age_structure)
+            model.ei=slice(1*age_structure,3*age_structure)
+            model.confirmed=slice(2*age_structure,5*age_structure)
+            model.recovered=slice(3*age_structure,4*age_structure)
+            model.deaths=slice(4*age_structure,5*age_structure)
+
+            first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
+            model.I_1 = 2*age_structure + first_infected_agegroup
+            x0_SEIR = initial_state_age(I_0,state0,'E',first_infected_agegroup,age_structure)
+            model.initial_values = (x0_SEIR, 0) # 0 for t[0]
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
         else:
             state = ['S', 'E', 'I', 'R', 'D']
             param_list = ['beta', 'alpha', 'gamma', 'mu', 'N']
@@ -461,7 +493,7 @@ def make_model(mod_name,age_structure=None):
             rtn['model'] = model
             return rtn
 
-    if mod_name == 'SCEIR':
+    if mod_name == 'SCEIR': # this is a simpler version of the caution extension, not extended to U,F, or _A 
         if age_structure:  # age_structure is integer number of age compartments   
             print('Error: Age structure NYI for model',mod_name)
         else:
@@ -500,8 +532,8 @@ def make_model(mod_name,age_structure=None):
             rtn['param_list'] = param_list
             rtn['model'] = model
             return rtn
-
-    if mod_name == 'SCFEIR':
+    """   
+    if mod_name == 'SCFEIR':  # extension suppressed because C version too simple : use C3
         if age_structure:  # age_structure is integer number of age compartments   
             print('Error: Age structure NYI for model',mod_name)
         else:
@@ -544,43 +576,79 @@ def make_model(mod_name,age_structure=None):
             rtn['param_list'] = param_list
             rtn['model'] = model
             return rtn
+    """
 
     if mod_name == 'SC3EIR':
-        if age_structure:  # age_structure is integer number of age compartments   
-            print('Error: Age structure NYI for model',mod_name)
+        if age_structure:  # age_structure is integer number of age compartments            
+            state0 = ['S', 'E', 'I', 'R', 'D', 'I_c', 'S_c', 'E_c']
+            sa,state = state_age(state0,age_structure)
+
+            param_list0 = ['beta_1', 'beta','alpha', 'gamma','mu','c_0','c_1','c_2','c_3','N']
+            param_list,contact = param_list_age(param_list0.copy(),age_structure)
+
+            phi = phi_age(contact,sa,'I',age_structure)
+            phi_c = phi_age(contact,sa,'I_c',age_structure)
+            phi_1c = [p[0]+'+c_0*'+p[1] for p in zip(phi,phi_c)]   # '(I_1+c_0*I_c)' to corresponding phi combination   
+            sumI = state_sum_age('I',sa,age_structure)
+
+            transition = []
+            transition = transition_age(transition,'S','E','beta*','S',sa,TransitionType.T,age_structure,phi=phi_1c)
+            transition = transition_age(transition,'S','S_c',c_2s+'c_2*'+sumI_3+'*','S',sa,TransitionType.T,age_structure,
+                                        yfactor=c_2s+'c_3*'+sumI_3+'*')  # c_2s+'c_2*I*S'
+            transition = transition_age(transition,'S_c','S','c_1*','S_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_c','E_c','c_0*beta*','S_c',sa,TransitionType.T,age_structure,phi=phi_1c) # 'c_0*beta*(I+c_0*I_c)*S_c'
+            transition = transition_age(transition,'E','I','alpha*','E',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E','E_c',c_2s+'c_2*'+sumI_3+'*','E',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E_c','I_c','alpha*','E_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E_c','E','c_1*','E_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','R','gamma*','I',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','I_c',c_2s+'c_2*'+sumI+'*','I',sa,TransitionType.T,age_structure,
+                                        yfactor=c_2s+'c_3*'+sumI+'*')  # c_2s+'c_2*I*I'
+            transition = transition_age(transition,'I','D','mu*','I',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','R','gamma*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','I','c_1*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','D','mu*','I_c',sa,TransitionType.T,age_structure)          
+
+            model = DeterministicOde(state, param_list, transition=transition)
+            if model == None:
+                print('Error in make_model constructing DeterministicOde (in pygom)')
+            model.modelname=mod_name+'_A'+str(age_structure)
+            model.ei=slice(1*age_structure,3*age_structure)
+            model.confirmed=slice(2*age_structure,4*age_structure)
+            model.recovered=slice(3*age_structure,4*age_structure)
+            model.deaths=slice(4*age_structure,5*age_structure)
+            model.all_susceptibles=[slice(0,1*age_structure),slice(6*age_structure,7*age_structure)]   # CHECK that this works !!!!!!!!!!!!!!!!!!
+            model.S_c=slice(6*age_structure,7*age_structure)
+
+            first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
+            model.I_1 = 1*age_structure + first_infected_agegroup
+            #x0 = [1.0-I_0, I_0, 0.0, 0.0]
+            x0_SC3EIR = initial_state_age(I_0,state0,'E',first_infected_agegroup,age_structure)
+            model.initial_values = (x0_SC3EIR, 0) # 0 for t[0]
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
         else:
             state = ['S', 'E', 'I', 'R', 'D', 'I_c', 'S_c', 'E_c']
             param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
 
             transition = [
-                Transition(origin='S', destination='E', equation='beta*(I+c_0*I_c)*S',
-                           transition_type=TransitionType.T),
-                Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',
-                           transition_type=TransitionType.T),
-                Transition(origin='S_c', destination='S', equation='c_1*S_c',
-                           transition_type=TransitionType.T),
-                Transition(origin='S_c', destination='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c',
-                           transition_type=TransitionType.T),
-                Transition(origin='E', destination='I', equation='alpha*E',
-                           transition_type=TransitionType.T),
-                Transition(origin='E', destination='E_c', equation=c_2s+'c_2*(I+I_c)*E',
-                           transition_type=TransitionType.T),
-                Transition(origin='E_c', destination='I_c', equation='alpha*E_c',
-                           transition_type=TransitionType.T),
-                Transition(origin='E_c', destination='E', equation='c_1*E_c',
-                           transition_type=TransitionType.T),
-                Transition(origin='I', destination='R', equation='gamma*I',
-                           transition_type=TransitionType.T),
-                Transition(origin='I', destination='I_c', equation=c_2s+'c_2*(I+I_c)*I',
-                           transition_type=TransitionType.T),
-                Transition(origin='I', destination='D', equation='mu*I',
-                           transition_type=TransitionType.T),
-                Transition(origin='I_c', destination='R', equation='gamma*I_c',
-                           transition_type=TransitionType.T),
-                Transition(origin='I_c', destination='I', equation='c_1*I_c',
-                           transition_type=TransitionType.T),
-                Transition(origin='I_c', destination='D', equation='mu*I_c',
-                           transition_type=TransitionType.T)
+                Transition(origin='S',   destination='E',   equation='beta*(I+c_0*I_c)*S',      transition_type=TransitionType.T),
+                Transition(origin='S',   destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',      transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='S',   equation='c_1*S_c',                 transition_type=TransitionType.T),
+                Transition(origin='S_c', destination='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c',transition_type=TransitionType.T),
+                Transition(origin='E',   destination='I',   equation='alpha*E',                 transition_type=TransitionType.T),
+                Transition(origin='E',   destination='E_c', equation=c_2s+'c_2*(I+I_c)*E',      transition_type=TransitionType.T),
+                Transition(origin='E_c', destination='I_c', equation='alpha*E_c',               transition_type=TransitionType.T),
+                Transition(origin='E_c', destination='E',   equation='c_1*E_c',                 transition_type=TransitionType.T),
+                Transition(origin='I',   destination='R',   equation='gamma*I',                 transition_type=TransitionType.T),
+                Transition(origin='I',   destination='I_c', equation=c_2s+'c_2*(I+I_c)*I',      transition_type=TransitionType.T),
+                Transition(origin='I',   destination='D',   equation='mu*I',                    transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='R',   equation='gamma*I_c',               transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='I',   equation='c_1*I_c',                 transition_type=TransitionType.T),
+                Transition(origin='I_c', destination='D',   equation='mu*I_c',                  transition_type=TransitionType.T)
                 ]
 
             model = DeterministicOde(state, param_list, transition=transition)
@@ -821,10 +889,10 @@ def make_model(mod_name,age_structure=None):
             model.deaths=slice(6*age_structure,7*age_structure)
             model.all_susceptibles=[slice(0,1*age_structure),slice(8*age_structure,9*age_structure)]   # CHECK that this works !!!!!!!!!!!!!!!!!!
             model.S_c=slice(8*age_structure,9*age_structure)
-            model.I_1 = slice(2*age_structure,3*age_structure)
 
             first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
-            model.I_1 = 1*age_structure + first_infected_agegroup
+            model.I_1 = 2*age_structure + first_infected_agegroup
+
             #x0 = [1.0-I_0, I_0, 0.0, 0.0]
             x0_SC3EI3R = initial_state_age(I_0,state0,'E',first_infected_agegroup,age_structure)
             model.initial_values = (x0_SC3EI3R, 0) # 0 for t[0]
@@ -944,7 +1012,6 @@ def make_model(mod_name,age_structure=None):
             model.deaths=slice(6*age_structure,7*age_structure)
             model.all_susceptibles=[slice(0,1*age_structure),slice(8*age_structure,10*age_structure)]  
             model.S_c=slice(8*age_structure,9*age_structure)
-            model.I_1 = slice(2*age_structure,3*age_structure)
 
             first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
             model.I_1 = 1*age_structure + first_infected_agegroup
@@ -1229,7 +1296,6 @@ def make_model(mod_name,age_structure=None):
             model.deaths=slice(6*age_structure,7*age_structure)
             model.all_susceptibles=[slice(0,1*age_structure),slice(8*age_structure,9*age_structure),slice(10*age_structure,11*age_structure)]   # CHECK that this works !!!!!!!!!!!!!!!!!!
             model.S_c=slice(8*age_structure,9*age_structure)
-            model.I_1 = slice(2*age_structure,3*age_structure)
 
             first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
             model.I_1 = 1*age_structure + first_infected_agegroup
@@ -1338,7 +1404,6 @@ def make_model(mod_name,age_structure=None):
             model.deaths=slice(6*age_structure,7*age_structure)
             model.all_susceptibles=[slice(0,1*age_structure),slice(8*age_structure,9*age_structure),slice(10*age_structure,12*age_structure)]   # CHECK that this works !!!!!!!!!!!!!!!!!!
             model.S_c=slice(8*age_structure,9*age_structure)
-            model.I_1 = slice(2*age_structure,3*age_structure)
             model.W = slice(12*age_structure,12*age_structure+1)
 
             first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
@@ -2001,7 +2066,7 @@ sim_param_inits = {
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
 smodels = ['SC2UIR','SC2FIR','SCFEIR','SC3FEIR','SEI3R','SC3FEI3R','SC2FUIR','SC3FUEI3R'] # short list, others can be added if required from notebook
 # samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4'] 
-# samodels = ['SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4']
+# samodels = ['SEIR_A4',SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4']
 samodels = []                   
 
 
