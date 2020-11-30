@@ -2064,7 +2064,7 @@ sim_param_inits = {
                
 # smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC3FEI3R','SC2UIR','SC3UEIR','SC3UEI3R','SC3FUEI3R'] # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
-smodels = ['SC2UIR','SC2FIR','SCFEIR','SC3FEIR','SEI3R','SC3FEI3R','SC2FUIR','SC3FUEI3R'] # short list, others can be added if required from notebook
+smodels = ['SC2UIR','SC2FIR','SC3FEIR','SEI3R','SC3FEI3R','SC2FUIR','SC3FUEI3R'] # short list, others can be added if required from notebook
 # samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4'] 
 # samodels = ['SEIR_A4',SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4']
 samodels = []                   
