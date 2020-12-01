@@ -496,6 +496,8 @@ class ModelFit:
                         pspecies=("S","I","R","D","Ic","Sc")
                     else:
                         pspecies=("S","I","R","D","Sc")
+                if 'F' in model.modelname:
+                    pspecies.append("Sf")
                 plt.legend(pspecies)
             elif species == 'economy':
                 if 'U' in smodel:

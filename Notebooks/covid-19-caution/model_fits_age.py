@@ -63,7 +63,7 @@ def Float(x):
 # to get ModelFit class definition:
 
 possmodels = ['SIR','SCIR','SC2IR','SC2FIR','SC2UIR','SC2FUIR',    'SEIR','SCEIR','SC3EIR','SC3FEIR','SC3UEIR',  'SEI3R','SCEI3R','SC3EI3R','SC3FEI3R','SC3UEI3R','SC3FUEI3R'] # full root model set
-agemodels =  ['SIR',       'SC2IR','SC2FIR',                       'SEIR',        'SC3EIR',                      'SEI3R',         'SC3EI3R','SC3FEI3R','SC3UEI3R','SC3FUEI3R']
+agemodels =  ['SIR',       'SC2IR','SC2FIR',                       'SEIR',        'SC3EIR','SC3FEIR',            'SEI3R',         'SC3EI3R','SC3FEI3R','SC3UEI3R','SC3FUEI3R']
 exec(open('ModelFit.py','r').read())
 ###########################################################
 
@@ -346,7 +346,7 @@ def make_model(mod_name,age_structure=None):
             state0 = ['S', 'I', 'R', 'D', 'I_c', 'S_c', 'S_f']
             sa,state = state_age(state0,age_structure)
 
-            param_list0 = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'c_3', 'N']
+            param_list0 = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'N']
             param_list,contact = param_list_age(param_list0.copy(),age_structure)
 
             phi = phi_age(contact,sa,'I',age_structure)
@@ -361,7 +361,7 @@ def make_model(mod_name,age_structure=None):
             transition = transition_age(transition,'S','S_c',c_2s+'c_2*('+sumI+'+'+sumI_c+')'+'*','S',sa,TransitionType.T,age_structure,
                                         yfactor=c_2s+'c_3*('+sumI+'+'+sumI_c+')'+'*')
             transition = transition_age(transition,'S_c','S_f','c_1*','S_c',sa,TransitionType.T,age_structure)
-            transition = transition_age(transition,'S_f','S','c_1*','S_f',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_f','S','c_4*','S_f',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'S_c','I_c','c_0*beta*','S_c',sa,TransitionType.T,age_structure,phi=phi_1c)
             transition = transition_age(transition,'I','R','gamma*','I',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'I','D','mu*','I',sa,TransitionType.T,age_structure)
@@ -394,14 +394,14 @@ def make_model(mod_name,age_structure=None):
             return rtn
         else:
             state = ['S', 'I', 'R', 'D', 'I_c', 'S_c', 'S_f']
-            param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
+            param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'c_4', 'N']
 
             transition = [
                 Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S',transition_type=TransitionType.T),
                 Transition(origin='S_f', destination='I', equation='beta*(I+c_0*I_c)*S_f',transition_type=TransitionType.T),
                 Transition(origin='S', destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',transition_type=TransitionType.T),
                 Transition(origin='S_c', destination='S_f', equation='c_1*S_c',transition_type=TransitionType.T),
-                Transition(origin='S_f', destination='S', equation='c_1*S_f',transition_type=TransitionType.T),
+                Transition(origin='S_f', destination='S', equation='c_4*S_f',transition_type=TransitionType.T),
                 Transition(origin='S_c', destination='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c',transition_type=TransitionType.T),
                 Transition(origin='I', destination='R', equation='gamma*I',transition_type=TransitionType.T),
                 Transition(origin='I', destination='D', equation='mu*I',transition_type=TransitionType.T),
@@ -614,7 +614,7 @@ def make_model(mod_name,age_structure=None):
                 print('Error in make_model constructing DeterministicOde (in pygom)')
             model.modelname=mod_name+'_A'+str(age_structure)
             model.ei=slice(1*age_structure,3*age_structure)
-            model.confirmed=slice(2*age_structure,4*age_structure)
+            model.confirmed=slice(2*age_structure,6*age_structure)
             model.recovered=slice(3*age_structure,4*age_structure)
             model.deaths=slice(4*age_structure,5*age_structure)
             model.all_susceptibles=[slice(0,1*age_structure),slice(6*age_structure,7*age_structure)]   # CHECK that this works !!!!!!!!!!!!!!!!!!
@@ -670,17 +670,68 @@ def make_model(mod_name,age_structure=None):
 
     if mod_name == 'SC3FEIR':
         if age_structure:  # age_structure is integer number of age compartments   
-            print('Error: Age structure NYI for model',mod_name)
+            state0 = ['S', 'E', 'I', 'R', 'D', 'I_c', 'S_c', 'E_c', 'S_f']
+            sa,state = state_age(state0,age_structure)
+
+            param_list0 = ['beta_1', 'beta','alpha', 'gamma','mu','c_0','c_1','c_2','c_3','c_4','N']
+            param_list,contact = param_list_age(param_list0.copy(),age_structure)
+
+            phi = phi_age(contact,sa,'I',age_structure)
+            phi_c = phi_age(contact,sa,'I_c',age_structure)
+            phi_1c = [p[0]+'+c_0*'+p[1] for p in zip(phi,phi_c)]   # '(I_1+c_0*I_c)' to corresponding phi combination   
+            sumI = state_sum_age('I',sa,age_structure)
+
+            transition = []
+            transition = transition_age(transition,'S','E','beta*','S',sa,TransitionType.T,age_structure,phi=phi_1c)
+            transition = transition_age(transition,'S_f','E','beta*','S_f',sa,TransitionType.T,age_structure,phi=phi_1c)
+            transition = transition_age(transition,'S','S_c',c_2s+'c_2*'+sumI_3+'*','S',sa,TransitionType.T,age_structure,
+                                        yfactor=c_2s+'c_3*'+sumI_3+'*')  # c_2s+'c_2*I*S'
+            transition = transition_age(transition,'S_c','S_f','c_1*','S_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_f','S','c_4*','S_f',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_c','E_c','c_0*beta*','S_c',sa,TransitionType.T,age_structure,phi=phi_1c) # 'c_0*beta*(I+c_0*I_c)*S_c'
+            transition = transition_age(transition,'E','I','alpha*','E',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E','E_c',c_2s+'c_2*'+sumI_3+'*','E',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E_c','I_c','alpha*','E_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'E_c','E','c_1*','E_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','R','gamma*','I',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I','I_c',c_2s+'c_2*'+sumI+'*','I',sa,TransitionType.T,age_structure,
+                                        yfactor=c_2s+'c_3*'+sumI+'*')  # c_2s+'c_2*I*I'
+            transition = transition_age(transition,'I','D','mu*','I',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','R','gamma*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','I','c_1*','I_c',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'I_c','D','mu*','I_c',sa,TransitionType.T,age_structure)          
+
+            model = DeterministicOde(state, param_list, transition=transition)
+            if model == None:
+                print('Error in make_model constructing DeterministicOde (in pygom)')
+            model.modelname=mod_name+'_A'+str(age_structure)
+            model.ei=slice(1*age_structure,3*age_structure)
+            model.confirmed=slice(2*age_structure,6*age_structure)
+            model.recovered=slice(3*age_structure,4*age_structure)
+            model.deaths=slice(4*age_structure,5*age_structure)
+            model.all_susceptibles=[slice(0,1*age_structure),slice(6*age_structure,7*age_structure),slice(8*age_structure,9*age_structure)]
+            model.S_c=slice(6*age_structure,7*age_structure)
+
+            first_infected_agegroup = int(age_structure//4)       # first approximation : would give 20-25 year olds for 16 group 0-80 in 5 year intervals
+            model.I_1 = 1*age_structure + first_infected_agegroup
+            #x0 = [1.0-I_0, I_0, 0.0, 0.0]
+            x0_SC3EIR = initial_state_age(I_0,state0,'E',first_infected_agegroup,age_structure)
+            model.initial_values = (x0_SC3EIR, 0) # 0 for t[0]
+
+            rtn['state'] = state
+            rtn['param_list'] = param_list
+            rtn['model'] = model
+            return rtn
         else:
             state = ['S', 'E', 'I', 'R', 'D', 'I_c', 'S_c', 'E_c','S_f']
-            param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'N']
+            param_list = ['beta', 'alpha', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'c_4', 'N']
 
             transition = [
                 Transition(origin='S',   destination='E',   equation='beta*(I+c_0*I_c)*S',      transition_type=TransitionType.T),
                 Transition(origin='S_f', destination='E',   equation='beta*(I+c_0*I_c)*S_f',    transition_type=TransitionType.T),
                 Transition(origin='S',   destination='S_c', equation=c_2s+'c_2*(I+I_c)*S',      transition_type=TransitionType.T),
                 Transition(origin='S_c', destination='S_f', equation='c_1*S_c',                 transition_type=TransitionType.T),
-                Transition(origin='S_f', destination='S',   equation='c_1*S_f',                 transition_type=TransitionType.T),
+                Transition(origin='S_f', destination='S',   equation='c_4*S_f',                 transition_type=TransitionType.T),
                 Transition(origin='S_c', destination='E_c', equation='c_0*beta*(I+c_0*I_c)*S_c',transition_type=TransitionType.T),
                 Transition(origin='E',   destination='I',   equation='alpha*E',                 transition_type=TransitionType.T),
                 Transition(origin='E',   destination='E_c', equation=c_2s+'c_2*(I+I_c)*E',      transition_type=TransitionType.T),
@@ -969,7 +1020,7 @@ def make_model(mod_name,age_structure=None):
             sa,state = state_age(state0,age_structure)
 
             param_list0 = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
-                          'p_1','p_2','mu','c_0','c_1','c_2','c_3','N']
+                          'p_1','p_2','mu','c_0','c_1','c_2','c_3','c_4','N']
             param_list,contact = param_list_age(param_list0.copy(),age_structure)
 
             phi = phi_age(contact,sa,'I_1',age_structure)
@@ -985,7 +1036,7 @@ def make_model(mod_name,age_structure=None):
             transition = transition_age(transition,'S','S_c',c_2s+'c_2*'+sumI_3+'*','S',sa,TransitionType.T,age_structure,
                                         yfactor=c_2s+'c_3*'+sumI_3+'*')  # c_2s+'c_2*I_3*S'
             transition = transition_age(transition,'S_c','S_f','c_1*','S_c',sa,TransitionType.T,age_structure)
-            transition = transition_age(transition,'S_f','S','c_1*','S_f',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_f','S','c_4*','S_f',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'E','I_1','alpha*','E',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'E','E_c',c_2s+'c_2*'+sumI_3+'*','E',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'E_c','I_c','alpha*','E_c',sa,TransitionType.T,age_structure)
@@ -1026,7 +1077,7 @@ def make_model(mod_name,age_structure=None):
         else:
             state = ['S', 'E', 'I_1', 'I_2','I_3', 'R', 'D', 'I_c', 'S_c', 'S_f', 'E_c']
             param_list = ['beta_1', 'beta_2','beta_3','alpha', 'gamma_1', 'gamma_2', 'gamma_3',
-                          'p_1','p_2','mu','c_0','c_1','c_2','N']
+                          'p_1','p_2','mu','c_0','c_1','c_2','c_4','N']
 
             transition = [
                 Transition(origin='S',   destination='E',   equation='(beta_1*I_1+beta_2*I_2+beta_3*I_3+c_0*beta_1*I_c)*S',
@@ -1037,7 +1088,7 @@ def make_model(mod_name,age_structure=None):
                                                                                 transition_type=TransitionType.T),
                 Transition(origin='S',   destination='S_c', equation=c_2s+'c_2*I_3*S',transition_type=TransitionType.T),
                 Transition(origin='S_c', destination='S_f', equation='c_1*S_c',transition_type=TransitionType.T),
-                Transition(origin='S_f', destination='S',   equation='c_1*S_f',transition_type=TransitionType.T),
+                Transition(origin='S_f', destination='S',   equation='c_4*S_f',transition_type=TransitionType.T),
                 Transition(origin='E',   destination='I_1', equation='alpha*E',transition_type=TransitionType.T),
                 Transition(origin='E',   destination='E_c', equation=c_2s+'c_2*I_3*E',transition_type=TransitionType.T),
                 Transition(origin='E_c', destination='I_c', equation='alpha*E_c',transition_type=TransitionType.T),
@@ -1160,7 +1211,7 @@ def make_model(mod_name,age_structure=None):
             print('Error: Age structure NYI for model',mod_name)
         else:
             state = ['S', 'I', 'R', 'D', 'I_c', 'S_c', 'S_f', 'S_u', 'W']
-            param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w','kappa', 'N']
+            param_list = ['beta', 'gamma', 'mu', 'c_0', 'c_1', 'c_2', 'c_4', 'k_u', 'k_1', 'k_w','kappa', 'N']
 
             transition = [
                 Transition(origin='S', destination='I', equation='beta*(I+c_0*I_c)*S', transition_type=TransitionType.T),
@@ -1169,7 +1220,7 @@ def make_model(mod_name,age_structure=None):
                 Transition(origin='S', destination='S_u', equation='k_u*(1-W)*S', transition_type=TransitionType.T),
                 Transition(origin='S_f', destination='S_u', equation='k_u*(1-W)*S_f', transition_type=TransitionType.T),
                 Transition(origin='S_c', destination='S_f', equation='c_1*S_c', transition_type=TransitionType.T),
-                Transition(origin='S_f', destination='S', equation='c_1*S_f', transition_type=TransitionType.T),
+                Transition(origin='S_f', destination='S', equation='c_4*S_f', transition_type=TransitionType.T),
                 Transition(origin='S_c', destination='I_c', equation='c_0*beta*(I+c_0*I_c)*S_c', transition_type=TransitionType.T),
                 Transition(origin='S_c', destination='S_u', equation='k_u*(1-W)*S_c', transition_type=TransitionType.T),
                 Transition(origin='S_u', destination='S_f', equation='k_1*S_u', transition_type=TransitionType.T),   
@@ -1352,7 +1403,7 @@ def make_model(mod_name,age_structure=None):
             sa,state = state_age(state0,age_structure)
 
             param_list0 = ['beta_1', 'beta_2', 'beta_3', 'p_1', 'p_2', 'alpha', 
-                          'gamma_1', 'gamma_2', 'gamma_3','mu', 'c_0', 'c_1', 'c_2', 'c_3', 'k_u', 'k_1', 'k_w', 'kappa', 'N'] # order also important
+                          'gamma_1', 'gamma_2', 'gamma_3','mu', 'c_0', 'c_1', 'c_2', 'c_3', 'c_4', 'k_u', 'k_1', 'k_w', 'kappa', 'N'] # order also important
             param_list,contact = param_list_age(param_list0.copy(),age_structure)
 
             phi = phi_age(contact,sa,'I_1',age_structure)
@@ -1372,7 +1423,7 @@ def make_model(mod_name,age_structure=None):
             transition = transition_age(transition,'S_c','S_u','k_u*(1-W)*','S_c',sa,TransitionType.T,age_structure)        
             transition = transition_age(transition,'S_c','E_c','c_0*beta_1*','S_c',sa,TransitionType.T,age_structure,phi=phi_1c) # 'c_0*beta_1*(I_1+c_0*I_c)*S_c'
             transition = transition_age(transition,'S_c','S_f','c_1*','S_c',sa,TransitionType.T,age_structure)
-            transition = transition_age(transition,'S_f','S','c_1*','S_f',sa,TransitionType.T,age_structure)
+            transition = transition_age(transition,'S_f','S','c_4*','S_f',sa,TransitionType.T,age_structure)
             transition = transition_age(transition,'S_u','S_f','k_1*','S_u',sa,TransitionType.T,age_structure)   
             transition = transition_age(transition,'S_u','E','beta_1*','S_u',sa,TransitionType.T,age_structure,phi=phi_1c)   
             transition = transition_age(transition,'E','I_1','alpha*','E',sa,TransitionType.T,age_structure)
@@ -1420,12 +1471,12 @@ def make_model(mod_name,age_structure=None):
         else:
             state = ['S', 'E', 'I_1', 'I_2','I_3', 'R', 'D', 'I_c', 'S_c', 'E_c', 'S_f', 'S_u', 'W'] # order important to allow correct plot groupings
             param_list = ['beta_1', 'beta_2', 'beta_3', 'p_1', 'p_2', 'alpha', 
-                          'gamma_1', 'gamma_2', 'gamma_3','mu', 'c_0', 'c_1', 'c_2', 'k_u', 'k_1', 'k_w', 'kappa', 'N'] # order also important
+                          'gamma_1', 'gamma_2', 'gamma_3','mu', 'c_0', 'c_1', 'c_2', 'c_4', 'k_u', 'k_1', 'k_w', 'kappa', 'N'] # order also important
 
             transition = [
-                Transition(origin='S',   equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S+c_1*S_f-%f*c_2*(I_3)*S-k_u*(1-W)*S' % C_2s),
+                Transition(origin='S',   equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S+c_4*S_f-%f*c_2*(I_3)*S-k_u*(1-W)*S' % C_2s),
                 Transition(origin='S_c', equation='-c_0*(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_c-c_1*S_c+%f*c_2*(I_3)*S-k_u*(1-W)*S_c' % C_2s),
-                Transition(origin='S_f', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_c+c_1*S_c-c_1*S_f-k_u*(1-W)*S_f+k_1*S_u'),
+                Transition(origin='S_f', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_c+c_1*S_c-c_4*S_f-k_u*(1-W)*S_f+k_1*S_u'),
                 Transition(origin='S_u', equation='-(beta_1*(I_1+c_0*I_c)+beta_2*I_2+beta_3*I_3)*S_f+k_u*(1-W)*(S+S_c+S_f)-k_1*S_u'),
                 Transition(origin='W',   equation='k_w*W*(1-kappa*S_c-W)'),
                 Transition(origin='E',   equation='beta_1*(I_1+c_0*I_c)*(S+S_f+S_u)-alpha*E-%f*c_2*(I_3)*E+c_1*E_c' % C_2s),   # note: really need separate class E_u
@@ -1520,11 +1571,15 @@ def vector2params(b,a,g,p,u,c,k,N,modelname):
             params['c_2'] = c[2]
             if '_A' in modelname:
                 params['c_3'] = c[3]
+            if 'F' in modelname:
+                params['c_4'] = c[4]
         else:
             # params['c_2'] = c[2]*FracCritical  # this can be calculated explicitly in next line
             params['c_2'] = c[2]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
             if '_A' in modelname:
                 params['c_3'] = c[3]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2])) 
+            if 'F' in modelname:
+                params['c_4'] = c[4]*(p[1]/(g[1]+p[1]))*(p[2]/(g[2]+p[2]))
         
     if 'U' in modelname: # models with economic correction to caution  
         params['k_u'] = k[0]
@@ -1578,7 +1633,7 @@ def params2vector(self,params,modelname='SC3UEI3R'):
     b = [None,None,None,None]
     g = [None,None,None,None]
     p = [None,None,None]
-    c = [None,None,None,None]
+    c = [None,None,None,None,None]
     k = [None,None,None,None]
     
     if 'E' in modelname:
@@ -1634,6 +1689,10 @@ def params2vector(self,params,modelname='SC3UEI3R'):
         c[0]=params['c_0']
         c[1]=params['c_1']
         c[2]=params['c_2']
+        if 'F' in modelname: # models with fatigue of caution
+            c[4]=params['c_4']
+        else:
+            c[4]=0.
     if '_A' in modelname: # models with age structure
         if 'c_3' in params:
             c[3]=params['c_3']
@@ -1670,6 +1729,7 @@ def base2vectors(sbparams,cbparams,fbparams):
     CautionRetention = cbparams['CautionRetention']
     CautionExposure = cbparams['CautionExposure']
     CautionExposureYoung = cbparams['CautionExposureYoung'] # optional additional parameter, by default CautionExposure
+    CautionFatigueRet = cbparams['CautionFatigueRet']
 
     EconomicStriction =  cbparams['EconomicStriction']
     EconomicRetention =  cbparams['EconomicRetention']
@@ -1684,7 +1744,7 @@ def base2vectors(sbparams,cbparams,fbparams):
     b=np.zeros(4)     # beta
     g=np.zeros(4)     # gamma
     p=np.zeros(3)     # progression
-    c=np.zeros(4)     # caution
+    c=np.zeros(5)     # caution
     k=np.zeros(4)     # economic caution
 
     a=1/IncubPeriod                       # transition rate from exposed to infected
@@ -1712,7 +1772,10 @@ def base2vectors(sbparams,cbparams,fbparams):
         c[3]=1/(N*(ICUFrac*C_2s)*CautionExposureYoung)
     else:
         c[3]=0.
-
+    if CautionFatigueRet:
+        c[4]=1/(30.*CautionFatigueRet)
+    else:
+        c[4]=0.
     if EconomicStriction:
         k[0]=1/(30.*EconomicStriction) 
     else:
@@ -1751,7 +1814,7 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
 
     CautionFactor     = c[0]
     if c[1]:
-        CautionRetention  = 1/c[1]
+        CautionRetention  = 1/(30.*c[1])
     else:
         CautionRetention  = None
     if c[2]:
@@ -1762,7 +1825,11 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
         CautionExposureYoung    = 1/(N*c[3]*(C_2s*ICUFrac))
     else:
         CautionExposureYoung    = CautionExposure
-    
+    if c[4]:
+        CautionFatigueRet    = 1/(30.*c[4])
+    else:
+        CautionFatigueRet    = None
+
     if k[0]:
         EconomicStriction     =  1.0/(30.*k[0])
     else:
@@ -1781,7 +1848,8 @@ def vectors2base(b,a,g,p,u,c,k,N,I0,ICUFrac):
                 'FracMild':FracMild,'FracCritical':FracCritical,'CFR':CFR,
                 'TimeICUDeath':TimeICUDeath,'DurHosp':DurHosp,'ICUFrac':ICUFrac,'logI_0':np.log10(I0)}
     cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,
-                'CautionExposure':CautionExposure,'CautionExposureYoung':CautionExposureYoung,            
+                'CautionExposure':CautionExposure,'CautionExposureYoung':CautionExposureYoung, 
+                'CautionFatigueRet':CautionFatigueRet,           
                 'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
                 'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
    
@@ -1830,6 +1898,7 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
         CautionRetention= 2.  # Duration of cautionary state of susceptibles (2 months)
         CautionExposure= 0.1  # Duration of transition to caution per (individual per ICU) days
         CautionExposureYoung= 0.1  # Duration of transition to caution per (individual per ICU) days, for young people
+        CautionFatigueRet=2.  # Duration of fatigue state of individuals (for models with F) (2 months)
         EconomicStriction = 1. # Duration of transition to economic stringency (months)
         EconomicRetention = 2. # Duration of economic dominant state of susceptibles (here same as caution in months, typically longer)
         EconomyRelaxation = 2. # Relaxation time for economy (in months)
@@ -1837,6 +1906,7 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
 
         cbparams = {'CautionFactor':CautionFactor,'CautionRetention':CautionRetention,
                 'CautionExposure':CautionExposure,'CautionExposureYoung':CautionExposureYoung,
+                'CautionFatigueRet':CautionFatigueRet, 
                 'EconomicStriction':EconomicStriction,'EconomicRetention':EconomicRetention,
                 'EconomyRelaxation':EconomyRelaxation,'EconomicCostOfCaution':EconomicCostOfCaution}
 
@@ -1868,9 +1938,10 @@ def default_fit_params(sbparams,cbparams,fbparams):
     fp['logI_0'] =                (logI0,-10.,-6.,0.01)         # Fraction of population initially infected
         
     fp['CautionFactor']=          (0.1,0.05,0.5,0.01)            # Fractional reduction of exposure rate for cautioned individuals
-    fp['CautionRetention']=       (2.,2./3.,4.,0.01)             # Duration of cautionary state of susceptibles (8 weeks)
+    fp['CautionRetention']=       (2.,1./3.,6.,0.01)             # Duration of cautionary state of susceptibles (8 weeks)
     fp['CautionExposure']=        (0.1,0.01,1.,0.01)             # Rate of transition to caution per (individual per ICU) per day
-    fp['CautionExposureYoung']=   (0.05,0.01,1.,0.01)             # Rate of transition to caution per (individual per ICU) per day for young people
+    fp['CautionExposureYoung']=   (0.05,0.01,1.,0.01)            # Rate of transition to caution per (individual per ICU) per day for young people
+    fp['CautionFatigueRet']=      (2.,1./3.,6.,0.01)             # Duration of fatigued state of susceptibles (8 weeks)
     fp['EconomicStriction'] =     (1.,1./3.,3.,0.01)             # Duration of transition to economically motivated non-cautionable state (in months)
     fp['EconomicRetention'] =     (2.,1./3.,4.,0.01)             # Duration of economic dominant state of susceptibles (in months)
     fp['EconomyRelaxation'] =     (2.,1./3.,4.,0.01)             # Relaxation time for economy (in months)
@@ -1935,6 +2006,7 @@ sim_param_inits = {
         "c_0": (0.1, 0.0, 1.0,0.001), 
         "c_1": (0.07, 0.0, 0.1,0.001),
         "c_2": (5., 1., 200., 0.01), 
+        "c_4": (0.07, 0.0, 0.1,0.001),
         "logI_0": (-6.,-12.,-3.,0.001)},
     'SEIR':{
         "beta": (0.4, 0.3, 0.8,0.001),
@@ -1955,7 +2027,8 @@ sim_param_inits = {
         "mu": (.05,0.0,0.5,0.001),
         "c_0": (0.1, 0.0, 1.0,0.001), 
         "c_1": (0.07, 0.0, 0.1,0.001),
-        "c_2": (5., 1., 200., 0.01), 
+        "c_2": (5., 1., 200., 0.01),
+        "c_4": (0.07, 0.0, 0.1,0.001), 
         "logI_0": (-6.,-12.,-3.,0.001)},
     'SC3EIR':{
         "beta": (0.4, 0.0, 1.2,0.001),
@@ -1971,7 +2044,8 @@ sim_param_inits = {
         "mu": (.05,0.0,0.5,0.001),
         "c_0": (0.1, 0.0, 1.0,0.001), 
         "c_1": (0.07, 0.0, 0.1,0.001),
-        "c_2": (5., 1., 200., 0.01), 
+        "c_2": (5., 1., 200., 0.01),
+        "c_4": (0.07, 0.0, 0.1,0.001), 
         "logI_0": (-6.,-12.,-3.,0.001)},
     'SEI3R':{
         "beta_1": (0.4, 0.3, 0.8,0.001),
@@ -2000,7 +2074,8 @@ sim_param_inits = {
         "mu": (.05,0.0,0.5,0.001),
         "c_0": (0.1, 0.0, 1.0,0.001), 
         "c_1": (0.07, 0.0, 0.1,0.001),
-        "c_2": (5., 1., 200., 0.01), 
+        "c_2": (5., 1., 200., 0.01),
+        "c_4": (0.07, 0.0, 0.1,0.001), 
         "logI_0": (-6.,-12.,-3.,0.001)},
     'SC2UIR':{
         "beta": (0.37526113317338305, 0., 2.,0.001),
@@ -2008,9 +2083,9 @@ sim_param_inits = {
         "c_0": (0.2583441976053431, 0., 1.0,0.001),
         "c_1": (0.03763741590817468, 0.0, 0.5,0.001),
         "c_2": (3.620445327728954, 2.,200.,0.01),
-        "k_u": (1.0/5.0,0,1,0.001),
-        "k_1": (1.0/3.0,0.0,1.0,0.001),
-        "k_w": (1.0/3.0,0.0,1.0,0.01),
+        "k_u": (1.0/(30.0*5.0),0.0,1.0,0.001),
+        "k_1": (1.0/(30.0*3.0),0.0,1.0,0.001),
+        "k_w": (1.0/(30.0*3.0),0.0,1.0,0.01),
         "kappa": (0.5,0.0,1.0,0.01),
         "logI_0": (-6.,-10.,0.0,0.01)},
     'SC2FUIR':{
@@ -2019,9 +2094,10 @@ sim_param_inits = {
         "c_0": (0.2583441976053431, 0., 1.0,0.001),
         "c_1": (0.03763741590817468, 0.0, 0.5,0.001),
         "c_2": (3.620445327728954, 2.,200.,0.01),
-        "k_u": (1.0/5.0,0,1,0.001),
-        "k_1": (1.0/3.0,0.0,1.0,0.001),
-        "k_w": (1.0/3.0,0.0,1.0,0.01),
+        "c_4": (0.03763741590817468, 0.0, 0.5,0.001),
+        "k_u": (1.0/(30.0*5.0),0.0,1.0,0.001),
+        "k_1": (1.0/(30.0*3.0),0.0,1.0,0.001),
+        "k_w": (1.0/(30.0*3.0),0.0,1.0,0.01),
         "kappa": (0.5,0.0,1.0,0.01),
         "logI_0": (-6.,-10.,0.0,0.01)},            
     'SC3UEIR':{
@@ -2031,9 +2107,9 @@ sim_param_inits = {
         "c_0": (0.2583441976053431, 0., 1.0,0.001),
         "c_1": (0.03763741590817468, 0.0, 0.5,0.001),
         "c_2": (3.620445327728954, 2.,200.,0.01),
-        "k_u": (1.0/5.0,0,1,0.001),
-        "k_1": (1.0/3.0,0.0,1.0,0.001),
-        "k_w": (1.0/3.0,0.0,1.0,0.01),
+        "k_u": (1.0/(30.0*5.0),0.0,1.0,0.001),
+        "k_1": (1.0/(30.0*3.0),0.0,1.0,0.001),
+        "k_w": (1.0/(30.0*3.0),0.0,1.0,0.01),
         "kappa": (0.5,0.0,1.0,0.01),
         "logI_0": (-6.,-10.,0.0,0.01)},                
     'SC3UEI3R':{
@@ -2043,9 +2119,9 @@ sim_param_inits = {
         "c_0": (0.2583441976053431, 0., 1.0,0.001),
         "c_1": (0.03763741590817468, 0.0, 0.5,0.001),
         "c_2": (10.0, 2.,200.,0.01),
-        "k_u": (1.0/5.0,0,1,0.001),
-        "k_1": (1.0/3.0,0.0,5.0,0.001),
-        "k_w": (1.0/3.0,0.0,1.0,0.01),
+        "k_u": (1.0/(30.0*5.0),0.0,1.0,0.001),
+        "k_1": (1.0/(30.0*3.0),0.0,1.0,0.001),
+        "k_w": (1.0/(30.0*3.0),0.0,1.0,0.01),
         "kappa": (0.,0.0,1.0,0.01),
         "logI_0": (-6.,-10.,0.0,0.01)},
     'SC3FUEI3R':{
@@ -2055,18 +2131,20 @@ sim_param_inits = {
         "c_0": (0.2583441976053431, 0., 1.0,0.001),
         "c_1": (0.03763741590817468, 0.0, 0.5,0.001),
         "c_2": (10.0, 2.,200.,0.01),
-        "k_u": (1.0/5.0,0,1,0.001),
-        "k_1": (1.0/3.0,0.0,5.0,0.01),
-        "k_w": (1.0/3.0,0.0,1.0,0.01),
+        "c_4": (0.03763741590817468, 0.0, 0.5,0.001),
+        "k_u": (1.0/(30.0*5.0),0.0,1.0,0.001),
+        "k_1": (1.0/(30.0*3.0),0.0,1.0,0.001),
+        "k_w": (1.0/(30.0*3.0),0.0,1.0,0.01),
         "kappa": (0.5,0.0,1.0,0.01),
         "logI_0": (-6.,-10.,0.0,0.01)}
     }
                
-# smodels = ['SIR','SCIR','SC2IR','SEIR','SCEIR','SC3EIR','SEI3R','SCEI3R','SC3EI3R','SC3FEI3R','SC2UIR','SC3UEIR','SC3UEI3R','SC3FUEI3R'] # full set
+# smodels = possmodels # full set
 # smodels = ['SEIR','SC3EIR','SC3UEIR','SEI3R','SC3EI3R','SC3UEI3R'] # partial set with comparison
 smodels = ['SC2UIR','SC2FIR','SC3FEIR','SEI3R','SC3FEI3R','SC2FUIR','SC3FUEI3R'] # short list, others can be added if required from notebook
 # samodels = ['SIR_A4','SC2IR_A4','SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4'] 
 # samodels = ['SEIR_A4',SEI3R_A4','SC3EI3R_A4','SC3UEI3R_A4']
+# samodels = [x+'_A4' for x in agemodels]
 samodels = []                   
 
 
