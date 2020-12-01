@@ -631,6 +631,7 @@ class ModelFit:
         self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
         rtn = {}
         slices = {}
+        self.logresid = {}
         for ls in lspecies:
             if ls == 'deaths':
                 slices['deaths'] = self.model.deaths
@@ -654,7 +655,8 @@ class ModelFit:
             sdat = np.maximum(sdata,0)
             lsdat = np.log10(offset+sdat)
             rtn[ls]['resid'] = lsdat - lfdat
-            self.logresid = [sdat,lsdat,fdat,lfdat,lsdat-lfdat]
+            # self.logresid = [sdat,lsdat,fdat,lfdat,lsdat-lfdat]
+            self.logresid[ls] = (lsdat-lfdat).copy() # reduces amount of information stored for efficiency
         return rtn
 
     def fit(self,params_init_min_max,param_class='ode',fit_method='leastsq',fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
@@ -759,7 +761,7 @@ class ModelFit:
             """
             scalar function to minimize in lmfit.minimize() specified by reduce_fcn parameter
             """
-            return np.sqrt(np.square(diffs))
+            return np.sqrt(np.sum(np.square(diffs))) # corrected to produce scalar as required
 
         ## do the fit -------------------------------------------------------------------------------------------------------
         try:

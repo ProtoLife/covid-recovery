@@ -1949,7 +1949,7 @@ def default_fit_params(sbparams,cbparams,fbparams):
 
     fp['FracConfirmedDet']=       (1.0,0.1,1.0,0.01)             # Fraction of recovered individuals measured : plots made with this parameter
     # FracRecoveredDet=FracConfirmedDet                          # Fraction of recovered individuals measured
-    fp['FracDeathsDet']=          (1.0,0.5,1.0,0.01)
+    fp['FracDeathsDet']=          (1.0,0.5,1.0,0.01)             # Fraction of deceased individuals from the disease that are identified
 
     return fp
 
