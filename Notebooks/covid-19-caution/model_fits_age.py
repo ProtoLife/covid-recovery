@@ -1922,7 +1922,7 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
 
     return [sbparams,cbparams,fbparams,dbparams]
 
-def default_fit_params(sbparams,cbparams,fbparams):
+def default_fit_params():
     """ supply default fit parameters for base parameters """
     logI0 = np.log10(0.0000003)
     fp = {}
@@ -1950,7 +1950,6 @@ def default_fit_params(sbparams,cbparams,fbparams):
     fp['FracConfirmedDet']=       (1.0,0.1,1.0,0.01)             # Fraction of recovered individuals measured : plots made with this parameter
     # FracRecoveredDet=FracConfirmedDet                          # Fraction of recovered individuals measured
     fp['FracDeathsDet']=          (1.0,0.5,1.0,0.01)             # Fraction of deceased individuals from the disease that are identified
-
     return fp
 
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
