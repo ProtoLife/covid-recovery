@@ -1096,6 +1096,7 @@ class Scan(ModelFit):
 
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
 from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
+from ipywidgets.widgets import HBox, VBox, Label
 
 
 class SliderFit(ModelFit):
@@ -1172,7 +1173,7 @@ class SliderFit(ModelFit):
                     else:
                         self.params_init_min_max[p] = (ptype[p],pv[1],pv[2])
 
-    def fit(self):
+    def fit(self,**kwargs):
         self.transfer_cur_to_params_init()
         super().fit(self.params_init_min_max)
         # reset slider values to current fit vals
