@@ -1093,4 +1093,95 @@ class Scan(ModelFit):
         scan_all['fitdata'] = self.scan_fitdata
         with open(filename,'bw') as fp:
             pk.dump(scan_all,fp)
+
+from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
+from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
+
+
+class SliderFit(ModelFit):
+    """
+    derived class to add sliders.
+    Usage mode:
+    * adjust sliders
+    * call fit() to fit, starting at slider values.
+    """
+    def __init__(self,*,params_init_min_max=None,**kwargs):
+        global sim_param_inits
+        super().__init__(**kwargs)
+        cnt=0
+        # max_rows = 2   # for short test...
+        if params_init_min_max == None:
+            self.params_init_min_max = sim_param_inits[self.modelname]
+        else:
+            self.params_init_min_max = params_init_min_max
+
+        self.params_init_min_max_slider = self.params_init_min_max.copy()
+        self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
+
+        #sliderparams = MyModel.allsliderparams(params_init_min_max_slider)
+
+        self.allsliderparams()  # sets self.slidedict
+        self.slidedict.update({'param_class':fixed('ode')})
+
+        w=interactive_output(self.slidefitplot,self.slidedict)
+        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)])
+        slbox=HBox([w,sliders])
+        self.slbox = slbox
+
+
+    def allsliderparams(self):
+        """
+            construct dictionary of slider widgets corresponding to 
+            input params_init_min_max is the dictionary of tuples for parameter optimization (3 or 4-tuples)
+            pimm is short name for params_init_min_max
+        """
+        pimm = self.params_init_min_max_slider
+        if pimm == {}:
+            print('missing non empty dictionary params_init_min_max')
+            return
+        elif len(pimm[list(pimm.keys())[0]]) != 4:
+            print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
+            return
+        slidedict = {}
+        slider_layout = Layout(width='400px', height='12px')
+        style = {'description_width': 'initial'}
+        modelname=self.modelname
+        slidedict.update({'param_class':fixed('base')})
+        slidedict.update({'figsize':fixed((8,5))})
+        for pm in pimm:
+            if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname) and ((not 'Young' in pm) or '_A' in modelname) and ((not 'Fatigue' in pm) or 'F' in modelname):
+                slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
+                                style=style,
+                                layout=slider_layout,
+                                continuous_update=False,readout_format='.3f')})
+        self.slidedict = slidedict
+
+    def transfer_cur_to_params_init(self):
+        """ used to transfer current parameters as initial parameter values to an existing
+            initialization structure params_init_min_max
+            only those parameters in params_init_min_max will have initial values updated
+        (taken from ModelFit.transfer_fit_to_params_init())
+        """
+        plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        for ptype in plist:
+            for p in ptype:
+                if p in self.params_init_min_max:
+                    pv = self.params_init_min_max[p]
+                    if len(pv) == 4:
+                        self.params_init_min_max[p] = (ptype[p],pv[1],pv[2],pv[3])
+                    else:
+                        self.params_init_min_max[p] = (ptype[p],pv[1],pv[2])
+
+    def fit(self):
+        self.transfer_cur_to_params_init()
+        super().fit(self.params_init_min_max)
+        # reset slider values to current fit vals
+        self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
+        # redo slider box
+        self.allsliderparams()  # sets self.slidedict
+        self.slidedict.update({'param_class':fixed('ode')})
+        w=interactive_output(self.slidefitplot,self.slidedict)
+        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)])
+        slbox=HBox([w,sliders])
+        self.slbox = slbox
         
