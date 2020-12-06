@@ -1121,12 +1121,38 @@ class SliderFit(ModelFit):
 
         #sliderparams = MyModel.allsliderparams(params_init_min_max_slider)
 
+        self.makeslbox()
+
+    def makeslbox(self):
         self.allsliderparams()  # sets self.slidedict
         self.slidedict.update({'param_class':fixed('ode')})
 
-        w=interactive_output(self.slidefitplot,self.slidedict)
-        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)])
-        slbox=HBox([w,sliders])
+country_fit_trace = interactive_output(fit_trace,{'modelname':modelnames_widget,'agestructure':modelage_widget,'fittype':fittypes_widget,
+                                                  'datasrc':datasrcs_widget,'country':countries_widget,'paramtype':paramtypes_widget,'fit_new_params':fit_new_params_widget});
+        
+        slfitplot = interactive_output(self.slidefitplot,self.slidedict)
+        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
+                     layout = widgets.Layout(height='300px',width='520px'))
+        fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
+        sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
+        fit_output_text = 'Fit output will be displayed here.'
+        fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
+                                              layout = widgets.Layout(height='320px',width='520px'))
+        fitbox = VBox([Label('Fit output data'),fit_display_widget])
+        slbox=HBox([slfitplot,sliderbox,fitbox])
+
+        # activate click button
+        def fit_on_click(b):
+            global fit_display_widget
+            try:
+                old_stdout = sys.stdout
+                sys.stdout = mystdout = io.StringIO()
+                ## do the fit
+                self.fit()
+                fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
+            finally:
+                sys.stdout = old_stdout
+        fit_button.on_click(fit_on_click)
         self.slbox = slbox
 
 
@@ -1175,14 +1201,9 @@ class SliderFit(ModelFit):
 
     def fit(self,**kwargs):
         self.transfer_cur_to_params_init()
-        super().fit(self.params_init_min_max)
+        super().fit(self.params_init_min_max,**kwargs)
         # reset slider values to current fit vals
         self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
         # redo slider box
-        self.allsliderparams()  # sets self.slidedict
-        self.slidedict.update({'param_class':fixed('ode')})
-        w=interactive_output(self.slidefitplot,self.slidedict)
-        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)])
-        slbox=HBox([w,sliders])
-        self.slbox = slbox
+        self.makeslbox()
         
