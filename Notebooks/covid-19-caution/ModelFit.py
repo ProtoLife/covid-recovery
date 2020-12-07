@@ -282,15 +282,25 @@ class ModelFit:
         elif len(pimm[list(pimm.keys())[0]]) != 4:
             print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
             return
-        slidedict = {}
-        slider_layout = Layout(width='25%', height='12px')
-        style = {'description_width': 'initial'}
-        modelname=self.modelname
-        for pm in pimm:
-            if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname):
-                slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
-                                style=style,layout=slider_layout,
-                                continuous_update=False,readout_format='.3f')})
+        slidedict =self.slidedict
+        if slidedict == {}:
+            slider_layout = Layout(width='25%', height='12px')
+            style = {'description_width': 'initial'}
+            modelname=self.modelname
+            for pm in pimm:
+                if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname):
+                    slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
+                                    style=style,layout=slider_layout,
+                                    continuous_update=False,readout_format='.3f')})
+        else:
+            modelname=self.modelname
+            for pm in pimm:
+                if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname):
+                    slidedict[pm].value=pimm[pm][0]
+                    slidedict[pm].min=pimm[pm][1]
+                    slidedict[pm].max=pimm[pm][2]
+                    slidedict[pm].step=pimm[pm][3]
+        self.slidedict =slidedict         
         return slidedict 
 
     def transfer_fit_to_params_init(self,params_init_min_max):
@@ -1107,7 +1117,7 @@ class SliderFit(ModelFit):
     * call fit() to fit, starting at slider values.
     """
     def __init__(self,*,params_init_min_max=None,**kwargs):
-        global sim_param_inits
+        global sim_param_inits,slfit
         super().__init__(**kwargs)
         cnt=0
         # max_rows = 2   # for short test...
@@ -1119,13 +1129,15 @@ class SliderFit(ModelFit):
         self.params_init_min_max_slider = self.params_init_min_max.copy()
         self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
 
-        #sliderparams = MyModel.allsliderparams(params_init_min_max_slider)
+        self.slidedict = {}
 
+        #sliderparams = MyModel.allsliderparams(params_init_min_max_slider)
         self.makeslbox()
 
-    def makeslbox(self):
+    def makeslbox(self,param_class='ode'):
+        global slfit
         self.allsliderparams()  # sets self.slidedict
-        self.slidedict.update({'param_class':fixed('ode')})
+        self.slidedict.update({'param_class':fixed(param_class)})
 
         #country_fit_trace = interactive_output(fit_trace,{'modelname':modelnames_widget,'agestructure':modelage_widget,'fittype':fittypes_widget,
         #                                          'datasrc':datasrcs_widget,'country':countries_widget,'paramtype':paramtypes_widget,'fit_new_params':fit_new_params_widget});        
@@ -1135,27 +1147,37 @@ class SliderFit(ModelFit):
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
         sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
         fit_output_text = 'Fit output will be displayed here.'
-        fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
+        self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
-        fitbox = VBox([Label('Fit output data'),fit_display_widget])
+        fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
         slbox=HBox([slfitplot,sliderbox,fitbox])
 
         # activate click button
+
+        #import functools
+        #def on_button_clicked(b, rs_="some_default_string"):
+        #    fun(rs_)
+        #button.on_clicked(functools.partial(on_button_clicked, rs_="abcdefg"))
+
         def fit_on_click(b):
-            global fit_display_widget
+            global slfit
+            print("executing fit_on_click")
             try:
                 old_stdout = sys.stdout
                 sys.stdout = mystdout = io.StringIO()
                 ## do the fit
-                self.fit()
-                fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
+                slfit.fit_display_widget.value = "Processing fit, please wait ..." #jsm
+                print("just before fit")
+                slfit.fit()
+                #print("just after fit")
+                slfit.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
             finally:
                 sys.stdout = old_stdout
         fit_button.on_click(fit_on_click)
         self.slbox = slbox
 
 
-    def allsliderparams(self):
+    def allsliderparams(self,param_class='ode'):
         """
             construct dictionary of slider widgets corresponding to 
             input params_init_min_max is the dictionary of tuples for parameter optimization (3 or 4-tuples)
@@ -1168,18 +1190,45 @@ class SliderFit(ModelFit):
         elif len(pimm[list(pimm.keys())[0]]) != 4:
             print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
             return
-        slidedict = {}
-        slider_layout = Layout(width='400px', height='12px')
-        style = {'description_width': 'initial'}
-        modelname=self.modelname
-        slidedict.update({'param_class':fixed('base')})
-        slidedict.update({'figsize':fixed((8,5))})
-        for pm in pimm:
-            if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname) and ((not 'Young' in pm) or '_A' in modelname) and ((not 'Fatigue' in pm) or 'F' in modelname):
-                slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
-                                style=style,
-                                layout=slider_layout,
-                                continuous_update=False,readout_format='.3f')})
+        slidedict =self.slidedict
+        if slidedict == {}:
+            slider_layout = Layout(width='400px', height='12px')
+            style = {'description_width': 'initial'}
+            modelname=self.modelname
+            slidedict.update({'figsize':fixed((8,5))})
+
+            if param_class == 'ode':
+                slidedict.update({'param_class':fixed('ode')})
+                for pm in pimm:
+                    if ((not 'C_' in pm) or 'C' in modelname) and ((not 'k_' in pm) or 'U' in modelname) and ((not 'k_4' in pm) or '_A' in modelname) and ((not 'C_4' in pm) or 'F' in modelname):
+                        slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
+                                                        style=style,
+                                                        layout=slider_layout,
+                                                        continuous_update=False,readout_format='.3f')})
+            elif param_class == 'base':
+                slidedict.update({'param_class':fixed('base')})
+                for pm in pimm:
+                    if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname) and ((not 'Young' in pm) or '_A' in modelname) and ((not 'Fatigue' in pm) or 'F' in modelname):
+                        slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
+                                                        style=style,
+                                                        layout=slider_layout,
+                                                        continuous_update=False,readout_format='.3f')})
+        else:
+            modelname=self.modelname
+            if param_class == 'ode':
+                for pm in pimm:
+                    if ((not 'C_' in pm) or 'C' in modelname) and ((not 'k_' in pm) or 'U' in modelname) and ((not 'k_4' in pm) or '_A' in modelname) and ((not 'C_4' in pm) or 'F' in modelname):
+                        slidedict[pm].value=pimm[pm][0]
+                        slidedict[pm].min=pimm[pm][1]
+                        slidedict[pm].max=pimm[pm][2]
+                        slidedict[pm].step=pimm[pm][3]  
+            elif param_class == 'base':
+                for pm in pimm:
+                    if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname) and ((not 'Young' in pm) or '_A' in modelname) and ((not 'Fatigue' in pm) or 'F' in modelname):          
+                        slidedict[pm].value=pimm[pm][0]
+                        slidedict[pm].min=pimm[pm][1]
+                        slidedict[pm].max=pimm[pm][2]
+                        slidedict[pm].step=pimm[pm][3]  
         self.slidedict = slidedict
 
     def transfer_cur_to_params_init(self):
@@ -1204,5 +1253,6 @@ class SliderFit(ModelFit):
         # reset slider values to current fit vals
         self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
         # redo slider box
-        self.makeslbox()
+        self.allsliderparams()
+        # self.makeslbox()
         
