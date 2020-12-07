@@ -1127,9 +1127,8 @@ class SliderFit(ModelFit):
         self.allsliderparams()  # sets self.slidedict
         self.slidedict.update({'param_class':fixed('ode')})
 
-country_fit_trace = interactive_output(fit_trace,{'modelname':modelnames_widget,'agestructure':modelage_widget,'fittype':fittypes_widget,
-                                                  'datasrc':datasrcs_widget,'country':countries_widget,'paramtype':paramtypes_widget,'fit_new_params':fit_new_params_widget});
-        
+        #country_fit_trace = interactive_output(fit_trace,{'modelname':modelnames_widget,'agestructure':modelage_widget,'fittype':fittypes_widget,
+        #                                          'datasrc':datasrcs_widget,'country':countries_widget,'paramtype':paramtypes_widget,'fit_new_params':fit_new_params_widget});        
         slfitplot = interactive_output(self.slidefitplot,self.slidedict)
         sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='300px',width='520px'))
