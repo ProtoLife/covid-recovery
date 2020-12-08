@@ -244,64 +244,6 @@ class ModelFit:
                 print("couldn't plot xx,yy",xx,yy)
         plt.show()
 
-    def slidefitplot(self,param_class='ode',figsize = (15,15),**myparams):
-        """
-        perform plot of confirmed cases and deaths with current values of slider parameters
-        stored in teh dictionary myparams
-        note currently deaths are here magnified by x10
-        """
-        for pm in myparams:
-            if pm is 'logI_0':
-                self.set_I0(myparams[pm])
-            else:
-                if param_class == 'ode':
-                    if pm not in self.params:
-                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
-                        return
-                    else:
-                        self.set_param(pm,myparams[pm])
-                elif param_class == 'base':
-                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
-                        print('Error:  this',self.modelname,'does not have base parameter',pm)
-                        return
-                    else:
-                        self.set_base_param(pm,myparams[pm])
-                # print('new parameters',self.model.parameters)
-        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = figsize)
-
-    def allsliderparams(self,params_init_min_max={}):
-        """
-            construct dictionary of slider widgets corresponding to 
-            input params_init_min_max is the dictionary of tuples for parameter optimization (3 or 4-tuples)
-            pimm is short name for params_init_min_max
-        """
-        pimm = params_init_min_max
-        if pimm == {}:
-            print('missing non empty dictionary params_init_min_max')
-            return
-        elif len(pimm[list(pimm.keys())[0]]) != 4:
-            print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
-            return
-        slidedict =self.slidedict
-        if slidedict == {}:
-            slider_layout = Layout(width='25%', height='12px')
-            style = {'description_width': 'initial'}
-            modelname=self.modelname
-            for pm in pimm:
-                if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname):
-                    slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
-                                    style=style,layout=slider_layout,
-                                    continuous_update=False,readout_format='.3f')})
-        else:
-            modelname=self.modelname
-            for pm in pimm:
-                if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname):
-                    slidedict[pm].value=pimm[pm][0]
-                    slidedict[pm].min=pimm[pm][1]
-                    slidedict[pm].max=pimm[pm][2]
-                    slidedict[pm].step=pimm[pm][3]
-        self.slidedict =slidedict         
-        return slidedict 
 
     def transfer_fit_to_params_init(self,params_init_min_max):
         """ used to transfer current fit parameters as initial parameter values to an existing
@@ -1035,6 +977,32 @@ class ModelFit:
                 return None
         self.fit_data = 'default'
 
+    def slidefitplot(self,param_class='ode',figsize = (15,15),**myparams):
+        """
+        perform plot of confirmed cases and deaths with current values of slider parameters
+        stored in teh dictionary myparams
+        note currently deaths are here magnified by x10
+        """
+        for pm in myparams:
+            if pm is 'logI_0':
+                self.set_I0(myparams[pm])
+            else:
+                if param_class == 'ode':
+                    if pm not in self.params:
+                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
+                        return
+                    else:
+                        self.set_param(pm,myparams[pm])
+                elif param_class == 'base':
+                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
+                        print('Error:  this',self.modelname,'does not have base parameter',pm)
+                        return
+                    else:
+                        self.set_base_param(pm,myparams[pm])
+                # print('new parameters',self.model.parameters)
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = figsize)
+
+
 class Scan(ModelFit):
     def __init__(self,*,countries,scanplot=True,params_init_min_max,**kwargs):
         super().__init__(**kwargs)
@@ -1117,7 +1085,7 @@ class SliderFit(ModelFit):
     * call fit() to fit, starting at slider values.
     """
     def __init__(self,*,params_init_min_max=None,**kwargs):
-        global sim_param_inits,slfit
+        global sim_param_inits
         super().__init__(**kwargs)
         cnt=0
         # max_rows = 2   # for short test...
@@ -1135,46 +1103,84 @@ class SliderFit(ModelFit):
         self.makeslbox()
 
     def makeslbox(self,param_class='ode'):
-        global slfit
-        self.allsliderparams()  # sets self.slidedict
+        #################################
+        ## set up widgets
+        self.allsliderparams()  # sets self.slidedict = dictionary of sliders
         self.slidedict.update({'param_class':fixed(param_class)})
-
-        #country_fit_trace = interactive_output(fit_trace,{'modelname':modelnames_widget,'agestructure':modelage_widget,'fittype':fittypes_widget,
-        #                                          'datasrc':datasrcs_widget,'country':countries_widget,'paramtype':paramtypes_widget,'fit_new_params':fit_new_params_widget});        
-        slfitplot = interactive_output(self.slidefitplot,self.slidedict)
-        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
-                     layout = widgets.Layout(height='300px',width='520px'))
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
-        sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
-        fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
-        slbox=HBox([slfitplot,sliderbox,fitbox])
+        self.countries_common = self.basedata.countries_common  
+        self.countries_widget = Dropdown(options=countries_common,description='countries',layout={'width': 'max-content'},value=chosen_country)
+        self.modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=self.modelname)
+        self.modelage_widget = Dropdown(options=[1,4,8,16],description='age grps',layout={'width': 'max-content'},value=1)
+        self.fittypes = ['leastsq','nelder','differential_evolution','nelder','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
+        self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
+        self.paramtypes = ['base','ode']
+        self.paramtypes_widget = Dropdown(options=paramtypes,description='param base/ode',value='base')        
+        self.datanames_widget = Dropdown(options=data_choice(bd.covid_ts,['deaths','new','corrected','smoothed','raw']),
+                            description='data chc',disabled=False,layout={'width': 'max-content'}) 
 
-        # activate click button
+        #####################################
+        ## set up boxes
+        cbox2 = HBox([self.modelnames_widget, self.fittypes_widget])
+        modbox = HBox([self.paramtypes_widget, self.modelage_widget])
+
+        slfitplot = interactive_output(self.slidefitplot,self.slidedict)
+        slfitplotbox = VBox([self.datanames_widget,self.countries_widget,
+                             cbox2,modbox,slfitplot])
+        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
+                     layout = widgets.Layout(height='300px',width='520px'))
+        sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
+        fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
+        self.slbox = HBox([slfitplotbox,sliderbox,fitbox])
+
+        # slfitplot = interactive_output(self.slidefitplot,self.slidedict)
+        # sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
+        #              layout = widgets.Layout(height='300px',width='520px'))
+        # fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
+        # sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
+        # fit_output_text = 'Fit output will be displayed here.'
+        # self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
+        #                                       layout = widgets.Layout(height='320px',width='520px'))
+        # fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
+        # slbox=HBox([slfitplot,sliderbox,fitbox])
+
 
         #import functools
         #def on_button_clicked(b, rs_="some_default_string"):
         #    fun(rs_)
         #button.on_clicked(functools.partial(on_button_clicked, rs_="abcdefg"))
-
-        def fit_on_click(b):
-            global slfit
+        ##############################################
+        # activate click button
+        def do_the_fit(b):
             print("executing fit_on_click")
             try:
                 old_stdout = sys.stdout
                 sys.stdout = mystdout = io.StringIO()
                 ## do the fit
-                slfit.fit_display_widget.value = "Processing fit, please wait ..." #jsm
+                self.fit_display_widget.value = "Processing fit, please wait ..." #jsm
                 print("just before fit")
-                slfit.fit()
+                self.fit()
                 #print("just after fit")
-                slfit.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
+                self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
             finally:
                 sys.stdout = old_stdout
-        fit_button.on_click(fit_on_click)
-        self.slbox = slbox
+        fit_button.on_click(do_the_fit)
+
+        ################################
+        ## trying to hook up the widgets...
+        # so far unsuccessfully.  The following observe does not get executed on widget change.
+        def update_fittype(*args):
+            modelname = self.fittypes_widget.value
+            self.setup_model(modelname)
+            print('model name now ',modelname)
+            do_the_fit()
+
+        self.fittypes_widget.observe(update_fittype,'value')
+
+
 
 
     def allsliderparams(self,param_class='ode'):
@@ -1235,7 +1241,8 @@ class SliderFit(ModelFit):
         """ used to transfer current parameters as initial parameter values to an existing
             initialization structure params_init_min_max
             only those parameters in params_init_min_max will have initial values updated
-        (taken from ModelFit.transfer_fit_to_params_init())
+        taken from ModelFit.transfer_fit_to_params_init()
+        Only difference:  takes no arg, returns no value, acts on self.params_init_min_max.
         """
         plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
         for ptype in plist:
@@ -1247,12 +1254,21 @@ class SliderFit(ModelFit):
                     else:
                         self.params_init_min_max[p] = (ptype[p],pv[1],pv[2])
 
+    def transfer_cur_to_sliders(self):
+        plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        for ptype in plist:
+            for p in ptype:
+                if p in self.slidedict:
+                    self.slidedict[p].value = ptype[p]        
+
     def fit(self,**kwargs):
         self.transfer_cur_to_params_init()
         super().fit(self.params_init_min_max,**kwargs)
-        # reset slider values to current fit vals
+        # next line should be same as
+        # self.transfer_cur_to_params_init()
         self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
-        # redo slider box
-        self.allsliderparams()
-        # self.makeslbox()
+        # self.allsliderparams()  NO!  this makes new widgets.
+
+        # reset slider values to current fit vals
+        self.transfer_cur_to_sliders()
         
