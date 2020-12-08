@@ -977,6 +977,32 @@ class ModelFit:
                 return None
         self.fit_data = 'default'
 
+    def slidefitplot(self,param_class='ode',figsize = (15,15),**myparams):
+        """
+        perform plot of confirmed cases and deaths with current values of slider parameters
+        stored in teh dictionary myparams
+        note currently deaths are here magnified by x10
+        """
+        for pm in myparams:
+            if pm is 'logI_0':
+                self.set_I0(myparams[pm])
+            else:
+                if param_class == 'ode':
+                    if pm not in self.params:
+                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
+                        return
+                    else:
+                        self.set_param(pm,myparams[pm])
+                elif param_class == 'base':
+                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
+                        print('Error:  this',self.modelname,'does not have base parameter',pm)
+                        return
+                    else:
+                        self.set_base_param(pm,myparams[pm])
+                # print('new parameters',self.model.parameters)
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = figsize)
+
+
 class Scan(ModelFit):
     def __init__(self,*,countries,scanplot=True,params_init_min_max,**kwargs):
         super().__init__(**kwargs)
@@ -1077,7 +1103,6 @@ class SliderFit(ModelFit):
         self.makeslbox()
 
     def makeslbox(self,param_class='ode'):
-        global slfit
         self.allsliderparams()  # sets self.slidedict
         self.slidedict.update({'param_class':fixed(param_class)})
 
@@ -1102,17 +1127,16 @@ class SliderFit(ModelFit):
         #button.on_clicked(functools.partial(on_button_clicked, rs_="abcdefg"))
 
         def fit_on_click(b):
-            global slfit
             print("executing fit_on_click")
             try:
                 old_stdout = sys.stdout
                 sys.stdout = mystdout = io.StringIO()
                 ## do the fit
-                slfit.fit_display_widget.value = "Processing fit, please wait ..." #jsm
+                self.fit_display_widget.value = "Processing fit, please wait ..." #jsm
                 print("just before fit")
-                slfit.fit()
+                self.fit()
                 #print("just after fit")
-                slfit.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
+                self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
             finally:
                 sys.stdout = old_stdout
         fit_button.on_click(fit_on_click)
@@ -1172,31 +1196,6 @@ class SliderFit(ModelFit):
                         slidedict[pm].max=pimm[pm][2]
                         slidedict[pm].step=pimm[pm][3]  
         self.slidedict = slidedict
-
-    def slidefitplot(self,param_class='ode',figsize = (15,15),**myparams):
-        """
-        perform plot of confirmed cases and deaths with current values of slider parameters
-        stored in teh dictionary myparams
-        note currently deaths are here magnified by x10
-        """
-        for pm in myparams:
-            if pm is 'logI_0':
-                self.set_I0(myparams[pm])
-            else:
-                if param_class == 'ode':
-                    if pm not in self.params:
-                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
-                        return
-                    else:
-                        self.set_param(pm,myparams[pm])
-                elif param_class == 'base':
-                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
-                        print('Error:  this',self.modelname,'does not have base parameter',pm)
-                        return
-                    else:
-                        self.set_base_param(pm,myparams[pm])
-                # print('new parameters',self.model.parameters)
-        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = figsize)
 
     def transfer_cur_to_params_init(self):
         """ used to transfer current parameters as initial parameter values to an existing
