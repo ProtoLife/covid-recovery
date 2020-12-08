@@ -794,6 +794,8 @@ class ModelFit:
         except that if run_id starts with character '_', it is appended to the default run_id,
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
+        self.new = new
+        self.model = model
         self.data_src = data_src
         if basedata==None:
             print("Error:  must specify base data with arg basedata.")
@@ -829,9 +831,16 @@ class ModelFit:
 
         ######################################
         # set up model
+        self.setup_model(modelname)
+
+        ################################################################
+        # For scan, country='' and will be set up in scan loop
+        if country != '':
+            self.setup_data(country)
+
+    def setup_model(self,modelname):
         self.modelname = modelname
-        if model:
-            self.model = model
+        if self.model:
             if self.model.modelname != modelname:
                 print("warning:  changing model from",modelname,'to',self.model.modelname)
                 self.modelname = modelname
@@ -858,7 +867,7 @@ class ModelFit:
 
             model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
             self.model = model_d['model']
-            if new:
+            if self.new:
                     #print('using default set of parameters for model type',modelname)
                     self.params   = model_d['params']
                     self.cbparams = model_d['cbparams']
@@ -877,10 +886,6 @@ class ModelFit:
                     self.initial_values = model_d['initial_values']
         self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams)
 
-        ################################################################
-        # For scan, country='' and will be set up in scan loop
-        if country != '':
-            self.setup_data(country)
 
     def setup_data(self,country):
         ts = self.data
@@ -1167,18 +1172,19 @@ class SliderFit(ModelFit):
                 self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
             finally:
                 sys.stdout = old_stdout
+            print("leaving do_the_fit...")
         fit_button.on_click(do_the_fit)
 
         ################################
         ## trying to hook up the widgets...
         # so far unsuccessfully.  The following observe does not get executed on widget change.
-        def update_fittype(*args):
-            modelname = self.fittypes_widget.value
+        def update_modelname(*args):
+            modelname = self.modelnames_widget.value
             self.setup_model(modelname)
             print('model name now ',modelname)
-            do_the_fit()
+            do_the_fit(None)
 
-        self.fittypes_widget.observe(update_fittype,'value')
+        self.modelnames_widget.observe(update_modelname,'value')
 
 
 
