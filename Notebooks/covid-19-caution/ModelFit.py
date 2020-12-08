@@ -470,6 +470,7 @@ class ModelFit:
         if outfile:
             plt.savefig(outfile,bbox_inches='tight')
         self.dumpparams()       # dump every plot;  could be changed by sliders
+        print('In solveplot: self is',self)
         return ax
 
     def prparams(self,outfile = ''):
@@ -788,7 +789,8 @@ class ModelFit:
             print('Problem with fit, model params not changed')
 
 
-    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq'):
+    def __init__(self,modelname,basedata=None,model=None,country='',paramtype='ode',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',
+                 startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq'):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
@@ -813,6 +815,7 @@ class ModelFit:
         self.simdays = simdays
         self.datatypes = datatypes
         self.fit_targets = fit_targets
+        self.paramtype = paramtype
         global make_model,possmodels
         dirnm = os.getcwd()
         # construct default name for file / run_id
@@ -1091,8 +1094,9 @@ class SliderFit(ModelFit):
     * adjust sliders
     * call fit() to fit, starting at slider values.
     """
+
     def __init__(self,*,params_init_min_max=None,**kwargs):
-        global sim_param_inits
+        global sim_param_inits,fittypes
         super().__init__(**kwargs)
         cnt=0
         # max_rows = 2   # for short test...
@@ -1107,13 +1111,14 @@ class SliderFit(ModelFit):
         self.slidedict = {}
 
         #sliderparams = MyModel.allsliderparams(params_init_min_max_slider)
-        self.makeslbox()
+        self.makeslbox(paramtype=self.paramtype)
 
-    def makeslbox(self,param_class='ode'):
+    def makeslbox(self,paramtype='ode'):
         #################################
         ## set up widgets
+        fittypes = ['leastsq','nelder','differential_evolution','nelder','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
         self.allsliderparams()  # sets self.slidedict = dictionary of sliders
-        self.slidedict.update({'param_class':fixed(param_class)})
+        self.slidedict.update({'param_class':fixed(paramtype)})
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
@@ -1124,7 +1129,7 @@ class SliderFit(ModelFit):
         ## set up boxes
 
         slfitplot = interactive_output(self.slidefitplot,self.slidedict)
-        slfitplotbox = VBox([fittypes_widget,slfitplot])
+        slfitplotbox = VBox([self.fittypes_widget,slfitplot])
         sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='300px',width='520px'))
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
@@ -1161,7 +1166,7 @@ class SliderFit(ModelFit):
         ################################
         ## hook up fittypes_widget...
         def update_fittype(*args):
-            self.fit_method = fittypes_widget.value
+            self.fit_method = self.fittypes_widget.value
             do_the_fit(None)
 
         self.fittypes_widget.observe(update_fittype,'value')
