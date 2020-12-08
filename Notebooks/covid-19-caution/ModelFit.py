@@ -1085,7 +1085,7 @@ class SliderFit(ModelFit):
     * call fit() to fit, starting at slider values.
     """
     def __init__(self,*,params_init_min_max=None,**kwargs):
-        global sim_param_inits,slfit
+        global sim_param_inits
         super().__init__(**kwargs)
         cnt=0
         # max_rows = 2   # for short test...
@@ -1103,29 +1103,57 @@ class SliderFit(ModelFit):
         self.makeslbox()
 
     def makeslbox(self,param_class='ode'):
-        self.allsliderparams()  # sets self.slidedict
+        #################################
+        ## set up widgets
+        self.allsliderparams()  # sets self.slidedict = dictionary of sliders
         self.slidedict.update({'param_class':fixed(param_class)})
-
-        #country_fit_trace = interactive_output(fit_trace,{'modelname':modelnames_widget,'agestructure':modelage_widget,'fittype':fittypes_widget,
-        #                                          'datasrc':datasrcs_widget,'country':countries_widget,'paramtype':paramtypes_widget,'fit_new_params':fit_new_params_widget});        
-        slfitplot = interactive_output(self.slidefitplot,self.slidedict)
-        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
-                     layout = widgets.Layout(height='300px',width='520px'))
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
-        sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
-        fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
-        slbox=HBox([slfitplot,sliderbox,fitbox])
+        self.countries_common = self.basedata.countries_common  
+        self.countries_widget = Dropdown(options=countries_common,description='countries',layout={'width': 'max-content'},value=chosen_country)
+        self.modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value='SC3FUEI3R')
+        self.modelage_widget = Dropdown(options=[1,4,8,16],description='age grps',layout={'width': 'max-content'},value=1)
+        self.fittypes = ['leastsq','nelder','differential_evolution','nelder','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
+        self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
+        self.paramtypes = ['base','ode']
+        self.paramtypes_widget = Dropdown(options=paramtypes,description='param base/ode',value='base')        
+        self.datanames_widget = Dropdown(options=data_choice(bd.covid_ts,['deaths','new','corrected','smoothed','raw']),
+                            description='data chc',disabled=False,layout={'width': 'max-content'}) 
 
-        # activate click button
+        #####################################
+        ## set up boxes
+        cbox2 = HBox([self.modelnames_widget, self.fittypes_widget])
+        modbox = HBox([self.paramtypes_widget, self.modelage_widget])
+
+        slfitplot = interactive_output(self.slidefitplot,self.slidedict)
+        slfitplotbox = VBox([self.datanames_widget,self.countries_widget,
+                             cbox2,modbox,slfitplot])
+        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
+                     layout = widgets.Layout(height='300px',width='520px'))
+        sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
+        fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
+        self.slbox = HBox([slfitplotbox,sliderbox,fitbox])
+
+        # slfitplot = interactive_output(self.slidefitplot,self.slidedict)
+        # sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
+        #              layout = widgets.Layout(height='300px',width='520px'))
+        # fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
+        # sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
+        # fit_output_text = 'Fit output will be displayed here.'
+        # self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
+        #                                       layout = widgets.Layout(height='320px',width='520px'))
+        # fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
+        # slbox=HBox([slfitplot,sliderbox,fitbox])
+
 
         #import functools
         #def on_button_clicked(b, rs_="some_default_string"):
         #    fun(rs_)
         #button.on_clicked(functools.partial(on_button_clicked, rs_="abcdefg"))
-
+        ##############################################
+        # activate click button
         def fit_on_click(b):
             print("executing fit_on_click")
             try:
@@ -1140,7 +1168,7 @@ class SliderFit(ModelFit):
             finally:
                 sys.stdout = old_stdout
         fit_button.on_click(fit_on_click)
-        self.slbox = slbox
+
 
 
     def allsliderparams(self,param_class='ode'):
