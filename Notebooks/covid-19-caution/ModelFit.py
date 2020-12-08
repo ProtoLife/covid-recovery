@@ -611,11 +611,12 @@ class ModelFit:
             self.logresid[ls] = (lsdat-lfdat).copy() # reduces amount of information stored for efficiency
         return rtn
 
-    def fit(self,params_init_min_max,param_class='ode',fit_method='leastsq',fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
+    def fit(self,params_init_min_max,param_class='ode',fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
         """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
             from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
             to data specified in fit_data, with option of diagnosis output diag
         """
+        fit_method = self.fit_method
         # process input parameters ------------------------------------------------------------------------------------------
         # 1. param_class
         if param_class not in ['ode','base']:
@@ -787,13 +788,14 @@ class ModelFit:
             print('Problem with fit, model params not changed')
 
 
-    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True):
+    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq'):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
         except that if run_id starts with character '_', it is appended to the default run_id,
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
+        self.fit_method = fit_method
         self.new = new
         self.model = model
         self.data_src = data_src
@@ -1116,51 +1118,32 @@ class SliderFit(ModelFit):
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
-        self.countries_common = self.basedata.countries_common  
-        self.countries_widget = Dropdown(options=countries_common,description='countries',layout={'width': 'max-content'},value=chosen_country)
-        self.modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=self.modelname)
-        self.modelage_widget = Dropdown(options=[1,4,8,16],description='age grps',layout={'width': 'max-content'},value=1)
-        self.fittypes = ['leastsq','nelder','differential_evolution','nelder','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
         self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
-        self.paramtypes = ['base','ode']
-        self.paramtypes_widget = Dropdown(options=paramtypes,description='param base/ode',value='base')        
-        self.datanames_widget = Dropdown(options=data_choice(bd.covid_ts,['deaths','new','corrected','smoothed','raw']),
-                            description='data chc',disabled=False,layout={'width': 'max-content'}) 
 
         #####################################
         ## set up boxes
-        cbox2 = HBox([self.modelnames_widget, self.fittypes_widget])
-        modbox = HBox([self.paramtypes_widget, self.modelage_widget])
 
         slfitplot = interactive_output(self.slidefitplot,self.slidedict)
-        slfitplotbox = VBox([self.datanames_widget,self.countries_widget,
-                             cbox2,modbox,slfitplot])
+        slfitplotbox = VBox([fittypes_widget,slfitplot])
         sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='300px',width='520px'))
+        fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
         sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
+        fit_output_text = 'Fit output will be displayed here.'
+        self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
+                                              layout = widgets.Layout(height='320px',width='520px'))
         fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
-        self.slbox = HBox([slfitplotbox,sliderbox,fitbox])
-
-        # slfitplot = interactive_output(self.slidefitplot,self.slidedict)
-        # sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
-        #              layout = widgets.Layout(height='300px',width='520px'))
-        # fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
-        # sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
-        # fit_output_text = 'Fit output will be displayed here.'
-        # self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
-        #                                       layout = widgets.Layout(height='320px',width='520px'))
-        # fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
-        # slbox=HBox([slfitplot,sliderbox,fitbox])
+        self.slbox=HBox([slfitplotbox,sliderbox,fitbox])
 
 
         #import functools
         #def on_button_clicked(b, rs_="some_default_string"):
         #    fun(rs_)
         #button.on_clicked(functools.partial(on_button_clicked, rs_="abcdefg"))
+
         ##############################################
         # activate click button
         def do_the_fit(b):
-            print("executing fit_on_click")
             try:
                 old_stdout = sys.stdout
                 sys.stdout = mystdout = io.StringIO()
@@ -1172,19 +1155,16 @@ class SliderFit(ModelFit):
                 self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
             finally:
                 sys.stdout = old_stdout
-            print("leaving do_the_fit...")
+
         fit_button.on_click(do_the_fit)
 
         ################################
-        ## trying to hook up the widgets...
-        # so far unsuccessfully.  The following observe does not get executed on widget change.
-        def update_modelname(*args):
-            modelname = self.modelnames_widget.value
-            self.setup_model(modelname)
-            print('model name now ',modelname)
+        ## hook up fittypes_widget...
+        def update_fittype(*args):
+            self.fit_method = fittypes_widget.value
             do_the_fit(None)
 
-        self.modelnames_widget.observe(update_modelname,'value')
+        self.fittypes_widget.observe(update_fittype,'value')
 
 
 
