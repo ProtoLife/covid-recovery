@@ -1169,6 +1169,15 @@ class SliderFit(ModelFit):
                 sys.stdout = old_stdout
         fit_button.on_click(fit_on_click)
 
+        def update_fittype():
+            modelname = self.fittypes_widget.value
+            self.setup_model(modelname)
+            print('model name now ',modelname)
+            do_the_fit()
+
+        self.fittypes_widget.observe(update_fittype,'value')
+
+
 
 
     def allsliderparams(self,param_class='ode'):
@@ -1242,12 +1251,21 @@ class SliderFit(ModelFit):
                     else:
                         self.params_init_min_max[p] = (ptype[p],pv[1],pv[2])
 
+    def transfer_cur_to_sliders(self):
+        plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        for ptype in plist:
+            for p in ptype:
+                if p in self.slidedict:
+                    self.slidedict[p].value = ptype[p]        
+
     def fit(self,**kwargs):
         self.transfer_cur_to_params_init()
         super().fit(self.params_init_min_max,**kwargs)
-        # reset slider values to current fit vals
+        # next line should be same as
+        # self.transfer_cur_to_params_init()
         self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
-        # redo slider box
-        self.allsliderparams()
-        # self.makeslbox()
+        # self.allsliderparams()  NO!  this makes new widgets.
+
+        # reset slider values to current fit vals
+        self.transfer_cur_to_sliders()
         
