@@ -1113,7 +1113,7 @@ class SliderFit(ModelFit):
                                               layout = widgets.Layout(height='320px',width='520px'))
         self.countries_common = self.basedata.countries_common  
         self.countries_widget = Dropdown(options=countries_common,description='countries',layout={'width': 'max-content'},value=chosen_country)
-        self.modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value='SC3FUEI3R')
+        self.modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=self.modelname)
         self.modelage_widget = Dropdown(options=[1,4,8,16],description='age grps',layout={'width': 'max-content'},value=1)
         self.fittypes = ['leastsq','nelder','differential_evolution','nelder','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
         self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
@@ -1154,7 +1154,7 @@ class SliderFit(ModelFit):
         #button.on_clicked(functools.partial(on_button_clicked, rs_="abcdefg"))
         ##############################################
         # activate click button
-        def fit_on_click(b):
+        def do_the_fit(b):
             print("executing fit_on_click")
             try:
                 old_stdout = sys.stdout
@@ -1167,9 +1167,12 @@ class SliderFit(ModelFit):
                 self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
             finally:
                 sys.stdout = old_stdout
-        fit_button.on_click(fit_on_click)
+        fit_button.on_click(do_the_fit)
 
-        def update_fittype():
+        ################################
+        ## trying to hook up the widgets...
+        # so far unsuccessfully.  The following observe does not get executed on widget change.
+        def update_fittype(*args):
             modelname = self.fittypes_widget.value
             self.setup_model(modelname)
             print('model name now ',modelname)
