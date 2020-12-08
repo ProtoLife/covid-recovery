@@ -244,64 +244,6 @@ class ModelFit:
                 print("couldn't plot xx,yy",xx,yy)
         plt.show()
 
-    def slidefitplot(self,param_class='ode',figsize = (15,15),**myparams):
-        """
-        perform plot of confirmed cases and deaths with current values of slider parameters
-        stored in teh dictionary myparams
-        note currently deaths are here magnified by x10
-        """
-        for pm in myparams:
-            if pm is 'logI_0':
-                self.set_I0(myparams[pm])
-            else:
-                if param_class == 'ode':
-                    if pm not in self.params:
-                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
-                        return
-                    else:
-                        self.set_param(pm,myparams[pm])
-                elif param_class == 'base':
-                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
-                        print('Error:  this',self.modelname,'does not have base parameter',pm)
-                        return
-                    else:
-                        self.set_base_param(pm,myparams[pm])
-                # print('new parameters',self.model.parameters)
-        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = figsize)
-
-    def allsliderparams(self,params_init_min_max={}):
-        """
-            construct dictionary of slider widgets corresponding to 
-            input params_init_min_max is the dictionary of tuples for parameter optimization (3 or 4-tuples)
-            pimm is short name for params_init_min_max
-        """
-        pimm = params_init_min_max
-        if pimm == {}:
-            print('missing non empty dictionary params_init_min_max')
-            return
-        elif len(pimm[list(pimm.keys())[0]]) != 4:
-            print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
-            return
-        slidedict =self.slidedict
-        if slidedict == {}:
-            slider_layout = Layout(width='25%', height='12px')
-            style = {'description_width': 'initial'}
-            modelname=self.modelname
-            for pm in pimm:
-                if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname):
-                    slidedict.update({pm:FloatSlider(min=pimm[pm][1],max=pimm[pm][2],step=pimm[pm][3],value=pimm[pm][0],description=pm,
-                                    style=style,layout=slider_layout,
-                                    continuous_update=False,readout_format='.3f')})
-        else:
-            modelname=self.modelname
-            for pm in pimm:
-                if ((not 'Caution' in pm) or 'C' in modelname) and ((not 'Econom' in pm) or 'U' in modelname):
-                    slidedict[pm].value=pimm[pm][0]
-                    slidedict[pm].min=pimm[pm][1]
-                    slidedict[pm].max=pimm[pm][2]
-                    slidedict[pm].step=pimm[pm][3]
-        self.slidedict =slidedict         
-        return slidedict 
 
     def transfer_fit_to_params_init(self,params_init_min_max):
         """ used to transfer current fit parameters as initial parameter values to an existing
@@ -1231,11 +1173,37 @@ class SliderFit(ModelFit):
                         slidedict[pm].step=pimm[pm][3]  
         self.slidedict = slidedict
 
+    def slidefitplot(self,param_class='ode',figsize = (15,15),**myparams):
+        """
+        perform plot of confirmed cases and deaths with current values of slider parameters
+        stored in teh dictionary myparams
+        note currently deaths are here magnified by x10
+        """
+        for pm in myparams:
+            if pm is 'logI_0':
+                self.set_I0(myparams[pm])
+            else:
+                if param_class == 'ode':
+                    if pm not in self.params:
+                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
+                        return
+                    else:
+                        self.set_param(pm,myparams[pm])
+                elif param_class == 'base':
+                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
+                        print('Error:  this',self.modelname,'does not have base parameter',pm)
+                        return
+                    else:
+                        self.set_base_param(pm,myparams[pm])
+                # print('new parameters',self.model.parameters)
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = figsize)
+
     def transfer_cur_to_params_init(self):
         """ used to transfer current parameters as initial parameter values to an existing
             initialization structure params_init_min_max
             only those parameters in params_init_min_max will have initial values updated
-        (taken from ModelFit.transfer_fit_to_params_init())
+        taken from ModelFit.transfer_fit_to_params_init()
+        Only difference:  takes no arg, returns no value, acts on self.params_init_min_max.
         """
         plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
         for ptype in plist:
