@@ -111,7 +111,9 @@ class ModelFit:
                     self.fbparams = model_d['fbparams']
                     self.dbparams = model_d['dbparams']
                     self.initial_values = model_d['initial_values']
-        self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams)
+        # self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams) # caused ode/base switching problems
+        self.baseparams = {**self.sbparams,**self.cbparams,**self.fbparams}  # now a merged dictionary
+
         if self.param_class == 'ode':
             self.params = copy.deepcopy(self.odeparams)
         elif self.param_class == 'base':
@@ -379,6 +381,7 @@ class ModelFit:
             self.cbparams[param] = value  
         elif param in list(self.fbparams):
             self.fbparams[param] = value 
+        self.baseparams[param] = value
         b,a,g,p,u,c,k,N,I0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)
         params_in=vector2params(b,a,g,p,u,c,k,N,self.modelname)
         #print('in set_base_param',param,value,'------------------')
@@ -1267,12 +1270,8 @@ class SliderFit(ModelFit):
                     else:
                         self.params_init_min_max[p] = (curval,pv[1],pv[2])
 
-    def checkparams(self):
-        """ used to transfer current parameters as initial parameter values to an existing
-            initialization structure params_init_min_max
-            only those parameters in params_init_min_max will have initial values updated
-        taken from ModelFit.transfer_fit_to_params_init()
-        Only difference:  takes no arg, returns no value, acts on self.params_init_min_max.
+    def checkparams_0(self):
+        """ this was overwriting previous definition : with not enough arguments. Added _0 to name
         """
         plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
         cnt = 0

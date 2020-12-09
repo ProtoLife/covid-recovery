@@ -1971,7 +1971,8 @@ def parametrize_model(rootmodel,modelname,sbparams=None,cbparams=None,fbparams=N
         model.initial_values = base2ICs(I0,N,rootmodel,model,age_structure=age_structure)
     else:
         model.initial_values = base2ICs(I0,N,rootmodel,model)
-    # model.baseparams = list(sbparams)+list(cbparams)+list(fbparams)
+    # model.baseparams = list(sbparams)+list(cbparams)+list(fbparams)  # was list
+    # model.baseparams = {**sbparams,**cbparams,**fbparams}  # now a merged dictionary
     model.parameters = params_in # sets symbolic name parameters
     fullmodel['params'] = params_in    # sets string params
     fullmodel['sbparams'] = sbparams
