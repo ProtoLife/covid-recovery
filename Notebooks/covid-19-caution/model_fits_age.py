@@ -64,7 +64,7 @@ def Float(x):
 
 possmodels = ['SIR','SCIR','SC2IR','SC2FIR','SC2UIR','SC2FUIR',    'SEIR','SCEIR','SC3EIR','SC3FEIR','SC3UEIR',  'SEI3R','SCEI3R','SC3EI3R','SC3FEI3R','SC3UEI3R','SC3FUEI3R'] # full root model set
 agemodels =  ['SIR',       'SC2IR','SC2FIR',                       'SEIR',        'SC3EIR','SC3FEIR',            'SEI3R',         'SC3EI3R','SC3FEI3R','SC3UEI3R','SC3FUEI3R']
-exec(open('ModelFit.py','r').read())
+# exec(open('ModelFit.py','r').read())
 ###########################################################
 
 C_2s = 1000.   # scaling factor for c_2, to allow fit parameter c_2 to be of commensurate magnitude to other parameters
@@ -1340,7 +1340,6 @@ def make_model(mod_name,age_structure=None):
             if model == None:
                 print('Error in make_model constructing DeterministicOde (in pygom)')
             model.modelname='SC3UEI3R'+'_A'+str(age_structure)
-
             model.ei=slice(1*age_structure,5*age_structure)
             model.confirmed=slice(2*age_structure,8*age_structure)
             model.recovered=slice(5*age_structure,6*age_structure)
@@ -1979,6 +1978,7 @@ def parametrize_model(rootmodel,modelname,sbparams=None,cbparams=None,fbparams=N
     fullmodel['cbparams'] = cbparams
     fullmodel['fbparams'] = fbparams
     fullmodel['dbparams'] = dbparams
+    fullmodel['age_structure'] = age_structure
     fullmodel['initial_values'] = model.initial_values  # this line probably not required, since already initialized in make_model
     return fullmodel
 

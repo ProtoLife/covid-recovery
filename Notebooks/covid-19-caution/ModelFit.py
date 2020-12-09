@@ -1,24 +1,31 @@
 import lmfit
 import copy
+import os
 from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
 from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
-from ipywidgets.widgets import HBox, VBox, Label
+from ipywidgets.widgets import HBox, VBox, Label, Dropdown
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+# print('In ModeFit.py test print')
+
+from model_fits_age import *
+
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
-    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base'):
+    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],
+                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base'):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
         except that if run_id starts with character '_', it is appended to the default run_id,
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
+        # print('HERE in init of ModelFit')
         self.param_class = param_class
         self.fit_method = fit_method
         self.new = new
@@ -31,7 +38,7 @@ class ModelFit:
         elif self.data_src == 'owid':
             self.data = basedata.covid_owid_ts
         else:
-            print("Error:  data_src must be on eof jhu or owid.")
+            print("Error:  data_src must be one of jhu or owid.")
         self.basedata = basedata
         self.startdate = startdate
         self.stopdate = stopdate
@@ -83,7 +90,6 @@ class ModelFit:
                 else:
                     modelname_root = modelname
                     age_structure = None
-
                 if modelname_root not in possmodels:
                     print('root model name',modelname_root,'not yet supported')
                     return
@@ -93,6 +99,8 @@ class ModelFit:
                     fullmodels[modelname] = fullmodel
 
             model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
+
+
             self.model = model_d['model']
             if self.new:
                     #print('using default set of parameters for model type',modelname)
@@ -102,6 +110,7 @@ class ModelFit:
                     self.fbparams = model_d['fbparams']
                     self.dbparams = model_d['dbparams']
                     self.initial_values = model_d['initial_values']
+                    self.age_structure = model_d['age_structure']
             else:
                 if not self.loadparams(self.run_id):
                     #print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
@@ -111,6 +120,7 @@ class ModelFit:
                     self.fbparams = model_d['fbparams']
                     self.dbparams = model_d['dbparams']
                     self.initial_values = model_d['initial_values']
+                    self.age_structure = model_d['age_structure']
         # self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams) # caused ode/base switching problems
         self.baseparams = {**self.sbparams,**self.cbparams,**self.fbparams}  # now a merged dictionary
 
@@ -525,6 +535,9 @@ class ModelFit:
         # tmax = self.tsim[-1]
         # tvec=np.arange(0,tmax,1)
 
+        if age_groups:
+            print('age_groups',age_groups)
+
         smodel = self.modelname
         model = self.model
 
@@ -614,6 +627,7 @@ class ModelFit:
                     ax.plot(tvecf1,fita,'o',label=label,color='green')
                 ax.plot(tvec1,suma,label=label,color='green')
                 if age_groups:
+                    print('age',age_groups,model.confirmed)
                     self.plot_age_groups(model.confirmed,age_groups,srsoln,mags[ns],tvec1,ax,'green',label)
             if species == 'recovered':
                 suma = np.sum(srsoln[:,model.recovered],axis=1)*mags[ns]  
@@ -630,6 +644,7 @@ class ModelFit:
                     ax.plot(tvecf1,fita,'o',label=label,color='red',alpha=0.2)
                 ax.plot(tvec1,suma,label=label,color='darkred')
                 if age_groups:
+                    print('age',age_groups,model.deaths)
                     self.plot_age_groups(model.deaths,age_groups,srsoln,mags[ns],tvec1,ax,'darkred',label)
             elif species == 'EI':
                 ax.plot(tvec1,self.soln[:,model.ei],label=label)
@@ -645,8 +660,20 @@ class ModelFit:
             elif species == 'caution_fraction':
                 if 'C' in smodel:
                     #print('model name',model.modelname)
-                    susc = self.soln[:,model.S_c]
-                    suma = np.sum(self.soln[:,model.all_susceptibles],axis=1)
+                    if age_groups and isinstance(model.all_susceptibles,list):
+                        print('all susceptibles',model.all_susceptibles)
+                        suma = np.zeros(len(tvec1),float)
+                        for sl in model.all_susceptibles:
+                            if isinstance(sl,slice):
+                                suma[:] = suma[:] + np.sum(self.soln[:,sl],axis=1)
+                            elif isinstance(sl,int):
+                                suma[:] = suma[:] + self.soln[:,sl]
+                    else:
+                        suma = np.sum(self.soln[:,model.all_susceptibles],axis=1)
+                    if age_groups:
+                        susc = np.sum(self.soln[:,model.S_c],axis=1)
+                    else:
+                        susc = self.soln[:,model.S_c]
                     old_settings = np.seterr(divide='ignore') #
                     suma = np.divide(susc,suma)
                     np.seterr(**old_settings)  # reset to default
@@ -695,7 +722,8 @@ class ModelFit:
                 
         plt.xlabel("Time (days)")
         plt.ylabel("Fraction of population")
-        plt.title(model.modelname +' '+self.country+' '+plottitle)
+
+        plt.title(model.modelname+' '+self.country+' '+plottitle)
         if outfile:
             plt.savefig(outfile,bbox_inches='tight')
         self.dumpparams()       # dump every plot;  could be changed by sliders
@@ -1042,7 +1070,8 @@ class ModelFit:
                     else:
                         self.set_base_param(pm,myparams[pm])
                 # print('new parameters',self.model.parameters)
-        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],figsize = figsize)
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
+                       datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
 
 
 class Scan(ModelFit):
