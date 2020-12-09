@@ -361,10 +361,11 @@ class ModelFit:
         plist = [p.name for p in list(self.model.param_list)]
         if param not in plist:
             print('Error:  param name',param,'is not a parameter for this',self.modelname,'model.')
-        self.odeparams[param] = value
-        #tmp = {param:value}
-        #self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
-        self.model.parameters = self.odeparams
+        else:
+            self.odeparams[param] = value
+            tmp = {param:value}
+            self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
+            # self.model.parameters = self.odeparams[param]   # this has problem with initial condition parameter logI_0
 
 
     def set_base_param(self,param,value):
@@ -432,6 +433,7 @@ class ModelFit:
             print("Error:  cbparams mismatch in refresh_base().  Params unchanged.")
         else:
             self.cbparams = copy.deepcopy(cb)
+        self.baseparams = {**self.sbparams,**self.cbparams,**self.fbparams}
 
     def difference(self,datain,exceptions=[]):
         dataout = np.zeros(np.shape(datain))
@@ -1137,11 +1139,11 @@ class SliderFit(ModelFit):
         self.slidedict = {}     # will be set by allsliderparams()
         self.makeslbox()
 
-    def makeslbox(self,param_class='ode'):
+    def makeslbox(self):
         #################################
         ## set up widgets
         self.allsliderparams()  # sets self.slidedict = dictionary of sliders
-        self.slidedict.update({'param_class':fixed(param_class)})
+        self.slidedict.update({'param_class':fixed(self.param_class)})
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
@@ -1178,7 +1180,7 @@ class SliderFit(ModelFit):
                 sys.stdout = mystdout = io.StringIO()
                 ## do the fit
                 self.fit_display_widget.value = "Processing fit, please wait ..." #jsm
-                print("just before fit")
+                #print("just before fit")
                 self.fit()
                 #print("just after fit")
                 self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
