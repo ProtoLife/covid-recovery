@@ -11,6 +11,210 @@ from ipywidgets.widgets import HBox, VBox, Label
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
+    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base'):
+        """
+        if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
+        if run_id is not '', it is used as self.run_id, used in turn for param filename.
+        except that if run_id starts with character '_', it is appended to the default run_id,
+        i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
+        """
+        self.param_class = param_class
+        self.fit_method = fit_method
+        self.new = new
+        self.model = model
+        self.data_src = data_src
+        if basedata==None:
+            print("Error:  must specify base data with arg basedata.")
+        if self.data_src == 'jhu':
+            self.data = basedata.covid_ts
+        elif self.data_src == 'owid':
+            self.data = basedata.covid_owid_ts
+        else:
+            print("Error:  data_src must be on eof jhu or owid.")
+        self.basedata = basedata
+        self.startdate = startdate
+        self.stopdate = stopdate
+        self.simdays = simdays
+        self.datatypes = datatypes
+        self.fit_targets = fit_targets
+        global make_model,possmodels
+        dirnm = os.getcwd()
+        # construct default name for file / run_id
+        if country != '':
+            defnm = modelname+'_'+country
+        else:
+            defnm = modelname
+
+        if run_id == '':                         # use default name
+            self.run_id = defnm
+        elif run_id[0]=='_':                     # use run_id as addon to default
+            self.run_id = defnm+run_id
+        else:
+            self.run_id = run_id                 # use specified name
+        #print('=============',self.run_id)
+        pfile = dirnm+'/params/'+self.run_id+'.pk'
+
+
+        ######################################
+        # set up model
+        self.setup_model(modelname)
+
+        ################################################################
+        # For scan, country='' and will be set up in scan loop
+        if country != '':
+            self.setup_data(country)
+
+    def setup_model(self,modelname):
+        self.modelname = modelname
+        if self.model:
+            if self.model.modelname != modelname:
+                print("warning:  changing model from",modelname,'to',self.model.modelname)
+                self.modelname = modelname
+        else:
+            if modelname not in fullmodels:
+                if '_A' in modelname:
+                    [modelname_root,age_str] = modelname.split("_A")
+                    try:
+                        age_structure = int(age_str)
+                    except:
+                        print("Error in parameterize_model, age suffix is not an integer.")
+                        return
+                else:
+                    modelname_root = modelname
+                    age_structure = None
+
+                if modelname_root not in possmodels:
+                    print('root model name',modelname_root,'not yet supported')
+                    return
+                else:
+                    print('Adding model',modelname,'to stored models.')
+                    fullmodel = parametrize_model(modelname_root,modelname,age_structure=age_structure)
+                    fullmodels[modelname] = fullmodel
+
+            model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
+            self.model = model_d['model']
+            if self.new:
+                    #print('using default set of parameters for model type',modelname)
+                    self.odeparams   = model_d['params']
+                    self.cbparams = model_d['cbparams']
+                    self.sbparams = model_d['sbparams']
+                    self.fbparams = model_d['fbparams']
+                    self.dbparams = model_d['dbparams']
+                    self.initial_values = model_d['initial_values']
+            else:
+                if not self.loadparams(self.run_id):
+                    #print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
+                    self.odeparams   = model_d['params']
+                    self.cbparams = model_d['cbparams']
+                    self.sbparams = model_d['sbparams']
+                    self.fbparams = model_d['fbparams']
+                    self.dbparams = model_d['dbparams']
+                    self.initial_values = model_d['initial_values']
+        self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams)
+        if self.param_class == 'ode':
+            self.params = copy.deepcopy(self.odeparams)
+        elif self.param_class == 'base':
+            self.params = copy.deepcopy(self.baseparams)
+        else:
+            print("Error:  bad param_class.")
+            return None
+        
+
+
+    def setup_data(self,country):
+        ts = self.data
+        if self.data_src not in ['jhu','owid','cluster']:
+            print('data_src',data_src,'not yet hooked up: use jhu, owid or cluster data instead')
+            return None
+
+        # NB: countries in ts are common countries, keyed using simple string names (common name for datasets) 
+        self.country_str = country_str = country
+        self.country = country
+
+        #if self.data_src == 'jhu':
+        #    self.country = country = (self.country_str,'')
+        #else:
+        #    self.country = country
+
+        self.population = self.basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
+
+        fmt_jhu = '%m/%d/%y'
+        if self.data_src == 'owid' or self.data_src == 'jhu':
+            dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['deaths']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
+            firstdate_t =  dates_t[0]
+            lastdate_t =  dates_t[-1]
+            if self.startdate:
+                startdate_t = datetime.datetime.strptime(self.startdate,fmt_jhu)
+            else:
+                startdate_t = firstdate_t
+            if self.stopdate:
+                stopdate_t = datetime.datetime.strptime(self.stopdate,fmt_jhu)
+                #print('stopdate',self.stopdate) 
+            else:
+                stopdate_t = lastdate_t
+            if (startdate_t - firstdate_t).days < 0:
+                print('start date out of data range, setting to data first date',ts['confirmed']['dates'][0])
+                startdate_t = firstdate_t
+                daystart = 0
+            else:
+                daystart = (startdate_t- firstdate_t).days
+            if (stopdate_t - startdate_t).days > (lastdate_t - startdate_t).days:
+                print('stop date out of data range, setting to data last date',ts['confirmed']['dates'][-1])
+                stopdate_t = lastdate_t
+                datadays = (stopdate_t-startdate_t).days + 1            
+            else:
+                datadays = (lastdate_t-startdate_t).days + 1
+            self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
+        elif self.data_src == 'cluster':
+            datadays = len(ts['deaths'][country])
+            if self.simdays: # simdays allowed greater than datadays to enable predictions
+                if self.simdays < datadays:
+                    datadays = self.simdays
+            self.startdate = '02/01/20' # fake first date for cluster time series
+            startdate_t = datetime.datetime.strptime(self.startdate,fmt_jhu)
+            daystart = 0
+            self.dates = [startdate_t + datetime.timedelta(days=x) for x in range(datadays)] # fake dates
+            stopdate_t = self.dates[-1]
+        else:
+            print("Error:  can't deal with data_src", self.data_src)
+            return None
+
+        if self.simdays: # simdays allowed greater than datadays to enable predictions
+            if self.simdays < datadays:
+                stopdate_t = startdate_t + datetime.timedelta(days=self.simdays-1)  # if simulation for shorter time than data, restrict data to this
+                datadays = (stopdate_t-startdate_t).days + 1    
+                self.tsim = np.linspace(0, datadays -1, datadays)
+            else:
+                self.tsim = np.linspace(0, self.simdays -1, self.simdays)
+        else:
+            self.tsim = np.linspace(0, datadays -1, datadays)
+
+        if self.datatypes == 'all':
+            self.datatypes = [x for x in ts]
+
+        self.tsdata = {}
+        for dt in self.datatypes:
+            if dt not in ts:
+                print('datatype error:')
+                print(dt,'not in ts for data_src',self.data_src)
+                return None
+            if ts[dt] is not None:
+                try:
+                    self.tsdata[dt] = ts[dt][country][daystart:datadays].copy()
+                except Exception as e:
+                        print('problem with',dt,'country',country)
+                        print(e)
+                    
+            #self.data.update({dt:ts[dt][country][daystart:datadays]}) 
+
+        self.startdate = startdate_t.strftime(fmt_jhu)
+        self.stopdate = stopdate_t.strftime(fmt_jhu)
+
+        for targ in self.fit_targets:
+            if targ not in self.tsdata:
+                print('Error: fit target',targ,'is not available in datatypes',self.datatypes)
+                return None
+        self.fit_data = 'default'
 
     def  print_ode(self):
         '''
@@ -165,9 +369,9 @@ class ModelFit:
         #print('in set_base_param',param,value,'------------------')
         #print('params_in',params_in)
         #print('params',self.params)
-        for pm in self.params:
-            self.params[pm] = params_in[pm] # NB: vector2params returns all params including for U model
-        self.model.parameters = self.params # pygom magic sets the right parameter in the model.parameters dictionary.
+        for pm in self.odeparams:
+            self.odeparams[pm] = params_in[pm] # NB: vector2params returns all params including for U model
+        self.model.parameters = self.odeparams # pygom magic sets the right parameter in the model.parameters dictionary.
 
     def set_initial_values(self,ival,t0=None):
         # consistency check:
@@ -795,210 +999,6 @@ class ModelFit:
             print('Problem with fit, model params not changed')
 
 
-    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base'):
-        """
-        if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
-        if run_id is not '', it is used as self.run_id, used in turn for param filename.
-        except that if run_id starts with character '_', it is appended to the default run_id,
-        i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
-        """
-        self.param_class = param_class
-        self.fit_method = fit_method
-        self.new = new
-        self.model = model
-        self.data_src = data_src
-        if basedata==None:
-            print("Error:  must specify base data with arg basedata.")
-        if self.data_src == 'jhu':
-            self.data = basedata.covid_ts
-        elif self.data_src == 'owid':
-            self.data = basedata.covid_owid_ts
-        else:
-            print("Error:  data_src must be on eof jhu or owid.")
-        self.basedata = basedata
-        self.startdate = startdate
-        self.stopdate = stopdate
-        self.simdays = simdays
-        self.datatypes = datatypes
-        self.fit_targets = fit_targets
-        global make_model,possmodels
-        dirnm = os.getcwd()
-        # construct default name for file / run_id
-        if country != '':
-            defnm = modelname+'_'+country
-        else:
-            defnm = modelname
-
-        if run_id == '':                         # use default name
-            self.run_id = defnm
-        elif run_id[0]=='_':                     # use run_id as addon to default
-            self.run_id = defnm+run_id
-        else:
-            self.run_id = run_id                 # use specified name
-        #print('=============',self.run_id)
-        pfile = dirnm+'/params/'+self.run_id+'.pk'
-
-
-        ######################################
-        # set up model
-        self.setup_model(modelname)
-
-        ################################################################
-        # For scan, country='' and will be set up in scan loop
-        if country != '':
-            self.setup_data(country)
-
-    def setup_model(self,modelname):
-        self.modelname = modelname
-        if self.model:
-            if self.model.modelname != modelname:
-                print("warning:  changing model from",modelname,'to',self.model.modelname)
-                self.modelname = modelname
-        else:
-            if modelname not in fullmodels:
-                if '_A' in modelname:
-                    [modelname_root,age_str] = modelname.split("_A")
-                    try:
-                        age_structure = int(age_str)
-                    except:
-                        print("Error in parameterize_model, age suffix is not an integer.")
-                        return
-                else:
-                    modelname_root = modelname
-                    age_structure = None
-
-                if modelname_root not in possmodels:
-                    print('root model name',modelname_root,'not yet supported')
-                    return
-                else:
-                    print('Adding model',modelname,'to stored models.')
-                    fullmodel = parametrize_model(modelname_root,modelname,age_structure=age_structure)
-                    fullmodels[modelname] = fullmodel
-
-            model_d = copy.deepcopy(fullmodels[modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
-            self.model = model_d['model']
-            if self.new:
-                    #print('using default set of parameters for model type',modelname)
-                    self.odeparams   = model_d['params']
-                    self.cbparams = model_d['cbparams']
-                    self.sbparams = model_d['sbparams']
-                    self.fbparams = model_d['fbparams']
-                    self.dbparams = model_d['dbparams']
-                    self.initial_values = model_d['initial_values']
-            else:
-                if not self.loadparams(self.run_id):
-                    #print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
-                    self.odeparams   = model_d['params']
-                    self.cbparams = model_d['cbparams']
-                    self.sbparams = model_d['sbparams']
-                    self.fbparams = model_d['fbparams']
-                    self.dbparams = model_d['dbparams']
-                    self.initial_values = model_d['initial_values']
-        self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams)
-        if self.param_class == 'ode':
-            self.params = copy.deepcopy(self.odeparams)
-        elif self.param_class == 'base':
-            self.params = copy.deepcopy(self.baseparams)
-        else:
-            print("Error:  bad param_class.")
-            return None
-        
-
-
-    def setup_data(self,country):
-        ts = self.data
-        if self.data_src not in ['jhu','owid','cluster']:
-            print('data_src',data_src,'not yet hooked up: use jhu, owid or cluster data instead')
-            return None
-
-        # NB: countries in ts are common countries, keyed using simple string names (common name for datasets) 
-        self.country_str = country_str = country
-        self.country = country
-
-        #if self.data_src == 'jhu':
-        #    self.country = country = (self.country_str,'')
-        #else:
-        #    self.country = country
-
-        self.population = self.basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
-
-        fmt_jhu = '%m/%d/%y'
-        if self.data_src == 'owid' or self.data_src == 'jhu':
-            dates_t = [datetime.datetime.strptime(dd,fmt_jhu) for dd in ts['deaths']['dates'] ] # ts dates stored in string format of jhu fmt_jhu = '%m/%d/%y'
-            firstdate_t =  dates_t[0]
-            lastdate_t =  dates_t[-1]
-            if self.startdate:
-                startdate_t = datetime.datetime.strptime(self.startdate,fmt_jhu)
-            else:
-                startdate_t = firstdate_t
-            if self.stopdate:
-                stopdate_t = datetime.datetime.strptime(self.stopdate,fmt_jhu)
-                #print('stopdate',self.stopdate) 
-            else:
-                stopdate_t = lastdate_t
-            if (startdate_t - firstdate_t).days < 0:
-                print('start date out of data range, setting to data first date',ts['confirmed']['dates'][0])
-                startdate_t = firstdate_t
-                daystart = 0
-            else:
-                daystart = (startdate_t- firstdate_t).days
-            if (stopdate_t - startdate_t).days > (lastdate_t - startdate_t).days:
-                print('stop date out of data range, setting to data last date',ts['confirmed']['dates'][-1])
-                stopdate_t = lastdate_t
-                datadays = (stopdate_t-startdate_t).days + 1            
-            else:
-                datadays = (lastdate_t-startdate_t).days + 1
-            self.dates = [date.strftime(fmt_jhu) for date in dates_t if date>=startdate_t and date <= lastdate_t]
-        elif self.data_src == 'cluster':
-            datadays = len(ts['deaths'][country])
-            if self.simdays: # simdays allowed greater than datadays to enable predictions
-                if self.simdays < datadays:
-                    datadays = self.simdays
-            self.startdate = '02/01/20' # fake first date for cluster time series
-            startdate_t = datetime.datetime.strptime(self.startdate,fmt_jhu)
-            daystart = 0
-            self.dates = [startdate_t + datetime.timedelta(days=x) for x in range(datadays)] # fake dates
-            stopdate_t = self.dates[-1]
-        else:
-            print("Error:  can't deal with data_src", self.data_src)
-            return None
-
-        if self.simdays: # simdays allowed greater than datadays to enable predictions
-            if self.simdays < datadays:
-                stopdate_t = startdate_t + datetime.timedelta(days=self.simdays-1)  # if simulation for shorter time than data, restrict data to this
-                datadays = (stopdate_t-startdate_t).days + 1    
-                self.tsim = np.linspace(0, datadays -1, datadays)
-            else:
-                self.tsim = np.linspace(0, self.simdays -1, self.simdays)
-        else:
-            self.tsim = np.linspace(0, datadays -1, datadays)
-
-        if self.datatypes == 'all':
-            self.datatypes = [x for x in ts]
-
-        self.tsdata = {}
-        for dt in self.datatypes:
-            if dt not in ts:
-                print('datatype error:')
-                print(dt,'not in ts for data_src',self.data_src)
-                return None
-            if ts[dt] is not None:
-                try:
-                    self.tsdata[dt] = ts[dt][country][daystart:datadays].copy()
-                except Exception as e:
-                        print('problem with',dt,'country',country)
-                        print(e)
-                    
-            #self.data.update({dt:ts[dt][country][daystart:datadays]}) 
-
-        self.startdate = startdate_t.strftime(fmt_jhu)
-        self.stopdate = stopdate_t.strftime(fmt_jhu)
-
-        for targ in self.fit_targets:
-            if targ not in self.tsdata:
-                print('Error: fit target',targ,'is not available in datatypes',self.datatypes)
-                return None
-        self.fit_data = 'default'
 
     def slidefitplot(self,figsize = (15,15),**myparams):
         """
@@ -1112,12 +1112,13 @@ class SliderFit(ModelFit):
         cnt=0
         # max_rows = 2   # for short test...
         if params_init_min_max == None:
-            self.params_init_min_max = sim_param_inits[self.modelname]
+            # grab defaults
+            if self.param_class == 'ode':
+                self.params_init_min_max = sim_param_inits[self.modelname]
+            elif self.param_class == 'base':
+                self.params_init_min_max = default_base_params()
         else:
             self.params_init_min_max = params_init_min_max
-
-        self.params_init_min_max_slider = self.params_init_min_max.copy()
-        self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
 
         self.slidedict = {}     # will be set by allsliderparams()
         self.makeslbox()
@@ -1181,16 +1182,15 @@ class SliderFit(ModelFit):
         self.fittypes_widget.observe(update_fittype,'value')
 
 
-
-
     def allsliderparams(self):
         """
             construct dictionary of slider widgets corresponding to 
             input params_init_min_max is the dictionary of tuples for parameter optimization (3 or 4-tuples)
             pimm is short name for params_init_min_max
         """
+        
         param_class = self.param_class
-        pimm = self.params_init_min_max_slider
+        pimm = self.params_init_min_max
         if pimm == {}:
             print('missing non empty dictionary params_init_min_max')
             return
@@ -1267,7 +1267,7 @@ class SliderFit(ModelFit):
         self.transfer_cur_to_params_init()
         super().fit(self.params_init_min_max,**kwargs)
         # next line should be same as
-        # self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
+        # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
         self.transfer_cur_to_params_init()
         # self.allsliderparams()  NO!  this makes new widgets.
         # reset slider values to current fit vals

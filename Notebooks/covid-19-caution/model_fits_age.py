@@ -1922,7 +1922,7 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
 
     return [sbparams,cbparams,fbparams,dbparams]
 
-def default_fit_params():
+def default_base_params():
     """ supply default fit parameters for base parameters """
     logI0 = np.log10(0.0000003)
     fp = {}
@@ -1951,6 +1951,8 @@ def default_fit_params():
     # FracRecoveredDet=FracConfirmedDet                          # Fraction of recovered individuals measured
     fp['FracDeathsDet']=          (1.0,0.5,1.0,0.01)             # Fraction of deceased individuals from the disease that are identified
     return fp
+
+default_fit_params = default_base_params # for backward compatibility
 
 # Set up multimodel consistent sets of parameters, based on standard set defined by Dr. Alison Hill for SEI3RD 
 def parametrize_model(rootmodel,modelname,sbparams=None,cbparams=None,fbparams=None,dbparams=None,age_structure=None):
