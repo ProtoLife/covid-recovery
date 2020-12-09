@@ -1,7 +1,12 @@
 import lmfit
 import copy
 from time import time
-from ipywidgets.widgets import FloatSlider,Layout
+from ipywidgets import widgets
+from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
+from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
+from ipywidgets.widgets import HBox, VBox, Label
+
+
 
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
@@ -250,7 +255,7 @@ class ModelFit:
             initialization structure params_init_min_max
             only those parameters in params_init_min_max will have initial values updated
         """
-        plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
         for ptype in plist:
             for p in ptype:
                 if p in params_init_min_max:
@@ -470,7 +475,6 @@ class ModelFit:
         if outfile:
             plt.savefig(outfile,bbox_inches='tight')
         self.dumpparams()       # dump every plot;  could be changed by sliders
-        print('In solveplot: self is',self)
         return ax
 
     def prparams(self,outfile = ''):
@@ -612,7 +616,7 @@ class ModelFit:
             self.logresid[ls] = (lsdat-lfdat).copy() # reduces amount of information stored for efficiency
         return rtn
 
-    def fit(self,params_init_min_max,param_class='ode',fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
+    def fit(self,params_init_min_max,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
         """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
             from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
             to data specified in fit_data, with option of diagnosis output diag
@@ -620,6 +624,8 @@ class ModelFit:
         fit_method = self.fit_method
         # process input parameters ------------------------------------------------------------------------------------------
         # 1. param_class
+        param_class = self.param_class
+        print('fit: param_class = ',param_class)
         if param_class not in ['ode','base']:
             print('parameters must be either all in class ode or base currently, not',param_class) # logI_0 is in both classes
             return
@@ -789,14 +795,14 @@ class ModelFit:
             print('Problem with fit, model params not changed')
 
 
-    def __init__(self,modelname,basedata=None,model=None,country='',paramtype='ode',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',
-                 startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq'):
+    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base'):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
         except that if run_id starts with character '_', it is appended to the default run_id,
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
+        self.param_class = param_class
         self.fit_method = fit_method
         self.new = new
         self.model = model
@@ -815,7 +821,6 @@ class ModelFit:
         self.simdays = simdays
         self.datatypes = datatypes
         self.fit_targets = fit_targets
-        self.paramtype = paramtype
         global make_model,possmodels
         dirnm = os.getcwd()
         # construct default name for file / run_id
@@ -874,7 +879,7 @@ class ModelFit:
             self.model = model_d['model']
             if self.new:
                     #print('using default set of parameters for model type',modelname)
-                    self.params   = model_d['params']
+                    self.odeparams   = model_d['params']
                     self.cbparams = model_d['cbparams']
                     self.sbparams = model_d['sbparams']
                     self.fbparams = model_d['fbparams']
@@ -883,13 +888,21 @@ class ModelFit:
             else:
                 if not self.loadparams(self.run_id):
                     #print('Problem loading paramfile for',run_id,'... using default set of parameters for model type',modelname)
-                    self.params   = model_d['params']
+                    self.odeparams   = model_d['params']
                     self.cbparams = model_d['cbparams']
                     self.sbparams = model_d['sbparams']
                     self.fbparams = model_d['fbparams']
                     self.dbparams = model_d['dbparams']
                     self.initial_values = model_d['initial_values']
         self.baseparams = list(self.sbparams)+list(self.cbparams)+list(self.fbparams)
+        if self.param_class == 'ode':
+            self.params = copy.deepcopy(self.odeparams)
+        elif self.param_class == 'base':
+            self.params = copy.deepcopy(self.baseparams)
+        else:
+            print("Error:  bad param_class.")
+            return None
+        
 
 
     def setup_data(self,country):
@@ -987,13 +1000,16 @@ class ModelFit:
                 return None
         self.fit_data = 'default'
 
-    def slidefitplot(self,param_class='ode',figsize = (15,15),**myparams):
+    def slidefitplot(self,figsize = (15,15),**myparams):
         """
         perform plot of confirmed cases and deaths with current values of slider parameters
         stored in teh dictionary myparams
         note currently deaths are here magnified by x10
         """
+        param_class = self.param_class
         for pm in myparams:
+            if (pm is 'param_class') or (pm is 'figsize'):
+                continue
             if pm is 'logI_0':
                 self.set_I0(myparams[pm])
             else:
@@ -1082,10 +1098,6 @@ class Scan(ModelFit):
         with open(filename,'bw') as fp:
             pk.dump(scan_all,fp)
 
-from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
-from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
-from ipywidgets.widgets import HBox, VBox, Label
-
 
 class SliderFit(ModelFit):
     """
@@ -1094,9 +1106,8 @@ class SliderFit(ModelFit):
     * adjust sliders
     * call fit() to fit, starting at slider values.
     """
-
     def __init__(self,*,params_init_min_max=None,**kwargs):
-        global sim_param_inits,fittypes
+        global sim_param_inits
         super().__init__(**kwargs)
         cnt=0
         # max_rows = 2   # for short test...
@@ -1108,21 +1119,19 @@ class SliderFit(ModelFit):
         self.params_init_min_max_slider = self.params_init_min_max.copy()
         self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
 
-        self.slidedict = {}
+        self.slidedict = {}     # will be set by allsliderparams()
+        self.makeslbox()
 
-        #sliderparams = MyModel.allsliderparams(params_init_min_max_slider)
-        self.makeslbox(paramtype=self.paramtype)
-
-    def makeslbox(self,paramtype='ode'):
+    def makeslbox(self,param_class='ode'):
         #################################
         ## set up widgets
-        fittypes = ['leastsq','nelder','differential_evolution','nelder','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
         self.allsliderparams()  # sets self.slidedict = dictionary of sliders
-        self.slidedict.update({'param_class':fixed(paramtype)})
+        self.slidedict.update({'param_class':fixed(param_class)})
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
+        fittypes = ['leastsq','nelder','differential_evolution','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
         self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
 
         #####################################
@@ -1174,12 +1183,13 @@ class SliderFit(ModelFit):
 
 
 
-    def allsliderparams(self,param_class='ode'):
+    def allsliderparams(self):
         """
             construct dictionary of slider widgets corresponding to 
             input params_init_min_max is the dictionary of tuples for parameter optimization (3 or 4-tuples)
             pimm is short name for params_init_min_max
         """
+        param_class = self.param_class
         pimm = self.params_init_min_max_slider
         if pimm == {}:
             print('missing non empty dictionary params_init_min_max')
@@ -1250,16 +1260,16 @@ class SliderFit(ModelFit):
         for ptype in plist:
             for p in ptype:
                 if p in self.slidedict:
+                    # print('transferring ',p)
                     self.slidedict[p].value = ptype[p]        
 
     def fit(self,**kwargs):
         self.transfer_cur_to_params_init()
         super().fit(self.params_init_min_max,**kwargs)
         # next line should be same as
-        # self.transfer_cur_to_params_init()
-        self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
+        # self.params_init_min_max_slider = self.transfer_fit_to_params_init(self.params_init_min_max_slider)
+        self.transfer_cur_to_params_init()
         # self.allsliderparams()  NO!  this makes new widgets.
-
         # reset slider values to current fit vals
         self.transfer_cur_to_sliders()
         
