@@ -6,7 +6,8 @@ from ipywidgets.widgets import interact, interactive, interactive_output, fixed,
 from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
 from ipywidgets.widgets import HBox, VBox, Label
 
-
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
@@ -336,8 +337,21 @@ class ModelFit:
             print("All params are away from boundaries.")
         # print("Finished checkparams.")
 
+    def check_params(self):
+        print('len(self.odeparams) = ',len(self.odeparams))
+        print(self.odeparams)
+        print('model.num_param = ',self.model.num_param)
+        print(self.model.parameters)
 
     def set_param(self,param,value):
+        if self.param_class == 'ode':
+            self.set_ode_param(param,value)
+        elif self.param_class == 'base':
+            self.set_base_param(param,value)
+        else:
+            print('set_param Error: bad param_class =',self.param_class)
+
+    def set_ode_param(self,param,value):
         # print('--------------------------- new set param call ----------------------------------')
         # print('In set_param with param',param,'with value',value,'self',self)
         # print('self.model.parameters',self.model.parameters)
@@ -345,10 +359,10 @@ class ModelFit:
         plist = [p.name for p in list(self.model.param_list)]
         if param not in plist:
             print('Error:  param name',param,'is not a parameter for this',self.modelname,'model.')
-        self.params[param] = value
+        self.odeparams[param] = value
         #tmp = {param:value}
         #self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
-        self.model.parameters = self.params
+        self.model.parameters = self.odeparams
 
 
     def set_base_param(self,param,value):
@@ -358,6 +372,7 @@ class ModelFit:
         """
         if param not in self.baseparams:
             print('Error:  param name',param,'is not a base parameter for this',self.modelname,'model.')
+            eprint(self.baseparams)
         if param in list(self.sbparams):
             self.sbparams[param] = value
         elif param in list(self.cbparams):
@@ -400,7 +415,7 @@ class ModelFit:
         storing in self.sbparams and self.cbparams.
         Logic:  apply params2vector, followed by vectors2base, both found in model_fits_nodata.py
         """
-        vec = params2vector(self,self.params,self.modelname) # returns (b,a,g,p,u,c,k,N)
+        vec = params2vector(self,self.odeparams,self.modelname) # returns (b,a,g,p,u,c,k,N)
         # print('params',self.modelname,self.params)
         # print('vec',vec)
         I0 = np.power(10,self.sbparams['logI_0'])
@@ -854,8 +869,8 @@ class ModelFit:
         if len(fit_data) == len(fit_targets):
             self.fit_data = fit_data
         else:
-            print('fit_targets and fit_data must have same length',len(fit_targets),len(fit_data))
-            print('proceeding with default')
+            eprint('fit_targets and fit_data must have same length',len(fit_targets),len(fit_data))
+            eprint('proceeding with default')
             self.fit_data = fit_data = [fit_target+'_corrected_smoothed' for fit_target in fit_targets]
         
         # 4. params_init_min_max
@@ -885,11 +900,7 @@ class ModelFit:
 
         ## set initial params for fit
         for x in params_lmf:
-            if x in self.params:
-            # if x in list(self.model.param_list):
-                self.set_param(x, params_lmf[x].value)
-            elif x != 'logI_0' and x in self.baseparams:
-                self.set_base_param(x, params_lmf[x].value)
+            self.set_param(x, params_lmf[x].value)
         if 'logI_0' in params_lmf: # set other ad hoc params in both sets like this
                 self.set_I0(params_lmf['logI_0'].value) 
 
@@ -1245,18 +1256,38 @@ class SliderFit(ModelFit):
         taken from ModelFit.transfer_fit_to_params_init()
         Only difference:  takes no arg, returns no value, acts on self.params_init_min_max.
         """
-        plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
         for ptype in plist:
             for p in ptype:
+                curval = ptype[p]
                 if p in self.params_init_min_max:
                     pv = self.params_init_min_max[p]
                     if len(pv) == 4:
-                        self.params_init_min_max[p] = (ptype[p],pv[1],pv[2],pv[3])
+                        self.params_init_min_max[p] = (curval,pv[1],pv[2],pv[3])
                     else:
-                        self.params_init_min_max[p] = (ptype[p],pv[1],pv[2])
+                        self.params_init_min_max[p] = (curval,pv[1],pv[2])
+
+    def checkparams(self):
+        """ used to transfer current parameters as initial parameter values to an existing
+            initialization structure params_init_min_max
+            only those parameters in params_init_min_max will have initial values updated
+        taken from ModelFit.transfer_fit_to_params_init()
+        Only difference:  takes no arg, returns no value, acts on self.params_init_min_max.
+        """
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        cnt = 0
+        for ptype in plist:
+            print('---ptype',cnt)
+            print(ptype)
+            cnt = cnt+1
+            for p in ptype:
+                print('param ',p)
+                curval = ptype[p]
+                print('checking param',p,'in',ptype,'value =',curval)
+            
 
     def transfer_cur_to_sliders(self):
-        plist = (self.params,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
         for ptype in plist:
             for p in ptype:
                 if p in self.slidedict:
@@ -1264,7 +1295,10 @@ class SliderFit(ModelFit):
                     self.slidedict[p].value = ptype[p]        
 
     def fit(self,**kwargs):
+        # print('entering fit')
+        # self.checkparams
         self.transfer_cur_to_params_init()
+        # eprint(self.params_init_min_max)
         super().fit(self.params_init_min_max,**kwargs)
         # next line should be same as
         # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
