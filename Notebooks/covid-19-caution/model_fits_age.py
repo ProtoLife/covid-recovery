@@ -1921,7 +1921,7 @@ def default_params(sbparams=None,cbparams=None,fbparams=None,dbparams=None):
 
     return [sbparams,cbparams,fbparams,dbparams]
 
-def default_base_params():
+def default_base_params(modelname=None):
     """ supply default fit parameters for base parameters """
     logI0 = np.log10(0.0000003)
     fp = {}
@@ -1935,16 +1935,19 @@ def default_base_params():
     fp['DurHosp']=                (4., 2., 14., 0.01)            # Duration of hospitalization, days
     fp['ICUFrac']=                (0.001, 0.0001, 0.01, 0.00001) # Fraction of ICUs relative to population size N
     fp['logI_0'] =                (logI0,-10.,-6.,0.01)         # Fraction of population initially infected
-        
-    fp['CautionFactor']=          (0.1,0.05,0.5,0.01)            # Fractional reduction of exposure rate for cautioned individuals
-    fp['CautionRetention']=       (2.,1./3.,6.,0.01)             # Duration of cautionary state of susceptibles (8 weeks)
-    fp['CautionExposure']=        (0.1,0.01,1.,0.01)             # Rate of transition to caution per (individual per ICU) per day
-    fp['CautionExposureYoung']=   (0.05,0.01,1.,0.01)            # Rate of transition to caution per (individual per ICU) per day for young people
-    fp['CautionFatigueRet']=      (2.,1./3.,6.,0.01)             # Duration of fatigued state of susceptibles (8 weeks)
-    fp['EconomicStriction'] =     (1.,1./3.,3.,0.01)             # Duration of transition to economically motivated non-cautionable state (in months)
-    fp['EconomicRetention'] =     (2.,1./3.,4.,0.01)             # Duration of economic dominant state of susceptibles (in months)
-    fp['EconomyRelaxation'] =     (2.,1./3.,4.,0.01)             # Relaxation time for economy (in months)
-    fp['EconomicCostOfCaution'] = (0.5,0.2,0.8,0.001)            # Cost to economy of individual exercising caution
+    if modelname is None or 'C' in modelname:        
+        fp['CautionFactor']=          (0.1,0.05,0.5,0.01)            # Fractional reduction of exposure rate for cautioned individuals
+        fp['CautionRetention']=       (2.,1./3.,6.,0.01)             # Duration of cautionary state of susceptibles (8 weeks)
+        fp['CautionExposure']=        (0.1,0.01,1.,0.01)             # Rate of transition to caution per (individual per ICU) per day
+        if '_A' in modelname:
+            fp['CautionExposureYoung']=   (0.05,0.01,1.,0.01)            # Rate of transition to caution per (individual per ICU) per day for young people
+        if 'F' in modelname:
+            fp['CautionFatigueRet']=      (2.,1./3.,6.,0.01)             # Duration of fatigued state of susceptibles (8 weeks)
+    if modelname is None or 'U' in modelname:   
+        fp['EconomicStriction'] =     (1.,1./3.,3.,0.01)             # Duration of transition to economically motivated non-cautionable state (in months)
+        fp['EconomicRetention'] =     (2.,1./3.,4.,0.01)             # Duration of economic dominant state of susceptibles (in months)
+        fp['EconomyRelaxation'] =     (2.,1./3.,4.,0.01)             # Relaxation time for economy (in months)
+        fp['EconomicCostOfCaution'] = (0.5,0.2,0.8,0.001)            # Cost to economy of individual exercising caution
 
     fp['FracConfirmedDet']=       (1.0,0.1,1.0,0.01)             # Fraction of recovered individuals measured : plots made with this parameter
     # FracRecoveredDet=FracConfirmedDet                          # Fraction of recovered individuals measured

@@ -6,7 +6,7 @@ from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
 from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
-from ipywidgets.widgets import HBox, VBox, Label, Dropdown
+from ipywidgets.widgets import HBox, VBox, Label, Dropdown, Checkbox
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -18,8 +18,9 @@ from model_fits_age import *
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
-    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],
-                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',countries_widget=fixed('United Kingdom')):
+    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['confirmed','deaths'],
+                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
+                 countries_widget=fixed('United Kingdom'),datasrcs_widget=fixed('jhu')):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
@@ -28,11 +29,15 @@ class ModelFit:
         """
         # print('HERE in init of ModelFit')
         self.countries_widget=countries_widget
+        country = countries_widget.value
+        self.datasrcs_widget=datasrcs_widget
+        data_src = datasrcs_widget.value
+        self.data_src = data_src
         self.param_class = param_class
         self.fit_method = fit_method
         self.new = new
         self.model = model
-        self.data_src = data_src
+
         if basedata==None:
             print("Error:  must specify base data with arg basedata.")
         if self.data_src == 'jhu':
@@ -72,7 +77,7 @@ class ModelFit:
         ################################################################
         # For scan, country='' and will be set up in scan loop
         if country != '':
-            self.setup_data(country)
+            self.setup_data(country,data_src)
 
     def setup_model(self,modelname):
         self.modelname = modelname
@@ -136,21 +141,23 @@ class ModelFit:
         
 
 
-    def setup_data(self,country):
-        ts = self.data
-        if self.data_src not in ['jhu','owid','cluster']:
+    def setup_data(self,country,data_src):
+
+        if data_src not in ['jhu','owid','cluster']:
             print('data_src',data_src,'not yet hooked up: use jhu, owid or cluster data instead')
             return None
-
+        else:
+            self.data_src = data_src
+            if self.data_src == 'jhu':
+                self.data = self.basedata.covid_ts
+            elif self.data_src == 'owid':
+                self.data = self.basedata.covid_owid_ts
+            else:
+                print("Error:  data_src must be one of jhu or owid.")
+        ts = self.data
         # NB: countries in ts are common countries, keyed using simple string names (common name for datasets) 
         self.country_str = country_str = country
         self.country = country
-
-        #if self.data_src == 'jhu':
-        #    self.country = country = (self.country_str,'')
-        #else:
-        #    self.country = country
-
         self.population = self.basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
 
         fmt_jhu = '%m/%d/%y'
@@ -371,12 +378,13 @@ class ModelFit:
         # print('self.model.parameters',self.model.parameters)
         # print('---------------------------------------------------------------------------------')
         plist = [p.name for p in list(self.model.param_list)]
-        if param not in plist:
+        if param not in plist and param != 'logI_0':
             print('Error:  param name',param,'is not a parameter for this',self.modelname,'model.')
         else:
             self.odeparams[param] = value
-            tmp = {param:value}
-            self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
+            if param != 'logI_0':
+                tmp = {param:value}
+                self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
             # self.model.parameters = self.odeparams[param]   # this has problem with initial condition parameter logI_0
 
 
@@ -870,7 +878,7 @@ class ModelFit:
             self.logresid[ls] = (lsdat-lfdat).copy() # reduces amount of information stored for efficiency
         return rtn
 
-    def fit(self,params_init_min_max,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
+    def fit(self,params_init_min_max,checkdict,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
         """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
             from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
             to data specified in fit_data, with option of diagnosis output diag
@@ -889,10 +897,10 @@ class ModelFit:
             fit_targets = self.fit_targets
         elif isinstance(fit_targets, str):
             fit_targets = [fit_targets]
-        if len(set(fit_targets).difference(['deaths','confirmed'])) != 0:
-            fit_targets = list(set(fit_targets).intersection(['deaths','confirmed']))
+        if len(set(fit_targets).difference(['confirmed','deaths'])) != 0:
+            fit_targets = list(set(fit_targets).intersection(['confirmed','deaths']))
             if len(fit_targets) == 0:
-                fit_targets = ['deaths']
+                fit_targets = ['confirmed','deaths']
             print('can only fit deaths or confirmed for now, proceeding with',fit_targets)
         self.fit_targets = fit_targets
         
@@ -929,9 +937,10 @@ class ModelFit:
         # prepare parameters for lmfit ------------------------------------------------------------------------------------
         params_lmf = lmfit.Parameters()
         for pp in params_init_min_max:
-            params_lmf.add(pp,params_init_min_max[pp][0],
-                           min=params_init_min_max[pp][1],
-                           max=params_init_min_max[pp][2])
+            if not checkdict[pp+'_fix'].value:
+                params_lmf.add(pp, params_init_min_max[pp][0],
+                               min=params_init_min_max[pp][1],
+                               max=params_init_min_max[pp][2])
 
         ## set initial params for fit
         for x in params_lmf:
@@ -1053,13 +1062,15 @@ class ModelFit:
         note currently deaths are here magnified by x10
         """
         country = myparams['country']
-        if self.country != country:
+        data_src = myparams['data_src']
+        if self.country != country or self.data_src != data_src:
             self.country = country
-            self.setup_data(country)
+            self.data_src = data_src
+            self.setup_data(country,data_src)
 
         param_class = self.param_class
         for pm in myparams:
-            if (pm is 'param_class') or (pm is 'figsize') or (pm is 'country') :
+            if (pm is 'param_class') or (pm is 'figsize') or (pm is 'country') or (pm is 'data_src'):
                 continue
             if pm is 'logI_0':
                 self.set_I0(myparams[pm])
@@ -1112,7 +1123,7 @@ class Scan(ModelFit):
             ###############################################
             ## do the fit
             try:
-                super().setup_data(country)
+                super().setup_data(country,self.data_src)
                 super().fit(self.params_init_min_max,fit_method='leastsq',diag=False,fit_targets=['deaths'],fit_data=['deaths_corrected_smoothed'],report=False)
                 if self.scanplot:
                     super().solveplot(species=['deaths'],datasets=['deaths_corrected_smoothed'],axis=axes[row,col],newplot=False)  
@@ -1168,11 +1179,12 @@ class SliderFit(ModelFit):
             if self.param_class == 'ode':
                 self.params_init_min_max = sim_param_inits[self.modelname]
             elif self.param_class == 'base':
-                self.params_init_min_max = default_base_params()
+                self.params_init_min_max = default_base_params(modelname=self.modelname)
         else:
             self.params_init_min_max = params_init_min_max
 
         self.slidedict = {}     # will be set by allsliderparams()
+        self.checkdict = {}
         self.makeslbox()
 
     def makeslbox(self):
@@ -1192,12 +1204,15 @@ class SliderFit(ModelFit):
 
         #slidecountrydict = slidedict.copy()
         self.slidedict.update({'country':self.countries_widget})
+        self.slidedict.update({'data_src':self.datasrcs_widget})
         slfitplot = interactive_output(self.slidefitplot,self.slidedict)
         slfitplotbox = VBox([self.fittypes_widget,slfitplot])
-        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget],
-                     layout = widgets.Layout(height='300px',width='520px'))
+        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
+                     layout = widgets.Layout(height='400px',width='520px'))
+        checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
+                     layout = widgets.Layout(height='400px',width='280px'))
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
-        sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
+        sliderbox = VBox([HBox([fit_button,Label('Adjustable params:')]),HBox([sliders,checks])])
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
@@ -1251,9 +1266,11 @@ class SliderFit(ModelFit):
         elif len(pimm[list(pimm.keys())[0]]) != 4:
             print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
             return
-        slidedict =self.slidedict
+        slidedict = self.slidedict
+        checkdict = self.checkdict
         if slidedict == {}:
             slider_layout = Layout(width='400px', height='12px')
+            check_layout = Layout(width='240px', height='12px')
             style = {'description_width': 'initial'}
             modelname=self.modelname
             slidedict.update({'figsize':fixed((8,5))})
@@ -1266,6 +1283,7 @@ class SliderFit(ModelFit):
                                                         style=style,
                                                         layout=slider_layout,
                                                         continuous_update=False,readout_format='.3f')})
+                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
             elif param_class == 'base':
                 slidedict.update({'param_class':fixed('base')})
                 for pm in pimm:
@@ -1274,6 +1292,7 @@ class SliderFit(ModelFit):
                                                         style=style,
                                                         layout=slider_layout,
                                                         continuous_update=False,readout_format='.3f')})
+                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
         else:
             modelname=self.modelname
             if param_class == 'ode':
@@ -1291,6 +1310,7 @@ class SliderFit(ModelFit):
                         slidedict[pm].max=pimm[pm][2]
                         slidedict[pm].step=pimm[pm][3]  
         self.slidedict = slidedict
+        self.checkdict = checkdict
 
     def transfer_cur_to_params_init(self):
         """ used to transfer current parameters as initial parameter values to an existing
@@ -1310,35 +1330,21 @@ class SliderFit(ModelFit):
                     else:
                         self.params_init_min_max[p] = (curval,pv[1],pv[2])
 
-    def checkparams_0(self):
-        """ this was overwriting previous definition : with not enough arguments. Added _0 to name
-        """
-        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
-        cnt = 0
-        for ptype in plist:
-            print('---ptype',cnt)
-            print(ptype)
-            cnt = cnt+1
-            for p in ptype:
-                print('param ',p)
-                curval = ptype[p]
-                print('checking param',p,'in',ptype,'value =',curval)
-            
-
     def transfer_cur_to_sliders(self):
         plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
         for ptype in plist:
             for p in ptype:
                 if p in self.slidedict:
                     # print('transferring ',p)
-                    self.slidedict[p].value = ptype[p]        
+                    self.slidedict[p].value = ptype[p]    
+
 
     def fit(self,**kwargs):
         # print('entering fit')
         # self.checkparams
         self.transfer_cur_to_params_init()
         # eprint(self.params_init_min_max)
-        super().fit(self.params_init_min_max,**kwargs)
+        super().fit(self.params_init_min_max,self.checkdict,**kwargs)
         # next line should be same as
         # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
         self.transfer_cur_to_params_init()
