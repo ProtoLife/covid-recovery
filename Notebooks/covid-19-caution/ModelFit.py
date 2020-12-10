@@ -1,6 +1,7 @@
 import lmfit
 import copy
 import os
+import io
 from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
@@ -18,7 +19,7 @@ class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
     def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['deaths'],
-                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base'):
+                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',countries_widget=fixed('United Kingdom')):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
@@ -26,6 +27,7 @@ class ModelFit:
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
         # print('HERE in init of ModelFit')
+        self.countries_widget=countries_widget
         self.param_class = param_class
         self.fit_method = fit_method
         self.new = new
@@ -1050,9 +1052,14 @@ class ModelFit:
         stored in teh dictionary myparams
         note currently deaths are here magnified by x10
         """
+        country = myparams['country']
+        if self.country != country:
+            self.country = country
+            self.setup_data(country)
+
         param_class = self.param_class
         for pm in myparams:
-            if (pm is 'param_class') or (pm is 'figsize'):
+            if (pm is 'param_class') or (pm is 'figsize') or (pm is 'country') :
                 continue
             if pm is 'logI_0':
                 self.set_I0(myparams[pm])
@@ -1183,9 +1190,11 @@ class SliderFit(ModelFit):
         #####################################
         ## set up boxes
 
+        #slidecountrydict = slidedict.copy()
+        self.slidedict.update({'country':self.countries_widget})
         slfitplot = interactive_output(self.slidefitplot,self.slidedict)
         slfitplotbox = VBox([self.fittypes_widget,slfitplot])
-        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget)],
+        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget],
                      layout = widgets.Layout(height='300px',width='520px'))
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
         sliderbox = VBox([fit_button,Label('Adjustable params:'),sliders])
