@@ -228,19 +228,25 @@ class ClusterData:
                     for i in range(1,self.tdates):
                         self.daily_deaths[i] = self.total_deaths[cc][i]-self.total_deaths[cc][i-1]
                     dmax = np.max(self.daily_deaths)
-                    peaks = find_peaks(self.daily_deaths,distance=10,height=dmax/5.)[0] # peaks only recorded if 20% or more of max 
-                    self.first_peak.update({cc:self.tdates}) # out of range value, set to beyond end of array, needs to be picked up on use
+                    peaks = find_peaks(self.daily_deaths,distance=10,height=0.05*dmax)[0] # peaks only recorded if 5% or more of max 
+                    self.first_peak.update({cc:self.tdates}) # no peaks value, set to beyond end of array, needs to be picked up on use
                     if len(peaks) >= 1:
                         self.first_peak.update({cc:peaks[0]})
                     if self.first_peak[cc] < minfirstpeak:
                         minfirstpeak = self.first_peak[cc]
                 self.minfirstpeak = minfirstpeak
+                print('minfirstpeak',minfirstpeak,'max possible length',self.tdates-minfirstpeak)
             else:
+                minfirstthresh = self.tdates  
                 for cc in self.bcountries:
                     for i in range(self.tdates):
                         if self.total_deaths[cc][i] >= self.thresh:
                             self.first_thresh.update({cc:i})
+                            if self.first_thresh[cc] < minfirstthresh:
+                                minfirstthresh = self.first_thresh[cc]
                             break;
+                self.minfirstthresh = minfirstthresh
+                print('minfirstthresh',minfirstthresh,'max possible length',self.tdates-minfirstthresh)
             self.short_deaths = {}
             self.short_cases = {}
             self.short_testing = {}

@@ -25,7 +25,7 @@ owid_to_jhu_str_country = {}  # defined globally for convenience in country conv
 continent = {}
 continents = []
 data_days = -1
-final_date = "11/24/20" # 24th November earlier 27th October 2020 as cutoff for paper (26th October for JHU, since better sync offset by 1)
+final_date = "12/8/20" # 1 day earlier for JHU, since better sync offset by 1
 daystop = None # will be specified in get_data_owid
 
 def Float(x):
@@ -148,13 +148,13 @@ def jhu_to_owid_str_country_md(countries_owid):
         'Cabo Verde':'Cape Verde',
         'Congo (Brazzaville)':'Congo',
         'Congo (Kinshasa)':'Democratic Republic of Congo',
-        'Czechia':'Czech Republic',
+        #'Czechia':'Czech Republic',
         'Diamond Princess':'Diamond Princess',
-        'Eswatini':'Swaziland',
+        #'Eswatini':'Swaziland',
         'Holy See':'Vatican',
         'Korea, South':'South Korea',
         'MS Zaandam':'MS Zaandam',
-        'North Macedonia':'Macedonia',
+        #'North Macedonia':'Macedonia',
         'Taiwan*':'Taiwan',
         'Timor-Leste':'Timor',
         'US':'United States',
@@ -172,13 +172,13 @@ def owid_to_jhu_str_country_md(countries_owid):
         'Cape Verde':'Cabo Verde',
         'Congo':'Congo (Brazzaville)',
         'Democratic Republic of Congo':'Congo (Kinshasa)',
-        'Czech Republic':'Czechia',
+        # 'Czech Republic':'Czechia',
         'Diamond Princess':'Diamond Princess',
-        'Swaziland':'Eswatini',
+        #'Swaziland':'Eswatini',
         'Vatican':'Holy See',
         'South Korea':'Korea, South',
         'MS Zaandam':'MS Zaandam',
-        'Macedonia':'North Macedonia',
+        #'Macedonia':'North Macedonia',
         'Taiwan':'Taiwan*',
         'Timor':'Timor-Leste',
         'United States':'US',
@@ -218,11 +218,11 @@ scountries = ['Australia','Denmark','France','Iran','Italy','Peru','Russia','Swe
 d_countries = ['Afghanistan' 'Albania' 'Argentina' 'Armenia' 'Australia' 'Austria'
  'Azerbaijan' 'Bahamas' 'Belarus' 'Belgium' 'Bolivia'
  'Bosnia and Herzegovina' 'Brazil' 'Bulgaria' 'Canada' 'Chile' 'Colombia'
- 'Croatia' 'Czech Republic' 'Denmark' 'Dominican Republic' 'Ecuador'
+ 'Croatia' 'Czechia' 'Denmark' 'Dominican Republic' 'Ecuador'
  'Egypt' 'El Salvador' 'Finland' 'France' 'Germany' 'Greece' 'Guatemala'
  'Honduras' 'Hungary' 'India' 'Iran' 'Iraq' 'Ireland' 'Israel' 'Italy'
  'Kazakhstan' 'Kosovo' 'Kuwait' 'Kyrgyzstan' 'Lebanon' 'Luxembourg'
- 'Macedonia' 'Mexico' 'Moldova' 'Morocco' 'Netherlands' 'Norway' 'Oman'
+ 'North Macedonia' 'Mexico' 'Moldova' 'Morocco' 'Netherlands' 'Norway' 'Oman'
  'Panama' 'Paraguay' 'Peru' 'Philippines' 'Poland' 'Portugal' 'Qatar'
  'Romania' 'Russia' 'Saudi Arabia' 'Serbia' 'Slovenia' 'South Africa'
  'Spain' 'Sweden' 'Switzerland' 'Tunisia' 'Turkey' 'Ukraine'
