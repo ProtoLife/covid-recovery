@@ -2,6 +2,7 @@ import lmfit
 import copy
 import os
 import io
+# import functools  # partial can be used to provide extra parameters to callbacks, currently commented out
 from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
@@ -744,7 +745,7 @@ class ModelFit:
             plt.savefig(outfile,bbox_inches='tight');
         self.dumpparams()       # dump every plot;  could be changed by sliders
 
-        return ax.figure
+        return ax.figure;
 
     def prparams(self,outfile = ''):
         """
@@ -1194,6 +1195,14 @@ class SliderFit(ModelFit):
         self.checkdict = {}
         self.makeslbox()
 
+    def on_slider_param_change(self,change):
+        pm = change['owner'].description
+        # print('ospc:',pm)
+        val = change['new']
+        # print('ospc:',val)     
+        self.set_param(pm,float(val))
+        self.transfer_cur_to_plot();
+
     def makeslbox(self):
         #################################
         ## set up widgets
@@ -1213,10 +1222,8 @@ class SliderFit(ModelFit):
         #self.slidedict.update({'country':self.countries_widget})
         #self.slidedict.update({'data_src':self.datasrcs_widget})
         self.slfitplot=Output(layout=Layout(height='400px', width = '400px'))
-        fig=self.transfer_cur_to_plot();
-        with self.slfitplot:
-            clear_output(wait=True)
-            display(fig)
+        self.transfer_cur_to_plot();
+
         #slfitplot = interactive_output(self.slidefitplot,self.slidedict)   # disrupts slider value updates
         slfitplotbox = VBox([self.fittypes_widget,self.slfitplot])
         sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
@@ -1285,7 +1292,7 @@ class SliderFit(ModelFit):
             check_layout = Layout(width='240px', height='12px')
             style = {'description_width': 'initial'}
             modelname=self.modelname
-            slidedict.update({'figsize':fixed((8,5))})
+            # slidedict.update({'figsize':fixed((8,5))})
 
             if param_class == 'ode':
                 slidedict.update({'param_class':fixed('ode')})
@@ -1295,6 +1302,8 @@ class SliderFit(ModelFit):
                                                         style=style,
                                                         layout=slider_layout,
                                                         continuous_update=False,readout_format='.3f')})
+                        #slidedict[pm].observe(functools.partial(self.on_slider_param_change,pm),names='value') # this might have been an alternative
+                        slidedict[pm].observe(self.on_slider_param_change,names='value')
                         checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
             elif param_class == 'base':
                 slidedict.update({'param_class':fixed('base')})
@@ -1304,6 +1313,7 @@ class SliderFit(ModelFit):
                                                         style=style,
                                                         layout=slider_layout,
                                                         continuous_update=False,readout_format='.3f')})
+                        slidedict[pm].observe(self.on_slider_param_change,names='value')
                         checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
         else:
             modelname=self.modelname
@@ -1359,7 +1369,13 @@ class SliderFit(ModelFit):
         x_dic = {}
         x_dic.update({'country':self.country})
         x_dic.update({'data_src':self.data_src})
-        return self.slidefitplot(figsize=(6,6),**pdic,**x_dic);        
+        #plt.ioff()  # turns interactive matplotlib plotting off during contruction
+        fig=self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
+        #plt.ion()  # turns interactive matplotlib plotting back on
+        with self.slfitplot:
+            clear_output(wait=True)
+            display(fig);
+
 
     def fit(self,**kwargs):
         # print('entering fit')
@@ -1367,8 +1383,8 @@ class SliderFit(ModelFit):
         self.transfer_cur_to_params_init()
         # eprint(self.params_init_min_max)
         super().fit(self.params_init_min_max,self.checkdict,**kwargs)
-        eprint('self',self,'base params',self.baseparams)
-        eprint('sbparams',self.sbparams)
+        #eprint('self',self,'base params',self.baseparams)
+        #eprint('sbparams',self.sbparams)
         # print('params',self.params)
         # next line should be same as
         # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
@@ -1376,12 +1392,10 @@ class SliderFit(ModelFit):
         eprint('params_init_min_max',self.params_init_min_max)
         # self.allsliderparams()  NO!  this makes new widgets.
         # reset slider values to current fit vals
-        eprint('II self',self,'base params',self.baseparams)
-        eprint('II sbparams',self.sbparams)
+        #eprint('II self',self,'base params',self.baseparams)
+        #eprint('II sbparams',self.sbparams)
         self.transfer_cur_to_sliders()
-        fig = self.transfer_cur_to_plot();
-        with self.slfitplot:
-            clear_output(wait=True)
-            display(fig)
-        eprint('after transfer')
+        self.transfer_cur_to_plot();
+
+        #eprint('after transfer')
         
