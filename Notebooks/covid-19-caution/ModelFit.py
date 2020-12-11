@@ -6,7 +6,8 @@ from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
 from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
-from ipywidgets.widgets import HBox, VBox, Label, Dropdown, Checkbox
+from ipywidgets.widgets import HBox, VBox, Label, Dropdown, Checkbox, Output
+from IPython.display import display,clear_output
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -398,13 +399,15 @@ class ModelFit:
         if param not in self.baseparams:
             print('Error:  param name',param,'is not a base parameter for this',self.modelname,'model.')
             eprint(self.baseparams)
+        else:
+            self.baseparams[param] = value
         if param in list(self.sbparams):
             self.sbparams[param] = value
         elif param in list(self.cbparams):
             self.cbparams[param] = value  
         elif param in list(self.fbparams):
             self.fbparams[param] = value 
-        self.baseparams[param] = value
+
         b,a,g,p,u,c,k,N,I0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)
         params_in=vector2params(b,a,g,p,u,c,k,N,self.modelname)
         #print('in set_base_param',param,value,'------------------')
@@ -518,8 +521,8 @@ class ModelFit:
         for age in range(age_groups):
             suma_age = np.sum(srsoln[:,slice(slice_.start+age,slice_.stop,step)],axis=1)*magsns
             suma_age_cum = suma_age.copy() if age == 0 else suma_age_cum + suma_age
-            ax.fill_between(tvec1,suma_age_cum_last,suma_age_cum,color=color,alpha=float(age)/age_groups)
-            ax.plot(tvec1,suma_age_cum,label=label,color=color,alpha=0.2,linewidth=1)
+            ax.fill_between(tvec1,suma_age_cum_last,suma_age_cum,color=color,alpha=float(age)/age_groups);
+            ax.plot(tvec1,suma_age_cum,label=label,color=color,alpha=0.2,linewidth=1);
             suma_age_cum_last = suma_age_cum
             # line, = ax.plot(...
             # line.set_dashes([2,2,2+age,2])
@@ -606,6 +609,7 @@ class ModelFit:
         else:
             ax = axis
         ax.set_facecolor(background)
+        ax1 = None
 
         if scale == 'log': #Plot on log scale
             ax.semilogy()
@@ -636,8 +640,8 @@ class ModelFit:
                 suma = np.sum(srsoln[:,model.confirmed],axis=1)*mags[ns]
                 if not fitdata is None:
                     fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracConfirmedDet']/self.population # confirmed cases data, corrected by FracConfirmedDet
-                    ax.plot(tvecf1,fita,'o',label=label,color='green')
-                ax.plot(tvec1,suma,label=label,color='green')
+                    ax.plot(tvecf1,fita,'o',label=label,color='green');
+                ax.plot(tvec1,suma,label=label,color='green');
                 if age_groups:
                     print('age',age_groups,model.confirmed)
                     self.plot_age_groups(model.confirmed,age_groups,srsoln,mags[ns],tvec1,ax,'green',label)
@@ -645,21 +649,21 @@ class ModelFit:
                 suma = np.sum(srsoln[:,model.recovered],axis=1)*mags[ns]  
                 if not fitdata is None:
                     fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracRecoveredDet']/self.population # recovered cases data, corrected by FracRecoveredDet
-                    ax.plot(tvecf1,fita,'o',label=label,color='blue')
-                ax.plot(tvec1,suma,label=label,color='blue')
+                    ax.plot(tvecf1,fita,'o',label=label,color='blue');
+                ax.plot(tvec1,suma,label=label,color='blue');
                 if age_groups:
                     self.plot_age_groups(model.recovered,age_groups,srsoln,mags[ns],tvec1,ax,'blue',label)
             elif species == 'deaths':
                 suma = np.sum(srsoln[:,model.deaths],axis=1)*mags[ns]
                 if not fitdata is None:
                     fita = srfit[1::,ns]*mags[ns]/self.fbparams['FracDeathsDet']/self.population # deaths cases data, corrected by FracDeathsDet
-                    ax.plot(tvecf1,fita,'o',label=label,color='red',alpha=0.2)
-                ax.plot(tvec1,suma,label=label,color='darkred')
+                    ax.plot(tvecf1,fita,'o',label=label,color='red',alpha=0.2);
+                ax.plot(tvec1,suma,label=label,color='darkred');
                 if age_groups:
                     print('age',age_groups,model.deaths)
                     self.plot_age_groups(model.deaths,age_groups,srsoln,mags[ns],tvec1,ax,'darkred',label)
             elif species == 'EI':
-                ax.plot(tvec1,self.soln[:,model.ei],label=label)
+                ax.plot(tvec1,self.soln[:,model.ei],label=label);
                 if age_groups:
                     self.plot_age_groups(model.ei,age_groups,self.soln,mags[ns],tvec1,ax,'blue',label)
                 # ax.plot(tvec1,self.soln[:,model.ei],label="%s" % count)
@@ -695,10 +699,10 @@ class ModelFit:
                         ax1 = ax
                     if not fitdata is None and ns<len(ldatasets):
                         fita = srfit[1::,ns]*mags[ns] # caution fraction from data (stringency) with correciton to unit scale via mags
-                        ax1.plot(tvecf1,fita,'o',label=label,color='orange')
-                    ax1.plot(tvec1,suma,label=label,color='orange')             
+                        ax1.plot(tvecf1,fita,'o',label=label,color='orange');
+                    ax1.plot(tvec1,suma,label=label,color='orange');             
             elif species == 'all':
-                ax.plot(tvec1,self.soln,label=label)
+                ax.plot(tvec1,self.soln,label=label);
                 if 'I3' in model.modelname:
                     if 'C3'in model.modelname:
                         pspecies=("S","E","I1","I2","I3","R","D","Ic","Sc","Ec")
@@ -729,17 +733,18 @@ class ModelFit:
                             ax1 = ax
                     if not fitdata is None and ns<len(ldatasets):
                         fita = srfit[1::,ns]*mags[ns] # caution fraction from data (stringency) with correciton to unit scale via mags
-                        ax1.plot(tvecf1,fita,'o',label=label,color='blue')  
-                    ax1.plot(tvec1,suma,label=label,color='blue')                         
+                        ax1.plot(tvecf1,fita,'o',label=label,color='blue');  
+                    ax1.plot(tvec1,suma,label=label,color='blue');                         
                 
         plt.xlabel("Time (days)")
         plt.ylabel("Fraction of population")
 
         plt.title(model.modelname+' '+self.country+' '+plottitle)
         if outfile:
-            plt.savefig(outfile,bbox_inches='tight')
+            plt.savefig(outfile,bbox_inches='tight');
         self.dumpparams()       # dump every plot;  could be changed by sliders
-        return ax
+
+        return ax.figure
 
     def prparams(self,outfile = ''):
         """
@@ -1090,7 +1095,7 @@ class ModelFit:
                     else:
                         self.set_base_param(pm,myparams[pm])
                 # print('new parameters',self.model.parameters)
-        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
+        return self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
                        datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
 
 
@@ -1205,10 +1210,15 @@ class SliderFit(ModelFit):
         ## set up boxes
 
         #slidecountrydict = slidedict.copy()
-        self.slidedict.update({'country':self.countries_widget})
-        self.slidedict.update({'data_src':self.datasrcs_widget})
-        slfitplot = interactive_output(self.slidefitplot,self.slidedict)
-        slfitplotbox = VBox([self.fittypes_widget,slfitplot])
+        #self.slidedict.update({'country':self.countries_widget})
+        #self.slidedict.update({'data_src':self.datasrcs_widget})
+        self.slfitplot=Output(layout=Layout(height='400px', width = '400px'))
+        fig=self.transfer_cur_to_plot();
+        with self.slfitplot:
+            clear_output(wait=True)
+            display(fig)
+        #slfitplot = interactive_output(self.slidefitplot,self.slidedict)   # disrupts slider value updates
+        slfitplotbox = VBox([self.fittypes_widget,self.slfitplot])
         sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
                      layout = widgets.Layout(height='400px',width='520px'))
         checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
@@ -1334,12 +1344,22 @@ class SliderFit(ModelFit):
 
     def transfer_cur_to_sliders(self):
         plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        # eprint('in transfer_cur_to_sliders, sbparams',self.sbparams)
         for ptype in plist:
-            for p in ptype:
-                if p in self.slidedict:
-                    # print('transferring ',p)
+            for p in ptype.keys():
+                if p in self.slidedict.keys():
+                    # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
                     self.slidedict[p].value = ptype[p]    
 
+    def transfer_cur_to_plot(self):
+        if self.param_class == 'ode':
+            pdic = self.odeparams
+        elif self.param_class == 'base':
+            pdic = self.baseparams
+        x_dic = {}
+        x_dic.update({'country':self.country})
+        x_dic.update({'data_src':self.data_src})
+        return self.slidefitplot(figsize=(6,6),**pdic,**x_dic);        
 
     def fit(self,**kwargs):
         # print('entering fit')
@@ -1347,10 +1367,21 @@ class SliderFit(ModelFit):
         self.transfer_cur_to_params_init()
         # eprint(self.params_init_min_max)
         super().fit(self.params_init_min_max,self.checkdict,**kwargs)
+        eprint('self',self,'base params',self.baseparams)
+        eprint('sbparams',self.sbparams)
+        # print('params',self.params)
         # next line should be same as
         # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
         self.transfer_cur_to_params_init()
+        eprint('params_init_min_max',self.params_init_min_max)
         # self.allsliderparams()  NO!  this makes new widgets.
         # reset slider values to current fit vals
+        eprint('II self',self,'base params',self.baseparams)
+        eprint('II sbparams',self.sbparams)
         self.transfer_cur_to_sliders()
+        fig = self.transfer_cur_to_plot();
+        with self.slfitplot:
+            clear_output(wait=True)
+            display(fig)
+        eprint('after transfer')
         
