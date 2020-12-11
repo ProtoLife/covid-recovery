@@ -119,7 +119,7 @@ class ClusterData:
         cases_adj_nonlin = {cc:np.array([self.CaCo(cases[cc][i],self.regtests(testing_0p1_c,cc)[i],2)*cases[cc][i] for i in range(len(cases[cc]))]) for cc in cases if cc != 'dates'}
         return cases_adj_nonlin
 
-    def __init__(self,based,clusdtype='std',cluster_data=False,report_correct=True,database='JHU',daysync=23,thresh=10,
+    def __init__(self,based,clusdtype='std',cluster_data=False,report_correct=True,database='JHU',daysync=22,thresh=10,
                  mindays=150, mindeaths=200,mindeathspm=0.1,syncat='first major peak',K=2):
 
         self.clusdtype=clusdtype

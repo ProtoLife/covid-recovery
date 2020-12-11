@@ -25,7 +25,7 @@ owid_to_jhu_str_country = {}  # defined globally for convenience in country conv
 continent = {}
 continents = []
 data_days = -1
-final_date = "12/8/20" # 1 day earlier for JHU, since better sync offset by 1
+final_date = "12/6/20" # 1 day earlier for JHU, since better sync offset by 1
 daystop = None # will be specified in get_data_owid
 
 def Float(x):
@@ -677,6 +677,7 @@ def get_data_owid(owid_file,datatype='confirmed',dataaccum = 'cumulative',daysyn
     dates_t = [datetime.datetime.strptime(dd,fmt) for dd in dates ]
     firstdate = dates[daysync]
     lastdate = dates[-1]
+    # print('owid dates: first date',dates[0],'syncfirst',firstdate,'lastdate',lastdate,'daysync',daysync)
     firstdate_t =  dates_t[daysync]
     # print('debug: data_days',data_days,'len dates',len(dates_t),'daysync+data_days-1',daysync+data_days-1)
     lastdate_t =  dates_t[daysync+data_days-1] # data_days is number of days read from jhu data set
@@ -978,7 +979,7 @@ countries_jhu = [cc for cc in confirmed if cc is not 'dates']
 print('getting owid data...')
 
 # daysync = 0      # needs to be same as value in Cluster.py
-daysync = 23      # needs to be same as value in Cluster.py
+daysync = 22      # needs to be same as value in Cluster.py
 owid_file = '../../covid-19-owid/public/data/owid-covid-data.csv'
 
 # get population data first to exclude countries without population data

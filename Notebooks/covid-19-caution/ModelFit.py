@@ -148,6 +148,7 @@ class ModelFit:
             return None
         else:
             self.data_src = data_src
+            self.dbparams['data_src']=data_src
             if self.data_src == 'jhu':
                 self.data = self.basedata.covid_ts
             elif self.data_src == 'owid':
@@ -158,6 +159,7 @@ class ModelFit:
         # NB: countries in ts are common countries, keyed using simple string names (common name for datasets) 
         self.country_str = country_str = country
         self.country = country
+        self.dbparams['country']=country
         self.population = self.basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
 
         fmt_jhu = '%m/%d/%y'
