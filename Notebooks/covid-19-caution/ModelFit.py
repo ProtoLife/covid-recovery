@@ -606,15 +606,15 @@ class ModelFit:
         #Plot
         # ax = axeslist[nm]
         if axis == None: 
-            ax = axis = plt.subplot(1,1,1)
+            ax = axis = plt.subplot(1,1,1);
         else:
-            ax = axis
+            ax = axis;
         ax.set_facecolor(background)
         ax1 = None
 
         if scale == 'log': #Plot on log scale
-            ax.semilogy()
-            ax.set_ylim([0.00000001,1.0])
+            ax.semilogy();
+            ax.set_ylim([0.00000001,1.0]);
             
         if summing == 'daily':
             ssoln = self.difference(self.soln,exceptions=exceptions)
@@ -645,7 +645,7 @@ class ModelFit:
                 ax.plot(tvec1,suma,label=label,color='green');
                 if age_groups:
                     print('age',age_groups,model.confirmed)
-                    self.plot_age_groups(model.confirmed,age_groups,srsoln,mags[ns],tvec1,ax,'green',label)
+                    self.plot_age_groups(model.confirmed,age_groups,srsoln,mags[ns],tvec1,ax,'green',label);
             if species == 'recovered':
                 suma = np.sum(srsoln[:,model.recovered],axis=1)*mags[ns]  
                 if not fitdata is None:
@@ -653,7 +653,7 @@ class ModelFit:
                     ax.plot(tvecf1,fita,'o',label=label,color='blue');
                 ax.plot(tvec1,suma,label=label,color='blue');
                 if age_groups:
-                    self.plot_age_groups(model.recovered,age_groups,srsoln,mags[ns],tvec1,ax,'blue',label)
+                    self.plot_age_groups(model.recovered,age_groups,srsoln,mags[ns],tvec1,ax,'blue',label);
             elif species == 'deaths':
                 suma = np.sum(srsoln[:,model.deaths],axis=1)*mags[ns]
                 if not fitdata is None:
@@ -662,18 +662,18 @@ class ModelFit:
                 ax.plot(tvec1,suma,label=label,color='darkred');
                 if age_groups:
                     print('age',age_groups,model.deaths)
-                    self.plot_age_groups(model.deaths,age_groups,srsoln,mags[ns],tvec1,ax,'darkred',label)
+                    self.plot_age_groups(model.deaths,age_groups,srsoln,mags[ns],tvec1,ax,'darkred',label);
             elif species == 'EI':
                 ax.plot(tvec1,self.soln[:,model.ei],label=label);
                 if age_groups:
-                    self.plot_age_groups(model.ei,age_groups,self.soln,mags[ns],tvec1,ax,'blue',label)
+                    self.plot_age_groups(model.ei,age_groups,self.soln,mags[ns],tvec1,ax,'blue',label);
                 # ax.plot(tvec1,self.soln[:,model.ei],label="%s" % count)
                 if 'I3' in model.modelname: 
-                    plt.legend(("E","I1","I2","I3"))
+                    plt.legend(("E","I1","I2","I3"));
                 elif 'E' in model.modelname: 
-                    plt.legend(("E","I"))
+                    plt.legend(("E","I"));
                 else:
-                    plt.legend(("I"))
+                    plt.legend(("I"));
             elif species == 'caution_fraction':
                 if 'C' in smodel:
                     #print('model name',model.modelname)
@@ -695,9 +695,9 @@ class ModelFit:
                     suma = np.divide(susc,suma)
                     np.seterr(**old_settings)  # reset to default
                     if len(lspecies) > 1:
-                        ax1 = ax.twinx()
+                        ax1 = ax.twinx();
                     else:
-                        ax1 = ax
+                        ax1 = ax;
                     if not fitdata is None and ns<len(ldatasets):
                         fita = srfit[1::,ns]*mags[ns] # caution fraction from data (stringency) with correciton to unit scale via mags
                         ax1.plot(tvecf1,fita,'o',label=label,color='orange');
@@ -723,29 +723,29 @@ class ModelFit:
                         pspecies=("S","I","R","D","Sc")
                 if 'F' in model.modelname:
                     pspecies.append("Sf")
-                plt.legend(pspecies)
+                plt.legend(pspecies);
             elif species == 'economy':
                 if 'U' in smodel:
                     suma = srsoln[:,model.W]*mags[ns]
                     if 'caution_fraction' not in lspecies:
                         if len(lspecies) > 1:
-                            ax1 = ax.twinx()
+                            ax1 = ax.twinx();
                         else:
-                            ax1 = ax
+                            ax1 = ax;
                     if not fitdata is None and ns<len(ldatasets):
                         fita = srfit[1::,ns]*mags[ns] # caution fraction from data (stringency) with correciton to unit scale via mags
                         ax1.plot(tvecf1,fita,'o',label=label,color='blue');  
                     ax1.plot(tvec1,suma,label=label,color='blue');                         
                 
-        plt.xlabel("Time (days)")
-        plt.ylabel("Fraction of population")
+        plt.xlabel("Time (days)");
+        plt.ylabel("Fraction of population");
 
-        plt.title(model.modelname+' '+self.country+' '+plottitle)
+        plt.title(model.modelname+' '+self.country+' '+plottitle);
         if outfile:
             plt.savefig(outfile,bbox_inches='tight');
-        self.dumpparams()       # dump every plot;  could be changed by sliders
+        self.dumpparams();       # dump every plot;  could be changed by sliders
 
-        return ax.figure;
+        self.fig = ax.figure;
 
     def prparams(self,outfile = ''):
         """
@@ -1096,7 +1096,7 @@ class ModelFit:
                     else:
                         self.set_base_param(pm,myparams[pm])
                 # print('new parameters',self.model.parameters)
-        return self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
                        datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
 
 
@@ -1221,22 +1221,21 @@ class SliderFit(ModelFit):
         #slidecountrydict = slidedict.copy()
         #self.slidedict.update({'country':self.countries_widget})
         #self.slidedict.update({'data_src':self.datasrcs_widget})
-        self.slfitplot=Output(layout=Layout(height='400px', width = '400px'))
+        self.slfitplot=Output(layout=Layout(height='500px', width = '500px'))
         self.transfer_cur_to_plot();
 
         #slfitplot = interactive_output(self.slidefitplot,self.slidedict)   # disrupts slider value updates
-        slfitplotbox = VBox([self.fittypes_widget,self.slfitplot])
         sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
                      layout = widgets.Layout(height='400px',width='520px'))
         checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='400px',width='280px'))
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
-        sliderbox = VBox([HBox([fit_button,Label('Adjustable params:')]),HBox([sliders,checks])])
+        sliderbox = VBox([HBox([fit_button,Label('Adjustable params:'),self.fittypes_widget]),HBox([sliders,checks])])
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
         fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
-        self.slbox=HBox([slfitplotbox,sliderbox,fitbox])
+        self.slbox=HBox([self.slfitplot,sliderbox,fitbox])
 
 
         #import functools
@@ -1369,13 +1368,14 @@ class SliderFit(ModelFit):
         x_dic = {}
         x_dic.update({'country':self.country})
         x_dic.update({'data_src':self.data_src})
-        #plt.ioff()  # turns interactive matplotlib plotting off during contruction
-        fig=self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
-        #plt.ion()  # turns interactive matplotlib plotting back on
+        # plt.ioff()  # turns interactive matplotlib plotting off during contruction
+        self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
+
+        # plt.ion()  # turns interactive matplotlib plotting back on
+
         with self.slfitplot:
             clear_output(wait=True)
-            display(fig);
-
+            display(self.fig)
 
     def fit(self,**kwargs):
         # print('entering fit')
