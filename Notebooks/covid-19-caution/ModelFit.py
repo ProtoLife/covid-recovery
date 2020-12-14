@@ -22,7 +22,7 @@ class ModelFit:
         It has access to the model structure and defines all required parameters and details of fit """
     def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['confirmed','deaths'],
                  data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
-                 countries_widget=fixed('United Kingdom'),datasrcs_widget=fixed('jhu')):
+                 countries_widget=fixed('United Kingdom'),datasrcs_widget=fixed('jhu'),paramtypes_widget=fixed('base')):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
@@ -35,6 +35,8 @@ class ModelFit:
         self.datasrcs_widget=datasrcs_widget
         data_src = datasrcs_widget.value
         self.data_src = data_src
+        self.paramtypes_widget = paramtypes_widget
+        param_class = paramtypes_widget.value
         self.param_class = param_class
         self.fit_method = fit_method
         self.new = new
@@ -1389,7 +1391,7 @@ class SliderFit(ModelFit):
         # next line should be same as
         # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
         self.transfer_cur_to_params_init()
-        eprint('params_init_min_max',self.params_init_min_max)
+        # eprint('params_init_min_max',self.params_init_min_max)
         # self.allsliderparams()  NO!  this makes new widgets.
         # reset slider values to current fit vals
         #eprint('II self',self,'base params',self.baseparams)
