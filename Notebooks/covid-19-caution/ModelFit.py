@@ -577,7 +577,6 @@ class ModelFit:
         gbrcolors : color types to use
         figsize : size of fig in inches (binary tuple)
         """
-       
         # tmax = self.tsim[-1]
         # tvec=np.arange(0,tmax,1)
 
@@ -774,8 +773,9 @@ class ModelFit:
         if outfile:
             plt.savefig(outfile,bbox_inches='tight');
         self.dumpparams();       # dump every plot;  could be changed by sliders
-
+        plt.close()
         self.fig = ax.figure;
+
 
     def prparams(self,outfile = ''):
         """
@@ -1209,6 +1209,7 @@ class SliderFit(ModelFit):
     """
     def __init__(self,*,params_init_min_max=None,**kwargs):
         global MyModel,sim_param_inits
+        
         super().__init__(**kwargs)
         cnt=0
         # max_rows = 2   # for short test...
@@ -1242,7 +1243,7 @@ class SliderFit(ModelFit):
         runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False)
         datasrcs_widget = RadioButtons(options=datasrcs,value='jhu',description='data src',disabled=False,layout={'width': 'max-content'}) 
         """
-        global MyModel,agemodels
+        global agemodels
         widg = change['owner']
         val = change['new']
         widg_desc =widg.description
@@ -1285,7 +1286,7 @@ class SliderFit(ModelFit):
             # Aaagggh!! Noooooo!
             # MyModel = SliderFit(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
             #                    run_id=run_id,data_src=data_src,param_class=param_class,paramtypes_widget=self.paramtypes_widget,fit_targets=['confirmed','deaths']);
-            self.init(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
+            self.__init__(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
                       run_id=run_id,data_src=data_src,param_class=param_class,paramtypes_widget=self.paramtypes_widget,fit_targets=['confirmed','deaths']);
         elif widg_desc in ['countries','data src']:
             self.setup_data(country,data_src);
@@ -1313,14 +1314,14 @@ class SliderFit(ModelFit):
         x_dic = {}
         x_dic.update({'country':self.country})
         x_dic.update({'data_src':self.data_src})
-        # plt.ioff()  # turns interactive matplotlib plotting off during contruction
-        # self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
-        # plt.ion()  # turns interactive matplotlib plotting back on
+        self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
 
         with self.slfitplot:
-            self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
+            self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
+                           datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = (6,6))
             clear_output(wait=True)
             display(self.fig)
+            #self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
 
     def makeslbox(self):
         #################################
