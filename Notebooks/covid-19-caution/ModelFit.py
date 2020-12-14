@@ -1282,8 +1282,11 @@ class SliderFit(ModelFit):
 
         bd = self.basedata
         if widg_desc in ['model','age grps','param class','Run_id:']:
-            MyModel = SliderFit(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
-                                run_id=run_id,data_src=data_src,param_class=param_class,paramtypes_widget=self.paramtypes_widget,fit_targets=['confirmed','deaths']);
+            # Aaagggh!! Noooooo!
+            # MyModel = SliderFit(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
+            #                    run_id=run_id,data_src=data_src,param_class=param_class,paramtypes_widget=self.paramtypes_widget,fit_targets=['confirmed','deaths']);
+            self.init(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
+                      run_id=run_id,data_src=data_src,param_class=param_class,paramtypes_widget=self.paramtypes_widget,fit_targets=['confirmed','deaths']);
         elif widg_desc in ['countries','data src']:
             self.setup_data(country,data_src);
             self.transfer_cur_to_plot();
@@ -1420,7 +1423,7 @@ class SliderFit(ModelFit):
                                                         continuous_update=False,readout_format='.3f')})
                         #slidedict[pm].observe(functools.partial(self.on_slider_param_change,pm),names='value') # this might have been an alternative
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
-                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
+                        checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
             elif param_class == 'base':
                 slidedict.update({'param_class':fixed('base')})
                 for pm in pimm:
@@ -1430,7 +1433,7 @@ class SliderFit(ModelFit):
                                                         layout=slider_layout,
                                                         continuous_update=False,readout_format='.3f')})
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
-                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
+                        checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
         else:
             modelname=self.modelname
             if param_class == 'ode':
