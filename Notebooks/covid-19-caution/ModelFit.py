@@ -1354,13 +1354,35 @@ class SliderFit(ModelFit):
                         self.params_init_min_max[p] = (curval,pv[1],pv[2])
 
     def transfer_cur_to_sliders(self):
+        self.unobserve_sliders()
         plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
         # eprint('in transfer_cur_to_sliders, sbparams',self.sbparams)
         for ptype in plist:
             for p in ptype.keys():
                 if p in self.slidedict.keys():
                     # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
-                    self.slidedict[p].value = ptype[p]    
+
+                    self.slidedict[p].value = ptype[p]
+        self.reobserve_sliders()
+
+
+    def unobserve_sliders(self):
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        # eprint('in transfer_cur_to_sliders, sbparams',self.sbparams)
+        for ptype in plist:
+            for p in ptype.keys():
+                if p in self.slidedict.keys():
+                    # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
+                    self.slidedict[p].unobserve_all()
+
+    def reobserve_sliders(self):
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        # eprint('in transfer_cur_to_sliders, sbparams',self.sbparams)
+        for ptype in plist:
+            for p in ptype.keys():
+                if p in self.slidedict.keys():
+                    # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
+                    self.slidedict[p].observe(self.on_slider_param_change,names='value') # restore observe for plot
 
     def transfer_cur_to_plot(self):
         if self.param_class == 'ode':
@@ -1391,13 +1413,8 @@ class SliderFit(ModelFit):
         # next line should be same as
         # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
         self.transfer_cur_to_params_init()
-        # eprint('params_init_min_max',self.params_init_min_max)
-        # self.allsliderparams()  NO!  this makes new widgets.
-        # reset slider values to current fit vals
-        #eprint('II self',self,'base params',self.baseparams)
-        #eprint('II sbparams',self.sbparams)
-        self.transfer_cur_to_sliders()
-        self.transfer_cur_to_plot();
+        self.transfer_cur_to_sliders() # does not redraw plot
+        self.transfer_cur_to_plot();   # does redraw plot
 
         #eprint('after transfer')
         
