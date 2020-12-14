@@ -22,7 +22,8 @@ class ModelFit:
         It has access to the model structure and defines all required parameters and details of fit """
     def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['confirmed','deaths'],
                  data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
-                 countries_widget=fixed('United Kingdom'),datasrcs_widget=fixed('jhu'),paramtypes_widget=fixed('base')):
+                 modelnames_widget=fixed('SEIR'),modelage_widget=fixed(1),countries_widget=fixed('United Kingdom'),
+                 datasrcs_widget=fixed('jhu'),paramtypes_widget=fixed('base'),runid_widget=fixed('test0')):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
@@ -30,14 +31,40 @@ class ModelFit:
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
         # print('HERE in init of ModelFit')
+        global MyModel,bd,make_model,possmodels,agemodels
+
+        self.modelnames_widget= modelnames_widget
+        modelname = self.modelnames_widget.value
+        self.modelage_widget = modelage_widget
+        agestructure = modelage_widget.value 
+        if int(agestructure) > 1 and modelname in agemodels :   # modelname value from widget
+            modelname_a = modelname+'_A'+str(agestructure)
+        elif int(agestructure) > 1:  # age structure not yet implemented for this model type
+            modelname_a = modelname
+            agestructure=1
+            modelage_widget.value = agestructure
+        else:
+            modelname_a = modelname
+        self.modelname = modelname_a
+        self.agestructure = agestructure
+
         self.countries_widget=countries_widget
         country = countries_widget.value
+        self.country = country
+
         self.datasrcs_widget=datasrcs_widget
         data_src = datasrcs_widget.value
         self.data_src = data_src
+
         self.paramtypes_widget = paramtypes_widget
         param_class = paramtypes_widget.value
         self.param_class = param_class
+
+        self.runid_widget = runid_widget
+        run_id = runid_widget.value
+        self.run_id = run_id
+
+
         self.fit_method = fit_method
         self.new = new
         self.model = model
@@ -51,12 +78,13 @@ class ModelFit:
         else:
             print("Error:  data_src must be one of jhu or owid.")
         self.basedata = basedata
+
         self.startdate = startdate
         self.stopdate = stopdate
         self.simdays = simdays
         self.datatypes = datatypes
         self.fit_targets = fit_targets
-        global make_model,possmodels
+
         dirnm = os.getcwd()
         # construct default name for file / run_id
         if country != '':
@@ -96,7 +124,7 @@ class ModelFit:
                     try:
                         age_structure = int(age_str)
                     except:
-                        print("Error in parameterize_model, age suffix is not an integer.")
+                        print("Error in setup_model, age suffix is not an integer.")
                         return
                 else:
                     modelname_root = modelname
@@ -1180,7 +1208,7 @@ class SliderFit(ModelFit):
     * call fit() to fit, starting at slider values.
     """
     def __init__(self,*,params_init_min_max=None,**kwargs):
-        global sim_param_inits
+        global MyModel,sim_param_inits
         super().__init__(**kwargs)
         cnt=0
         # max_rows = 2   # for short test...
@@ -1195,7 +1223,76 @@ class SliderFit(ModelFit):
 
         self.slidedict = {}     # will be set by allsliderparams()
         self.checkdict = {}
+
+        self.modelnames_widget.observe(self.on_param_change,names='value')
+        self.modelage_widget.observe(self.on_param_change,names='value')
+        self.countries_widget.observe(self.on_param_change,names='value')
+        self.datasrcs_widget.observe(self.on_param_change,names='value')
+        self.paramtypes_widget.observe(self.on_param_change,names='value')
+        self.runid_widget.observe(self.on_param_change,names='value')
+
         self.makeslbox()
+
+    def on_param_change(self,change):
+        """
+        modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=chosen_model)
+        modelage_widget = Dropdown(options=agegroups,description='age grps',layout={'width': 'max-content'},value=chosen_age)
+        countries_widget = Dropdown(options=countries_common,description='countries',layout={'width': 'max-content'},value=chosen_country)
+        paramtypes_widget = Dropdown(options=paramtypes,description='param class',style={'description_width': 'initial'}, layout={'width': 'max-content'},value=chosen_paramtype)
+        runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False)
+        datasrcs_widget = RadioButtons(options=datasrcs,value='jhu',description='data src',disabled=False,layout={'width': 'max-content'}) 
+        """
+        global MyModel,agemodels
+        widg = change['owner']
+        val = change['new']
+        widg_desc =widg.description
+        if self is None:
+            print('Error, on_param_change called with self None')
+            return
+                                            # first set values to those in the structure
+        modelname = self.modelname
+        agestructure = self.agestructure
+        country = self.country
+        data_src = self.data_src
+        param_class = self.param_class
+        run_id = self.run_id
+                                            # update the value that changed from the widget
+        if widg_desc == 'model':
+            modelname = val
+        elif widg_desc == 'age grps':
+            agestructure = val
+        elif widg_desc == 'countries':
+            country = val
+        elif widg_desc == 'data src':
+            data_src = val
+        elif widg_desc == 'param class':
+            param_class = val
+        elif widg_desc == 'Run_id:':
+            run_id = val
+                                            # now construct full model name from base name and agestructure
+        if int(agestructure) > 1 and modelname in agemodels :   # modelname value from widget
+            modelname_a = modelname+'_A'+str(agestructure)
+        elif int(agestructure) > 1:  # age structure not yet implemented for this model type
+            modelname_a = modelname
+            agestructure=1
+            widg.value = agestructure   # correct value back to 1 (or None)
+            # self.modelage_widget.value = agestructure # correct value back to 1 (or None)
+        else:
+            modelname_a = modelname
+
+        bd = self.basedata
+        if widg_desc in ['model','age grps','param class','Run_id:']:
+            MyModel = SliderFit(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
+                                run_id=run_id,data_src=data_src,param_class=param_class,paramtypes_widget=self.paramtypes_widget,fit_targets=['confirmed','deaths']);
+        elif widg_desc in ['countries','data src']:
+            self.setup_data(country,data_src);
+            self.transfer_cur_to_plot();
+            # MyModel = SliderFit(modelname=modelname,basedata=bd,country=country,run_id=run_id,data_src=datasrc,param_class=paramtype)
+
+        #if not MyModel is None:
+        #    print('displaying with MyModel',MyModel)
+        #    display(MyModel.slbox)
+        #    print('after display')
 
     def on_slider_param_change(self,change):
         pm = change['owner'].description
@@ -1205,9 +1302,27 @@ class SliderFit(ModelFit):
         self.set_param(pm,float(val))
         self.transfer_cur_to_plot();
 
+    def transfer_cur_to_plot(self):
+        if self.param_class == 'ode':
+            pdic = self.odeparams
+        elif self.param_class == 'base':
+            pdic = self.baseparams
+        x_dic = {}
+        x_dic.update({'country':self.country})
+        x_dic.update({'data_src':self.data_src})
+        # plt.ioff()  # turns interactive matplotlib plotting off during contruction
+        # self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
+        # plt.ion()  # turns interactive matplotlib plotting back on
+
+        with self.slfitplot:
+            self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
+            clear_output(wait=True)
+            display(self.fig)
+
     def makeslbox(self):
         #################################
         ## set up widgets
+
         self.allsliderparams()  # sets self.slidedict = dictionary of sliders
         self.slidedict.update({'param_class':fixed(self.param_class)})
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
@@ -1383,23 +1498,6 @@ class SliderFit(ModelFit):
                 if p in self.slidedict.keys():
                     # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
                     self.slidedict[p].observe(self.on_slider_param_change,names='value') # restore observe for plot
-
-    def transfer_cur_to_plot(self):
-        if self.param_class == 'ode':
-            pdic = self.odeparams
-        elif self.param_class == 'base':
-            pdic = self.baseparams
-        x_dic = {}
-        x_dic.update({'country':self.country})
-        x_dic.update({'data_src':self.data_src})
-        # plt.ioff()  # turns interactive matplotlib plotting off during contruction
-        self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
-
-        # plt.ion()  # turns interactive matplotlib plotting back on
-
-        with self.slfitplot:
-            clear_output(wait=True)
-            display(self.fig)
 
     def fit(self,**kwargs):
         # print('entering fit')
