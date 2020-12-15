@@ -1330,10 +1330,16 @@ class SliderFit(ModelFit):
             # self.modelage_widget.value = agestructure # correct value back to 1 (or None)
         else:
             modelname_a = modelname
+        self.modelname = modelname_a
 
         bd = self.basedata
+
+        ##################################################################################################
+        ## this re-initialization has problems.  Current work-around: wrap with interactive_output
+
         if widg_desc in ['model','age grps','param class','Run_id:']:
-            self.__init__(params_init_min_max=self.params_init_min_max,basedata=self.basedata,model=self.model,datatypes=self.datatypes,fit_targets=self.fit_targets,
+
+            self.__init__(params_init_min_max=None,basedata=self.basedata,model=self.model,datatypes=self.datatypes,fit_targets=self.fit_targets,
                           startdate=self.startdate,stopdate=self.stopdate,simdays=self.simdays,new=self.new,fit_method=self.fit_method,
                           modelnames_widget=self.modelnames_widget,
                           modelage_widget=self.modelage_widget,
@@ -1342,6 +1348,15 @@ class SliderFit(ModelFit):
                           paramtypes_widget=self.paramtypes_widget,
                           runid_widget=self.runid_widget,
                           modify_cur=True  )
+            self.slidedict = {}    # to reset sliders 
+
+            self.allsliderparams() # sets self.slidedict
+
+            self.sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
+                              layout = widgets.Layout(height='400px',width='520px'))
+            self.checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
+                              layout = widgets.Layout(height='400px',width='280px'))
+
             self.transfer_cur_to_plot()
         elif widg_desc in ['countries','data src']:
             self.setup_data(country,data_src);
@@ -1400,15 +1415,14 @@ class SliderFit(ModelFit):
         self.transfer_cur_to_plot();
 
         #slfitplot = interactive_output(self.slidefitplot,self.slidedict)   # disrupts slider value updates
-        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
+        self.sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
                      layout = widgets.Layout(height='400px',width='520px'))
-        checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
+        self.checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='400px',width='280px'))
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
-        sliderbox = VBox([HBox([fit_button,Label('Adjustable params:'),self.fittypes_widget]),HBox([sliders,checks])])
 
         sliderbox = VBox([HBox([fit_button,self.fittypes_widget]),
-                          HBox([VBox([Label('Adjustable params:'),sliders]),VBox([Label('Fixed/Adjustable params:'),checks])])])
+                          HBox([VBox([Label('Adjustable params:'),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
 
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
