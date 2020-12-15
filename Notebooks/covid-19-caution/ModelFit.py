@@ -953,11 +953,16 @@ class ModelFit:
 
         # prepare parameters for lmfit ------------------------------------------------------------------------------------
         params_lmf = lmfit.Parameters()
+        some_parameters_to_fit = False
         for pp in params_init_min_max:
             if not checkdict[pp+'_fix'].value:
+                some_parameters_to_fit = True
                 params_lmf.add(pp, params_init_min_max[pp][0],
                                min=params_init_min_max[pp][1],
                                max=params_init_min_max[pp][2])
+        if not some_parameters_to_fit:
+            print('all parameters fixed')
+            return
 
         ## set initial params for fit
         for x in params_lmf:
@@ -1260,7 +1265,7 @@ class SliderFit(ModelFit):
                          
         cnt=0
         # max_rows = 2   # for short test...
-        if params_init_min_max == None:
+        if params_init_min_max == None or modify_cur:
             # grab defaults
             if self.param_class == 'ode':
                 self.params_init_min_max = sim_param_inits[self.modelname]
