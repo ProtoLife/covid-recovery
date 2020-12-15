@@ -20,10 +20,9 @@ from model_fits_age import *
 class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
-    def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['confirmed','deaths'],
+    def __init__(self,modelname='SEIR',basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['confirmed','deaths'],
                  data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
-                 modelnames_widget=fixed('SEIR'),modelage_widget=fixed(1),countries_widget=fixed('United Kingdom'),
-                 datasrcs_widget=fixed('jhu'),paramtypes_widget=fixed('base'),runid_widget=fixed('test0')):
+                 agestructure=1):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
         if run_id is not '', it is used as self.run_id, used in turn for param filename.
@@ -31,43 +30,23 @@ class ModelFit:
         i.e. if run_id[0]=='_': self.run_id = default_run_id+run_id 
         """
         # print('HERE in init of ModelFit')
-        global MyModel,bd,make_model,possmodels,agemodels
+        global make_model,possmodels,agemodels
 
-        self.modelnames_widget= modelnames_widget
-        modelname = self.modelnames_widget.value
-        self.modelage_widget = modelage_widget
-        agestructure = modelage_widget.value 
+        self.agestructure = agestructure
         if int(agestructure) > 1 and modelname in agemodels :   # modelname value from widget
             modelname_a = modelname+'_A'+str(agestructure)
         elif int(agestructure) > 1:  # age structure not yet implemented for this model type
             modelname_a = modelname
             agestructure=1
-            modelage_widget.value = agestructure
         else:
             modelname_a = modelname
         self.modelname = modelname_a
-        self.agestructure = agestructure
 
-        self.countries_widget=countries_widget
-        country = countries_widget.value
-        self.country = country
-
-        self.datasrcs_widget=datasrcs_widget
-        data_src = datasrcs_widget.value
         self.data_src = data_src
-
-        self.paramtypes_widget = paramtypes_widget
-        param_class = paramtypes_widget.value
-        self.param_class = param_class
-
-        self.runid_widget = runid_widget
-        run_id = runid_widget.value
-        self.run_id = run_id
-
-
         self.fit_method = fit_method
         self.new = new
         self.model = model
+        self.param_class = param_class
 
         if basedata==None:
             print("Error:  must specify base data with arg basedata.")
@@ -1207,10 +1186,77 @@ class SliderFit(ModelFit):
     * adjust sliders
     * call fit() to fit, starting at slider values.
     """
-    def __init__(self,*,params_init_min_max=None,**kwargs):
-        global MyModel,sim_param_inits
+    global sim_param_inits
+
+    def __init__(self,*,params_init_min_max=None,basedata=None,model=None,datatypes='all',fit_targets=['confirmed','deaths'],
+                 startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',
+                 modelnames_widget=None,
+                 modelage_widget=None,
+                 countries_widget=None,
+                 datasrcs_widget=None,
+                 paramtypes_widget=None,
+                 runid_widget=None,**kwargs):
+
+        if basedata is None:
+            print("SliderFit Error: basedata cannot be None")
+            return
+
+        ###########################################
+        ## set widget defaults:
+
+        chosen_model = 'SC3FUEI3R'
+        chosen_country = 'Australia'
+        chosen_paramtype = 'base'
+        chosen_age = 1
+        chosen_data_src = 'jhu'
+        chosen_run_id = 'test0'
+
+        countries_common = basedata.countries_common
+        paramtypes = ['base','ode']
+        datasrcs = ['jhu','owid']
+        agegroups = [1,4,8,16]
         
-        super().__init__(**kwargs)
+        if  modelnames_widget is None:
+            modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=chosen_model)
+        else:
+            self.modelnames_widget = modelnames_widget
+        if  modelage_widget is None:
+            modelage_widget = Dropdown(options=agegroups,description='age grps',layout={'width': 'max-content'},value=chosen_age)
+        else:
+            self.modelage_widget = modelage_widget
+        if  countries_widget is None:
+            countries_widget = Dropdown(options=countries_common,description='countries',layout={'width': 'max-content'},value=chosen_country)
+        else:
+            self.countries_widget = countries_widget
+        if  datasrcs_widget is None:
+            datasrcs_widget = RadioButtons(options=datasrcs,value='jhu',description='data src',disabled=False,layout={'width': 'max-content'}) 
+        else:
+            self.datasrcs_widget = datasrcs_widget
+        if  paramtypes_widget is None:
+            paramtypes_widget = Dropdown(options=paramtypes,description='param class',style={'description_width': 'initial'}, layout={'width': 'max-content'},value=chosen_paramtype)
+        else:
+            self.paramtypes_widget = paramtypes_widget
+        if  runid_widget is None:
+            runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False)
+        else:
+            self.runid_widget = runid_widget
+
+        ###########################################
+        ## Call base class __init__
+
+        # for reference:  __init__ call of base ModelFit class:
+        # def __init__(self,modelname,basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['confirmed','deaths'],
+        #              data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
+        #              countries_widget=fixed('United Kingdom'),datasrcs_widget=fixed('jhu')):
+        super().__init__(basedata = basedata,
+                         modelname = modelnames_widget.value,
+                         country = countries_widget.value,
+                         data_src = datasrcs_widget.value,
+                         param_class = paramtypes_widget.value,
+                         run_id = runid_widget.value,
+                         **kwargs) # **kwargs passes all the rest                         
+                         
+                         
         cnt=0
         # max_rows = 2   # for short test...
         if params_init_min_max == None:
@@ -1225,6 +1271,8 @@ class SliderFit(ModelFit):
         self.slidedict = {}     # will be set by allsliderparams()
         self.checkdict = {}
 
+        #############################################
+        ## set observes for the widgets
         self.modelnames_widget.observe(self.on_param_change,names='value')
         self.modelage_widget.observe(self.on_param_change,names='value')
         self.countries_widget.observe(self.on_param_change,names='value')
@@ -1352,6 +1400,10 @@ class SliderFit(ModelFit):
                      layout = widgets.Layout(height='400px',width='280px'))
         fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
         sliderbox = VBox([HBox([fit_button,Label('Adjustable params:'),self.fittypes_widget]),HBox([sliders,checks])])
+
+        sliderbox = VBox([HBox([fit_button,self.fittypes_widget]),
+                          HBox([VBox([Label('Adjustable params:'),sliders]),VBox([Label('Fixed/Adjustable params:'),checks])])])
+
         fit_output_text = 'Fit output will be displayed here.'
         self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
