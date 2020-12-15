@@ -1249,11 +1249,11 @@ class SliderFit(ModelFit):
         #              data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
         #              countries_widget=fixed('United Kingdom'),datasrcs_widget=fixed('jhu')):
         super().__init__(basedata = basedata,
-                         modelname = modelnames_widget.value,
-                         country = countries_widget.value,
-                         data_src = datasrcs_widget.value,
-                         param_class = paramtypes_widget.value,
-                         run_id = runid_widget.value,
+                         modelname = self.modelnames_widget.value,
+                         country = self.countries_widget.value,
+                         data_src = self.datasrcs_widget.value,
+                         param_class = self.paramtypes_widget.value,
+                         run_id = self.runid_widget.value,
                          **kwargs) # **kwargs passes all the rest                         
                          
                          
