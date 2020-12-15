@@ -1331,15 +1331,17 @@ class SliderFit(ModelFit):
 
         bd = self.basedata
         if widg_desc in ['model','age grps','param class','Run_id:']:
-            # Aaagggh!! Noooooo!
-            # MyModel = SliderFit(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
-            #                    run_id=run_id,data_src=data_src,param_class=param_class,paramtypes_widget=self.paramtypes_widget,fit_targets=['confirmed','deaths']);
-            self.__init__(modelname=modelname_a,basedata=bd,datasrcs_widget=self.datasrcs_widget,country=country,countries_widget=self.countries_widget,
-                      run_id=run_id,data_src=data_src,param_class=param_class,paramtypes_widget=self.paramtypes_widget,fit_targets=['confirmed','deaths']);
+            self.__init__(params_init_min_max=self.params_init_min_max,basedata=self.basedata,model=self.model,datatypes=self.datatypes,fit_targets=self.fit_targets,
+                 startdate=self.startdate,stopdate=self.stopdate,simdays=self.simdays,new=self.new,fit_method=self.fit_method,
+                 modelnames_widget=self.modelnames_widget,
+                 modelage_widget=self.modelage_widget,
+                 countries_widget=self.countries_widget,
+                 datasrcs_widget=self.datasrcs_widget,
+                 paramtypes_widget=self.paramtypes_widget,
+                 runid_widget=self.runid_widget)
         elif widg_desc in ['countries','data src']:
             self.setup_data(country,data_src);
             self.transfer_cur_to_plot();
-            # MyModel = SliderFit(modelname=modelname,basedata=bd,country=country,run_id=run_id,data_src=datasrc,param_class=paramtype)
 
         #if not MyModel is None:
         #    print('displaying with MyModel',MyModel)
