@@ -1195,7 +1195,8 @@ class SliderFit(ModelFit):
                  countries_widget=None,
                  datasrcs_widget=None,
                  paramtypes_widget=None,
-                 runid_widget=None,**kwargs):
+                 runid_widget=None,
+                 modify_cur=False,**kwargs):
 
         if basedata is None:
             print("SliderFit Error: basedata cannot be None")
@@ -1280,7 +1281,8 @@ class SliderFit(ModelFit):
         self.paramtypes_widget.observe(self.on_param_change,names='value')
         self.runid_widget.observe(self.on_param_change,names='value')
 
-        self.makeslbox()
+        if not modify_cur:
+            self.makeslbox()
 
     def on_param_change(self,change):
         """
@@ -1332,13 +1334,15 @@ class SliderFit(ModelFit):
         bd = self.basedata
         if widg_desc in ['model','age grps','param class','Run_id:']:
             self.__init__(params_init_min_max=self.params_init_min_max,basedata=self.basedata,model=self.model,datatypes=self.datatypes,fit_targets=self.fit_targets,
-                 startdate=self.startdate,stopdate=self.stopdate,simdays=self.simdays,new=self.new,fit_method=self.fit_method,
-                 modelnames_widget=self.modelnames_widget,
-                 modelage_widget=self.modelage_widget,
-                 countries_widget=self.countries_widget,
-                 datasrcs_widget=self.datasrcs_widget,
-                 paramtypes_widget=self.paramtypes_widget,
-                 runid_widget=self.runid_widget)
+                          startdate=self.startdate,stopdate=self.stopdate,simdays=self.simdays,new=self.new,fit_method=self.fit_method,
+                          modelnames_widget=self.modelnames_widget,
+                          modelage_widget=self.modelage_widget,
+                          countries_widget=self.countries_widget,
+                          datasrcs_widget=self.datasrcs_widget,
+                          paramtypes_widget=self.paramtypes_widget,
+                          runid_widget=self.runid_widget,
+                          modify_cur=True  )
+            self.transfer_cur_to_plot()
         elif widg_desc in ['countries','data src']:
             self.setup_data(country,data_src);
             self.transfer_cur_to_plot();
@@ -1364,11 +1368,11 @@ class SliderFit(ModelFit):
         x_dic = {}
         x_dic.update({'country':self.country})
         x_dic.update({'data_src':self.data_src})
-        self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
 
         with self.slfitplot:
-            self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
-                           datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = (6,6))
+            self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
+#            self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
+#                           datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = (6,6))
             clear_output(wait=True)
             display(self.fig)
             #self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
