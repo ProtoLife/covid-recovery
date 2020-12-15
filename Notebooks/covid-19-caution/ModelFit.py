@@ -1281,8 +1281,8 @@ class SliderFit(ModelFit):
         self.paramtypes_widget.observe(self.on_param_change,names='value')
         self.runid_widget.observe(self.on_param_change,names='value')
 
-        if not modify_cur:
-            self.makeslbox()
+#        if not modify_cur:
+        self.makeslbox(modify_cur)
 
     def on_param_change(self,change):
         """
@@ -1377,46 +1377,48 @@ class SliderFit(ModelFit):
             display(self.fig)
             #self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
 
-    def makeslbox(self):
+    def makeslbox(self,modify_cur):
         #################################
         ## set up widgets
 
-        self.allsliderparams()  # sets self.slidedict = dictionary of sliders
+        self.allsliderparams(modify_cur)  # sets self.slidedict = dictionary of sliders and self.checkdict of fixed items
+        #print('sliderdict',self.slidedict.keys())
         self.slidedict.update({'param_class':fixed(self.param_class)})
-        fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
+        if not modify_cur:
+            self.fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
         fit_output_text = 'Fit output will be displayed here.'
-        self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
+        if modify_cur:
+            self.fit_display_widget.value = fit_output_text
+        else:
+            self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='520px'))
-        fittypes = ['leastsq','nelder','differential_evolution','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
-        self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
+            self.fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
+            fittypes = ['leastsq','nelder','differential_evolution','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
+            self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
 
-        #####################################
-        ## set up boxes
-
-        #slidecountrydict = slidedict.copy()
-        #self.slidedict.update({'country':self.countries_widget})
-        #self.slidedict.update({'data_src':self.datasrcs_widget})
-        self.slfitplot=Output(layout=Layout(height='500px', width = '500px'))
+            self.slfitplot=Output(layout=Layout(height='500px', width = '500px'))
         self.transfer_cur_to_plot();
 
-        #slfitplot = interactive_output(self.slidefitplot,self.slidedict)   # disrupts slider value updates
-        sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
+        #slfitplot = interactive_o5688utput(self.slidefitplot,self.slidedict)   # disrupts slider value updates
+        if modify_cur:
+            self.sliderbox.close()
+            self.sliders.close()
+            self.checks.close()
+
+        self.sliders=VBox([w1 for w1 in list(self.slidedict.values()) if isinstance(w1,Widget) and w1 != self.countries_widget and w1 != self.datasrcs_widget],
                      layout = widgets.Layout(height='400px',width='520px'))
-        checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
+        self.checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='400px',width='280px'))
-        fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
-        sliderbox = VBox([HBox([fit_button,Label('Adjustable params:'),self.fittypes_widget]),HBox([sliders,checks])])
+        self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget]),
+                          HBox([VBox([Label('Adjustable params:'),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
 
-        sliderbox = VBox([HBox([fit_button,self.fittypes_widget]),
-                          HBox([VBox([Label('Adjustable params:'),sliders]),VBox([Label('Fixed/Adjustable params:'),checks])])])
+        if modify_cur:
+            self.slbox.close()
+        self.slbox=HBox([self.slfitplot,self.sliderbox,self.fitbox])
+        if modify_cur:
+            display(self.slbox)
 
-        fit_output_text = 'Fit output will be displayed here.'
-        self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
-                                              layout = widgets.Layout(height='320px',width='520px'))
-        fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
-        self.slbox=HBox([self.slfitplot,sliderbox,fitbox])
-
-
+        # if not modify_cur:  display(self.slbox)
         #import functools
         #def on_button_clicked(b, rs_="some_default_string"):
         #    fun(rs_)
@@ -1437,7 +1439,7 @@ class SliderFit(ModelFit):
             finally:
                 sys.stdout = old_stdout
 
-        fit_button.on_click(do_the_fit)
+        self.fit_button.on_click(do_the_fit)
 
         ################################
         ## hook up fittypes_widget...
@@ -1448,7 +1450,7 @@ class SliderFit(ModelFit):
         self.fittypes_widget.observe(update_fittype,'value')
 
 
-    def allsliderparams(self):
+    def allsliderparams(self,modify_cur):
         """
             construct dictionary of slider widgets corresponding to 
             input params_init_min_max is the dictionary of tuples for parameter optimization (3 or 4-tuples)
@@ -1463,8 +1465,13 @@ class SliderFit(ModelFit):
         elif len(pimm[list(pimm.keys())[0]]) != 4:
             print('dictionary params_init_min_max must contain tuples with 4 entries (val,min,max,step)')
             return
-        slidedict = self.slidedict
-        checkdict = self.checkdict
+
+        if modify_cur:
+            slidedict = {}
+            checkdict = {}
+        else:
+            slidedict = self.slidedict
+            checkdict = self.checkdict            
         if slidedict == {}:
             slider_layout = Layout(width='400px', height='12px')
             check_layout = Layout(width='240px', height='12px')
