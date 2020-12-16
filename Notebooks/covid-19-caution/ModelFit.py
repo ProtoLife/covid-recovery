@@ -1605,3 +1605,14 @@ class SliderFit(ModelFit):
 
         #eprint('after transfer')
         
+class WrapSliderFit(SliderFit):
+    def __init__(self,*args,**kwargs):
+        super().__init__(**kwargs)
+        #############################################
+        ## set observes for the widgets to new null on_param_change
+        self.modelnames_widget.observe(self.on_param_change,names='value')
+        self.paramtypes_widget.observe(self.on_param_change,names='value')
+        
+    def on_param_change(self,change):
+        return
+    
