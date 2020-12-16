@@ -895,13 +895,14 @@ class ModelFit:
             self.logresid[ls] = (lsdat-lfdat).copy() # reduces amount of information stored for efficiency
         return rtn
 
-    def fit(self,params_init_min_max,checkdict,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
+    def fit(self,params_init_min_max,checkdict=None,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
         """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
             from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
             to data specified in fit_data, with option of diagnosis output diag
         """
         fit_method = self.fit_method
         # process input parameters ------------------------------------------------------------------------------------------
+
         # 1. param_class
         param_class = self.param_class
         print('fit: param_class = ',param_class)
@@ -934,6 +935,20 @@ class ModelFit:
             self.fit_data = fit_data = [fit_target+'_corrected_smoothed' for fit_target in fit_targets]
         
         # 4. params_init_min_max
+        # NB: checkdict = possible dictionary of sliders
+        # translate into fixedpar dictionary.
+        # if checkdict==None, default to fit all params in params_init_min_max
+
+        fixedpar = {}
+        for pp in params_init_min_max:
+            fixedpar[pp] = False # default = fit
+                
+        if checkdict is not None:
+            for pp in params_init_min_max:
+                if pp+'_fix' in checkdict:
+                    if not checkdict[pp+'_fix'].value:
+                        fixedpar[pp] = False # will fit
+
         for pp in params_init_min_max:
             if pp is not 'logI_0': # add any other special ad hoc params here...
                 if param_class == 'ode':
@@ -955,7 +970,7 @@ class ModelFit:
         params_lmf = lmfit.Parameters()
         some_parameters_to_fit = False
         for pp in params_init_min_max:
-            if not checkdict[pp+'_fix'].value:
+            if fixedpar[pp] is False:
                 some_parameters_to_fit = True
                 params_lmf.add(pp, params_init_min_max[pp][0],
                                min=params_init_min_max[pp][1],
