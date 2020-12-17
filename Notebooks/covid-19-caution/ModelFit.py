@@ -1605,7 +1605,7 @@ class SliderFit(ModelFit):
 
         #eprint('after transfer')
         
-class WrapSliderFit(SliderFit):
+class SliderFitWrap(SliderFit):
     def __init__(self,*args,**kwargs):
         super().__init__(**kwargs)
         #############################################
