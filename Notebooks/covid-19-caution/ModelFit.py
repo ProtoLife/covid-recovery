@@ -945,9 +945,11 @@ class ModelFit:
                 
         if checkdict is not None:
             for pp in params_init_min_max:
+                fixedpar[pp] = True # default = not fit
+            for pp in params_init_min_max:
                 if pp+'_fix' in checkdict:
                     if not checkdict[pp+'_fix'].value:
-                        fixedpar[pp] = False # will fit
+                        fixedpar[pp] = False # will fit only if checkdict says to fit
 
         for pp in params_init_min_max:
             if pp is not 'logI_0': # add any other special ad hoc params here...
