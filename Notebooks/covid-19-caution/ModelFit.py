@@ -7,7 +7,7 @@ from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
 from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
-from ipywidgets.widgets import HBox, VBox, Label, Dropdown, Checkbox, Output
+from ipywidgets.widgets import HBox, VBox, Label, Dropdown, Checkbox, IntText, FloatText, Output
 from IPython.display import display,clear_output
 
 def eprint(*args, **kwargs):
@@ -249,7 +249,7 @@ class ModelFit:
             if targ not in self.tsdata:
                 print('Error: fit target',targ,'is not available in datatypes',self.datatypes)
                 return None
-        self.fit_data = 'default'
+        self.fit_data = 'default' # use datasets obtained by appending '_corrected_smooth' to each target
 
     def  print_ode(self):
         '''
@@ -808,13 +808,18 @@ class ModelFit:
         fitdata = {}
         if not self.tsdata is {}:
             for i,ls in enumerate(lspecies):
-                ds = ldatasets[i]
+                if ls in ldatasets[i]:
+                    ds = ldatasets[i]
+                else:
+                    print('error in fit data, names of targets not included in datasets in right order',i,ls,ldatasets[i])
                 if ls == 'confirmed':     
                     datmp = self.tsdata[ds] # confirmed cases data, corrected by FracConfirmedDet
                     fitdata[ls] = [x/self.fbparams['FracConfirmedDet']/self.population for x in datmp]
+                    # print('fit data for target',ls,'is',ldatasets[i],'popln',self.population,'country',self.country,'FracDet',self.fbparams['FracConfirmedDet'])
                 elif ls == 'deaths':
                     datmp = self.tsdata[ds] # deaths cases data, corrected by FracDeathsDet
                     fitdata[ls] = [x/self.fbparams['FracDeathsDet']/self.population for x in datmp]
+                    # print('fit data for target',ls,'is',ldatasets[i],'popln',self.population,'country',self.country,'FracDet',self.fbparams['FracDeathsDet'])
                 else:
                     fitdata[ls] = np.array(self.tsdata[ds])
 
@@ -991,7 +996,7 @@ class ModelFit:
         def resid(pars,*args):
             # print('------------------------------- new resid call ------------------------------------')
             if args:
-                modelfit = args[0]
+                modelfit = args[0]       # this is how we deliver the modelfit class member to resid
             else:
                 print('Error in resid args, is not tuple containing modelfit instance',args)
                 return
@@ -1007,8 +1012,8 @@ class ModelFit:
             if 'logI_0' in params_lmf:
                 modelfit.set_I0(parvals['logI_0'])    
 
-            # maybe try log(1+xxx) by using solve4fitlog
-            fittry = modelfit.solve4fitlog(modelfit.fit_targets,modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
+            # try log(1+xxx) by using solve4fitlog
+            fittry = modelfit.solve4fitlog(species=modelfit.fit_targets,datasets=modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
             #rmsres2 = np.sqrt(np.sum(np.square(resd)))
             #print('resid: ',rmsres2)
             fitresid = np.concatenate([fittry[fit_target]['resid'] for fit_target in modelfit.fit_targets])
@@ -1027,10 +1032,21 @@ class ModelFit:
                 start = time()
                 self.residall = []
                 self.paramall = []
-                def per_iteration(pars, iteration, resd, *args, **kws):
-                    rmsres2 = np.sqrt(np.sum(np.square(resd)))
-                    self.residall.append(rmsres2)                    
-                    self.paramall.append(pars.copy())
+                def per_iteration(pars, iteration, resid, *args, **kws):
+                    rmsres2 = np.sqrt(np.sum(np.square(resid)))
+                    self.residall.append((iteration,rmsres2))
+                    self.paramall.append((iteration,pars))  
+                    if isinstance(self.iter_text,widgets.Widget):
+                        self.iter_text.value = iteration
+                        self.resid_text.value = rmsres2
+                    prev_stdout = sys.stdout
+                    sys.stdout = tmpstdout = io.StringIO()
+                    print('Iteration:',iteration)
+                    pars.pretty_print()
+                    self.fit_display_widget.value = tmpstdout.getvalue()   #  fit_output_widget global.
+                    sys.stdout = prev_stdout
+
+                    # self.paramall.append(params.copy())
                 fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
                 # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)
 
@@ -1041,7 +1057,7 @@ class ModelFit:
                     print('calculating Confidence Intervals')
                     ci = lmfit.conf_interval(mini, fit_output)
                     print('Confidence Intervals')
-                    lmfit.printfuncs.report_ci(ci)                    
+                    lmfit.printfuncs.report_ci(ci)  
             elif report:
                 # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),**fit_kws)
                 if (fit_method == 'leastsq') and conf_interval:
@@ -1374,6 +1390,12 @@ class SliderFit(ModelFit):
         #    display(MyModel.slbox)
         #    print('after display')
 
+    def set_all_check(self,change):
+        val = change['new']
+        for pm in self.checkdict.keys():
+            if pm != 'all':
+                self.checkdict[pm].value = val
+
     def on_slider_param_change(self,change):
         pm = change['owner'].description
         # print('ospc:',pm)
@@ -1408,12 +1430,14 @@ class SliderFit(ModelFit):
         self.slidedict.update({'param_class':fixed(self.param_class)})
         if not modify_cur:
             self.fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
+            self.iter_text = widgets.IntText(value=0,description='iter',disabled=False,layout=Layout(width='150px'))
+            self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
         fit_output_text = 'Fit output will be displayed here.'
         if modify_cur:
             self.fit_display_widget.value = fit_output_text
         else:
             self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
-                                              layout = widgets.Layout(height='320px',width='520px'))
+                                              layout = widgets.Layout(height='320px',width='600px'))
             self.fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
             fittypes = ['leastsq','nelder','differential_evolution','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
             self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
@@ -1431,7 +1455,7 @@ class SliderFit(ModelFit):
                      layout = widgets.Layout(height='400px',width='520px'))
         self.checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='400px',width='280px'))
-        self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget]),
+        self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget,self.resid_text]),     # add ,self.iter_text to HBox if desired
                           HBox([VBox([Label('Adjustable params:'),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
 
         if modify_cur:
@@ -1512,6 +1536,8 @@ class SliderFit(ModelFit):
                         #slidedict[pm].observe(functools.partial(self.on_slider_param_change,pm),names='value') # this might have been an alternative
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
                         checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
+                checkdict.update({'all':Checkbox(value=False,description='all',disabled=False,layout=check_layout,style=style)})
+                checkdict['all'].observe(self.set_all_check,names='value')
             elif param_class == 'base':
                 slidedict.update({'param_class':fixed('base')})
                 for pm in pimm:
@@ -1522,6 +1548,8 @@ class SliderFit(ModelFit):
                                                         continuous_update=False,readout_format='.3f')})
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
                         checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
+                checkdict.update({'all':Checkbox(value=False,description='all',disabled=False,layout=check_layout,style=style)})
+                checkdict['all'].observe(self.set_all_check,names='value')
         else:
             modelname=self.modelname
             if param_class == 'ode':

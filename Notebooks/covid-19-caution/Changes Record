@@ -1,0 +1,15 @@
+Changes Record:
+Mon 21 Dec
+
+1. Updates databases, changed final date to Dec 18, reran data_base.ipynb (./pks/data_base_all.pk)
+	- note former data.ipynb (./pks/data_all.pk) runs with errors in cell 4, bcountries not defined, deprecated
+2. Changed mindays to +12 (252) : renamed data_cluster-alt.ipynb to data_cluster_alt.ipynb, ran data_cluster_alt.ipynb creating 8 cluster data files .pk
+3. Checked that data names and population and det corrections are working properly: added print statements (now commented out) and additional error trap
+4. Added check 'all' box to toggle all params checked/unchecked.
+5. Added iteration count and residual display widgets for some feedback during fitting and after.
+6. Found that these two widgets and the Textbox widgets all display badly in Safari, but OK in Chrome. It is not widget height.
+7. Tried to fix with https://github.com/jupyter-widgets/ipywidgets/blob/master/docs/source/examples/Widget%20Styling.ipynb. 
+    - worked out that problem could be the height of the description part : if we could change font size it might work in Safari.
+8. Captured intermediate parameters in statically updating table in output text window (using output redirection and pretty_print in cb_iter)
+9. Hide iteration counter widget to make display more compact (can be reactivated from comment if needed), and increase output text window to 600 px
+    - need to make text area longer to display all parameters updating during fit  
