@@ -384,7 +384,7 @@ class ModelFit:
             self.set_base_param(param,value)
         else:
             print('set_param Error: bad param_class =',self.param_class)
-
+            
     def set_ode_param(self,param,value):
         # print('--------------------------- new set param call ----------------------------------')
         # print('In set_param with param',param,'with value',value,'self',self)
@@ -398,6 +398,13 @@ class ModelFit:
             if param != 'logI_0':
                 tmp = {param:value}
                 self.model.parameters = tmp # pygom magic sets the right parameter in the model.parameters dictionary.
+                if param in self.params:
+                    self.params[param] = value
+                else:
+                    print('set_ode_param - Warning: trying to set',param,'as an odeparam')
+
+            else:
+                print('set_ode_param - Warning: trying to set logI_0')
             # self.model.parameters = self.odeparams[param]   # this has problem with initial condition parameter logI_0
 
 
