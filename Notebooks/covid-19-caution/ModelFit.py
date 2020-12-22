@@ -1156,7 +1156,7 @@ class ModelFit:
                     else:
                         self.set_base_param(pm,myparams[pm])
                 # print('new parameters',self.model.parameters)
-        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},scale =self.scale_widget.value,
                        datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
 
 
@@ -1434,6 +1434,9 @@ class SliderFit(ModelFit):
             display(self.fig)
             #self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
 
+    def on_scale_change(self,change):
+        self.transfer_cur_to_plot();
+
     def makeslbox(self,modify_cur):
         #################################
         ## set up widgets
@@ -1445,13 +1448,15 @@ class SliderFit(ModelFit):
             self.fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
             self.iter_text = widgets.IntText(value=0,description='iter',disabled=False,layout=Layout(width='150px'))
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
+            self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
+            self.scale_widget.observe(self.on_scale_change,names='value')
         fit_output_text = 'Fit output will be displayed here.'
         if modify_cur:
             self.fit_display_widget.value = fit_output_text
         else:
             self.fit_display_widget = widgets.Textarea(value=fit_output_text,disabled=False,
                                               layout = widgets.Layout(height='320px',width='600px'))
-            self.fitbox = VBox([Label('Fit output data'),self.fit_display_widget])
+            self.fitbox = VBox([HBox([Label('Fit output data'),self.iter_text,self.resid_text]),self.fit_display_widget])
             fittypes = ['leastsq','nelder','differential_evolution','slsqp','shgo','cobyla','lbfgsb','bfgs','basinhopping','dual_annealing']
             self.fittypes_widget = Dropdown(options=fittypes,description='fit meth',layout={'width': 'max-content'},value='leastsq')
 
@@ -1468,12 +1473,12 @@ class SliderFit(ModelFit):
                      layout = widgets.Layout(height='400px',width='520px'))
         self.checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='400px',width='280px'))
-        self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget,self.resid_text]),     # add ,self.iter_text to HBox if desired
+        self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget]), 
                           HBox([VBox([Label('Adjustable params:'),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
 
         if modify_cur:
             self.slbox.close()
-        self.slbox=HBox([self.slfitplot,self.sliderbox,self.fitbox])
+        self.slbox=HBox([VBox([self.scale_widget,self.slfitplot]),self.sliderbox,self.fitbox])
         if modify_cur:
             display(self.slbox)
 
