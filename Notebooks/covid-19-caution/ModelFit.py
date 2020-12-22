@@ -401,7 +401,7 @@ class ModelFit:
                 if param in self.params:
                     self.params[param] = value
                 else:
-                    print('set_ode_param - Warning: trying to set',param,'as an odeparam')
+                    eprint('set_ode_param - Warning: trying to set',param,'as an odeparam')
 
             else:
                 print('set_ode_param - Warning: trying to set logI_0')
@@ -424,6 +424,12 @@ class ModelFit:
             self.cbparams[param] = value  
         elif param in list(self.fbparams):
             self.fbparams[param] = value 
+
+        if param in self.params:
+            self.params[param] = value
+        else:
+            eprint('set_ode_param - Warning: trying to set',param,'as an baseparam')
+
 
         b,a,g,p,u,c,k,N,I0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)
         params_in=vector2params(b,a,g,p,u,c,k,N,self.modelname)
