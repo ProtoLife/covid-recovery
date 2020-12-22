@@ -7,6 +7,7 @@ from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
 from ipywidgets.widgets import interact, interactive, IntSlider, FloatSlider, Layout, ToggleButton, ToggleButtons, fixed, Widget
+from ipywidgets.widgets import RadioButtons, Text
 from ipywidgets.widgets import HBox, VBox, Label, Dropdown, Checkbox, IntText, FloatText, Output
 from IPython.display import display,clear_output
 
@@ -1252,6 +1253,7 @@ class SliderFit(ModelFit):
         if basedata is None:
             print("SliderFit Error: basedata cannot be None")
             return
+        self.fit_targets = fit_targets
 
         ###########################################
         ## set widget defaults:
@@ -1267,29 +1269,29 @@ class SliderFit(ModelFit):
         paramtypes = ['base','ode']
         datasrcs = ['jhu','owid']
         agegroups = [1,4,8,16]
-        
+
         if  modelnames_widget is None:
-            modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=chosen_model)
+            self.modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=chosen_model)
         else:
             self.modelnames_widget = modelnames_widget
         if  modelage_widget is None:
-            modelage_widget = Dropdown(options=agegroups,description='age grps',layout={'width': 'max-content'},value=chosen_age)
+            self.modelage_widget = Dropdown(options=agegroups,description='age grps',layout={'width': 'max-content'},value=chosen_age)
         else:
             self.modelage_widget = modelage_widget
         if  countries_widget is None:
-            countries_widget = Dropdown(options=countries_common,description='countries',layout={'width': 'max-content'},value=chosen_country)
+            self.countries_widget = Dropdown(options=countries_common,description='countries',layout={'width': 'max-content'},value=chosen_country)
         else:
             self.countries_widget = countries_widget
         if  datasrcs_widget is None:
-            datasrcs_widget = RadioButtons(options=datasrcs,value='jhu',description='data src',disabled=False,layout={'width': 'max-content'}) 
+            self.datasrcs_widget = RadioButtons(options=datasrcs,value='jhu',description='data src',disabled=False,layout={'width': 'max-content'}) 
         else:
             self.datasrcs_widget = datasrcs_widget
         if  paramtypes_widget is None:
-            paramtypes_widget = Dropdown(options=paramtypes,description='param class',style={'description_width': 'initial'}, layout={'width': 'max-content'},value=chosen_paramtype)
+            self.paramtypes_widget = Dropdown(options=paramtypes,description='param class',style={'description_width': 'initial'}, layout={'width': 'max-content'},value=chosen_paramtype)
         else:
             self.paramtypes_widget = paramtypes_widget
         if  runid_widget is None:
-            runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False)
+            self.runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False)
         else:
             self.runid_widget = runid_widget
 
@@ -1301,6 +1303,7 @@ class SliderFit(ModelFit):
         #              data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
         #              countries_widget=fixed('United Kingdom'),datasrcs_widget=fixed('jhu')):
         super().__init__(basedata = basedata,
+                         fit_targets = self.fit_targets,
                          modelname = self.modelnames_widget.value,
                          country = self.countries_widget.value,
                          data_src = self.datasrcs_widget.value,
