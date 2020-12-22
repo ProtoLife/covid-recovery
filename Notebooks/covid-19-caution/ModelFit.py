@@ -405,7 +405,8 @@ class ModelFit:
                     eprint('set_ode_param - Warning: trying to set',param,'as an odeparam')
 
             else:
-                print('set_ode_param - Warning: trying to set logI_0')
+                self.set_I0(value)
+                # print('set_ode_param - Warning: trying to set logI_0')
             # self.model.parameters = self.odeparams[param]   # this has problem with initial condition parameter logI_0
 
 
@@ -426,10 +427,12 @@ class ModelFit:
         elif param in list(self.fbparams):
             self.fbparams[param] = value 
 
-        if param in self.params:
+        if param in self.params and param != 'logI_0':
             self.params[param] = value
+        elif param == 'logI_0':
+            self.set_I0(value)
         else:
-            eprint('set_ode_param - Warning: trying to set',param,'as an baseparam')
+            eprint('set_base_param - Warning: trying to set',param,'as a baseparam')
 
 
         b,a,g,p,u,c,k,N,I0 = base2vectors(self.sbparams,self.cbparams,self.fbparams)
@@ -1254,6 +1257,7 @@ class SliderFit(ModelFit):
             print("SliderFit Error: basedata cannot be None")
             return
         self.fit_targets = fit_targets
+        self.datatypes = datatypes
 
         ###########################################
         ## set widget defaults:
@@ -1269,6 +1273,7 @@ class SliderFit(ModelFit):
         paramtypes = ['base','ode']
         datasrcs = ['jhu','owid']
         agegroups = [1,4,8,16]
+
 
         if  modelnames_widget is None:
             self.modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=chosen_model)
@@ -1304,6 +1309,7 @@ class SliderFit(ModelFit):
         #              countries_widget=fixed('United Kingdom'),datasrcs_widget=fixed('jhu')):
         super().__init__(basedata = basedata,
                          fit_targets = self.fit_targets,
+                         datatypes = self.datatypes,
                          modelname = self.modelnames_widget.value,
                          country = self.countries_widget.value,
                          data_src = self.datasrcs_widget.value,
@@ -1414,9 +1420,7 @@ class SliderFit(ModelFit):
 
     def on_slider_param_change(self,change):
         pm = change['owner'].description
-        # print('ospc:',pm)
-        val = change['new']
-        # print('ospc:',val)     
+        val = change['new']   
         self.set_param(pm,float(val))
         self.transfer_cur_to_plot();
 
@@ -1440,6 +1444,18 @@ class SliderFit(ModelFit):
     def on_scale_change(self,change):
         self.transfer_cur_to_plot();
 
+    def on_target_change(self,change):
+        targ = change['owner'].description
+        val = change['new']
+        if (targ in self.fit_targets) and (val == False):
+            self.fit_targets = [x for x in self.fit_targets if x != targ]
+        if (targ not in self.fit_targets) and val == True:
+            if targ == 'deaths':
+                self.fit_targets.append(targ)
+            elif targ == 'confirmed':
+                self.fit_targets.insert(0,targ)
+        # print('on target change',targ,val,self.fit_targets)
+
     def makeslbox(self,modify_cur):
         #################################
         ## set up widgets
@@ -1448,12 +1464,18 @@ class SliderFit(ModelFit):
         #print('sliderdict',self.slidedict.keys())
         self.slidedict.update({'param_class':fixed(self.param_class)})
         if not modify_cur:
+            check_layout = Layout(width='240px', height='12px')
+            style = {'description_width': 'initial'}
             self.fit_button = widgets.Button(description="Fit from current params",layout=widgets.Layout(border='solid 1px'))
             self.iter_text = widgets.IntText(value=0,description='iter',disabled=False,layout=Layout(width='150px'))
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
             self.tol_widget = widgets.FloatText(value=0.,description='tol',disabled=False)
+            self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
+            self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
+            self.target_deaths_widget.observe(self.on_target_change,names='value')
+            self.target_confirmed_widget.observe(self.on_target_change,names='value')
         fit_output_text = 'Fit output will be displayed here.'
         if modify_cur:
             self.fit_display_widget.value = fit_output_text
@@ -1482,7 +1504,7 @@ class SliderFit(ModelFit):
 
         if modify_cur:
             self.slbox.close()
-        self.slbox=HBox([VBox([self.scale_widget,self.slfitplot]),self.sliderbox,self.fitbox])
+        self.slbox=HBox([VBox([HBox([self.scale_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget])]),self.slfitplot]),self.sliderbox,self.fitbox])
         if modify_cur:
             display(self.slbox)
 
@@ -1502,11 +1524,12 @@ class SliderFit(ModelFit):
                 self.fit_display_widget.value = "Processing fit, please wait ..." #jsm
                 #print("just before fit")
                 if self.tol_widget.value > 0:
-                    #fit_kws = {'options':{'tol':self.tol_widget.value}}
-                    fit_kws = {'ftol':self.tol_widget.value}
+                    if self.fittypes_widget.value == 'leastsq': # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html
+                        #fit_kws = {'options':{'tol':self.tol_widget.value}}
+                        fit_kws = {'ftol':self.tol_widget.value}
                 else:
                     fit_kws = {}
-                self.fit(fit_kws=fit_kws)
+                self.fit(fit_targets=self.fit_targets,fit_kws=fit_kws)
                 #print("just after fit")
                 self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
             finally:
