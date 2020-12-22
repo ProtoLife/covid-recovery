@@ -1453,6 +1453,7 @@ class SliderFit(ModelFit):
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
+            self.tol_widget = widgets.FloatText(value=0.,description='tol',disabled=False)
         fit_output_text = 'Fit output will be displayed here.'
         if modify_cur:
             self.fit_display_widget.value = fit_output_text
@@ -1476,7 +1477,7 @@ class SliderFit(ModelFit):
                      layout = widgets.Layout(height='400px',width='520px'))
         self.checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='400px',width='280px'))
-        self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget]), 
+        self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget,self.tol_widget]), 
                           HBox([VBox([Label('Adjustable params:'),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
 
         if modify_cur:
@@ -1500,7 +1501,12 @@ class SliderFit(ModelFit):
                 ## do the fit
                 self.fit_display_widget.value = "Processing fit, please wait ..." #jsm
                 #print("just before fit")
-                self.fit()
+                if self.tol_widget.value > 0:
+                    #fit_kws = {'options':{'tol':self.tol_widget.value}}
+                    fit_kws = {'ftol':self.tol_widget.value}
+                else:
+                    fit_kws = {}
+                self.fit(fit_kws=fit_kws)
                 #print("just after fit")
                 self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
             finally:
@@ -1639,12 +1645,12 @@ class SliderFit(ModelFit):
                     # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
                     self.slidedict[p].observe(self.on_slider_param_change,names='value') # restore observe for plot
 
-    def fit(self,**kwargs):
+    def fit(self,fit_kws={},**kwargs):
         # print('entering fit')
         # self.checkparams
         self.transfer_cur_to_params_init()
         # eprint(self.params_init_min_max)
-        super().fit(self.params_init_min_max,self.checkdict,**kwargs)
+        super().fit(self.params_init_min_max,self.checkdict,fit_kws=fit_kws,**kwargs)
         #eprint('self',self,'base params',self.baseparams)
         #eprint('sbparams',self.sbparams)
         # print('params',self.params)
