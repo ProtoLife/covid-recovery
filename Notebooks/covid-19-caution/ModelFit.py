@@ -1043,6 +1043,17 @@ class ModelFit:
             """
             return np.sqrt(np.sum(np.square(diffs))) # corrected to produce scalar as required
 
+        def med_thresh(diffs):
+            med = np.median(diffs)
+            dd = [min(d,med) for d in diffs]
+            return np.sqrt(np.sum(np.square(dd)))
+
+        def med_hard(diffs):
+            med = np.median(diffs)
+            dd = [0 if d < med else 1 for d in diffs]
+            return np.sqrt(np.sum(np.square(dd)))
+            
+
         ## do the fit -------------------------------------------------------------------------------------------------------
         try:
             if diag:
@@ -1065,7 +1076,8 @@ class ModelFit:
 
                     # self.paramall.append(params.copy())
                 fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
-                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)
+                # To use custom reduce_fcn, comment out line above, use line below.  Don't forget to not use fit method = leastsq.
+                #fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=med_hard,**fit_kws)
 
                 print('elapsed time = ',time()-start)
                 self.checkparams(params_init_min_max)
@@ -1471,7 +1483,7 @@ class SliderFit(ModelFit):
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
-            self.tol_widget = widgets.FloatText(value=0.,description='tol',disabled=False)
+            self.tol_widget = widgets.FloatText(value=-7.,description='tol',disabled=False)
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
@@ -1523,10 +1535,14 @@ class SliderFit(ModelFit):
                 ## do the fit
                 self.fit_display_widget.value = "Processing fit, please wait ..." #jsm
                 #print("just before fit")
-                if self.tol_widget.value > 0:
-                    if self.fittypes_widget.value == 'leastsq': # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html
-                        #fit_kws = {'options':{'tol':self.tol_widget.value}}
-                        fit_kws = {'ftol':self.tol_widget.value}
+                if self.tol_widget.value !=-7:
+                    #fit_kws = {'options':{'tol':self.tol_widget.value}}
+                    val = self.tol_widget.value
+                    val = np.power(10.0,val)
+                    if self.fit_method=='leastsq':
+                        fit_kws = {'ftol':val}
+                    else:
+                        fit_kws = {'tol':val}
                 else:
                     fit_kws = {}
                 self.fit(fit_targets=self.fit_targets,fit_kws=fit_kws)
