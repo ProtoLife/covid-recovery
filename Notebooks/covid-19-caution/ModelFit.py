@@ -2,7 +2,8 @@ import lmfit
 import copy
 import os
 import io
-# import functools  # partial can be used to provide extra parameters to callbacks, currently commented out
+
+from functools import partial # partial can be used to provide extra parameters to callbacks (e.g. reduce_fcn for lmfit.minimize)
 from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
@@ -22,7 +23,7 @@ class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
     def __init__(self,modelname='SEIR',basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['confirmed','deaths'],
-                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
+                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='ode',
                  agestructure=1):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
@@ -870,9 +871,11 @@ class ModelFit:
             else:
                 weight = 1.
             rtn[ls] = {}
+            self.resid = {}
             rtn[ls]['data'] = weight*np.array(fitdata[ls])
             rtn[ls]['soln'] = weight*np.sum(self.soln[:,slices[ls]],axis=1) #  sum over all species in 'confirmed' or only one species for 'deaths'
             rtn[ls]['resid'] = rtn[ls]['soln']-rtn[ls]['data']
+            self.resid[ls] = rtn[ls]['resid'].copy()
         return rtn
 
     def solve4fitlog(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
@@ -1030,7 +1033,12 @@ class ModelFit:
                 modelfit.set_I0(parvals['logI_0'])    
 
             # try log(1+xxx) by using solve4fitlog
-            fittry = modelfit.solve4fitlog(species=modelfit.fit_targets,datasets=modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
+            if self.resid_scale_widget.value == 'linear':
+                fittry = modelfit.solve4fit(species=modelfit.fit_targets,datasets=modelfit.fit_data)
+            elif self.resid_scale_widget.value == 'log':
+                fittry = modelfit.solve4fitlog(species=modelfit.fit_targets,datasets=modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
+            else:
+                print('value of resid_scale must be linear or log, but is', self.resid_scale_widget.value)
             #rmsres2 = np.sqrt(np.sum(np.square(resd)))
             #print('resid: ',rmsres2)
             fitresid = np.concatenate([fittry[fit_target]['resid'] for fit_target in modelfit.fit_targets])
@@ -1044,15 +1052,45 @@ class ModelFit:
             return np.sqrt(np.sum(np.square(diffs))) # corrected to produce scalar as required
 
         def med_thresh(diffs):
-            med = np.median(diffs)
-            dd = [min(d,med) for d in diffs]
-            return np.sqrt(np.sum(np.square(dd)))
+            # NB diffs is a signed array
+            dabs = np.absolute(diffs)
+            dsgn = np.sign(diffs)
+            th = np.median(dabs)  # same as med = np.percentile(dabs,50)
+            dabs_th = np.minimum(dabs,th) 
+            d_th = dsgn * dabs_th
+            return np.sqrt(np.sum(np.square(d_th)))
 
-        def med_hard(diffs):
+        def quart_thresh(diffs):
+            # NB diffs is a signed array
+            dabs = np.absolute(diffs)
+            dsgn = np.sign(diffs)
+            th = np.percentile(dabs,25)
+            dabs_th = np.minimum(dabs,th) 
+            d_th = dsgn * dabs_th
+            return np.sqrt(np.sum(np.square(d_th)))
+
+        def percentile_thresh(diffs,percentile=100):
+            # NB diffs is a signed array
+            dabs = np.absolute(diffs)
+            dsgn = np.sign(diffs)
+            th = np.percentile(dabs,percentile)
+            dabs_th = np.minimum(dabs,th) 
+            d_th = dsgn * dabs_th
+            return np.sqrt(np.sum(np.square(d_th)))
+
+        def med_hard(diffs):    
+            dabs = np.absolute(diffs)
+            dsgn = np.sign(diffs)
+            med = np.median(dabs)
+            dabs_th = med * np.heaviside(dabs-med,1.0) 
+            d_th = dsgn * dabs_th
+            return np.sqrt(np.sum(np.square(d_th)))
+
+        def med_hard_binary(diffs):
+            # original routine, does not account for signed nature of diffs properly
             med = np.median(diffs)
             dd = [0 if d < med else 1 for d in diffs]
             return np.sqrt(np.sum(np.square(dd)))
-            
 
         ## do the fit -------------------------------------------------------------------------------------------------------
         try:
@@ -1073,11 +1111,22 @@ class ModelFit:
                     pars.pretty_print()
                     self.fit_display_widget.value = tmpstdout.getvalue()   #  fit_output_widget global.
                     sys.stdout = prev_stdout
-
                     # self.paramall.append(params.copy())
-                fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
-                # To use custom reduce_fcn, comment out line above, use line below.  Don't forget to not use fit method = leastsq.
-                #fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=med_hard,**fit_kws)
+
+                # To use custom reduce_fcn, comment out first line below and use one of 4 lines below it or block of 3 lines underneath.  Don't forget to not use fit method = leastsq.
+                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
+                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)          # lsq (same as above)
+                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=med_hard,**fit_kws)     # med_hard
+                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=med_thresh,**fit_kws)   # med_thresh
+                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=quart_thresh,**fit_kws) # quart_thresh
+
+                # custom reduce_fcn option using percentil obtained from widget
+                if fit_method == 'leastsq' or self.pc_thresh_widget.value == 100:    # non scalar routine or threshold not effective, don't use custom reduce_fcn
+                    fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
+                else:
+                    pc_thresh = partial(percentile_thresh, percentile=self.pc_thresh_widget.value)  # uses functools to emulate a single parameter function
+                    pc_thresh.__doc__ = 'Threshold residuals with absolute values > percentile in widget.'
+                    fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=pc_thresh,**fit_kws) # quart_thresh
 
                 print('elapsed time = ',time()-start)
                 self.checkparams(params_init_min_max)
@@ -1308,7 +1357,7 @@ class SliderFit(ModelFit):
         else:
             self.paramtypes_widget = paramtypes_widget
         if  runid_widget is None:
-            self.runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False)
+            self.runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False,layout={'width': 'max-content'})
         else:
             self.runid_widget = runid_widget
 
@@ -1483,11 +1532,13 @@ class SliderFit(ModelFit):
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
-            self.tol_widget = widgets.FloatText(value=-7.,description='tol',disabled=False)
+            self.tol_widget = widgets.BoundedIntText(value=-7,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
             self.target_confirmed_widget.observe(self.on_target_change,names='value')
+            self.pc_thresh_widget = widgets.BoundedIntText(value=100,min=0,max=100,step=5,description='pc_thresh',disabled=False,layout={'width': 'max-content'})
+            self.resid_scale_widget = widgets.Dropdown(options=['linear','log'],value='log',description='fit scale',layout={'width': 'max-content'})
         fit_output_text = 'Fit output will be displayed here.'
         if modify_cur:
             self.fit_display_widget.value = fit_output_text
@@ -1516,7 +1567,8 @@ class SliderFit(ModelFit):
 
         if modify_cur:
             self.slbox.close()
-        self.slbox=HBox([VBox([HBox([self.scale_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget])]),self.slfitplot]),self.sliderbox,self.fitbox])
+        self.slbox=HBox([VBox([HBox([self.scale_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget],layout={'min_height':'40px'})]),
+            HBox([self.resid_scale_widget,self.pc_thresh_widget]),self.slfitplot]),self.sliderbox,self.fitbox])
         if modify_cur:
             display(self.slbox)
 
@@ -1586,7 +1638,7 @@ class SliderFit(ModelFit):
             checkdict = self.checkdict            
         if slidedict == {}:
             slider_layout = Layout(width='400px', height='12px')
-            check_layout = Layout(width='240px', height='12px')
+            check_layout = Layout(width='max-content', height='12px')
             style = {'description_width': 'initial'}
             modelname=self.modelname
             # slidedict.update({'figsize':fixed((8,5))})
