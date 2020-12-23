@@ -920,7 +920,7 @@ class ModelFit:
             self.logresid[ls] = (lsdat-lfdat).copy() # reduces amount of information stored for efficiency
         return rtn
 
-    def fit(self,params_init_min_max,checkdict=None,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
+    def fit(self,params_init_min_max,checkdict=None,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,init_resid=False,fit_kws={}):
         """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
             from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
             to data specified in fit_data, with option of diagnosis output diag
@@ -930,7 +930,8 @@ class ModelFit:
 
         # 1. param_class
         param_class = self.param_class
-        print('fit: param_class = ',param_class)
+        if not init_resid:
+            print('fit: param_class = ',param_class)
         if param_class not in ['ode','base']:
             print('parameters must be either all in class ode or base currently, not',param_class) # logI_0 is in both classes
             return
@@ -1091,6 +1092,20 @@ class ModelFit:
             med = np.median(diffs)
             dd = [0 if d < med else 1 for d in diffs]
             return np.sqrt(np.sum(np.square(dd)))
+
+
+        if init_resid:
+            initfit = lmfit.Minimizer(resid, params_lmf,  fcn_args=(self,))
+            initfit.prepare_fit()
+            residual = resid(params_lmf, self)
+            pc = self.pc_thresh_widget.value
+            if pc == 100 or self.fittypes_widget.value == 'leastsq':
+                res = lsq(residual)
+            else:
+                res = percentile_thresh(residual,self.pc_thresh_widget.value) 
+            self.resid_text.value = res
+            # print('in init_resid',res)
+            return 
 
         ## do the fit -------------------------------------------------------------------------------------------------------
         try:
@@ -1468,6 +1483,7 @@ class SliderFit(ModelFit):
             self.setup_data(country,data_src);
             self.transfer_cur_to_plot();
 
+        self.fit(fit_targets=self.fit_targets,init_resid=True,fit_kws={})  # update residual in widget
         #if not MyModel is None:
         #    print('displaying with MyModel',MyModel)
         #    display(MyModel.slbox)
@@ -1484,6 +1500,8 @@ class SliderFit(ModelFit):
         val = change['new']   
         self.set_param(pm,float(val))
         self.transfer_cur_to_plot();
+        self.fit(fit_targets=self.fit_targets,init_resid=True,fit_kws={})
+        # print('changed slider param')
 
     def transfer_cur_to_plot(self):
         if self.param_class == 'ode':
@@ -1501,6 +1519,7 @@ class SliderFit(ModelFit):
             clear_output(wait=True)
             display(self.fig)
             #self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
+
 
     def on_scale_change(self,change):
         self.transfer_cur_to_plot();
@@ -1736,12 +1755,12 @@ class SliderFit(ModelFit):
                     # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
                     self.slidedict[p].observe(self.on_slider_param_change,names='value') # restore observe for plot
 
-    def fit(self,fit_kws={},**kwargs):
+    def fit(self,fit_kws={},init_resid=False,**kwargs):
         # print('entering fit')
         # self.checkparams
         self.transfer_cur_to_params_init()
         # eprint(self.params_init_min_max)
-        super().fit(self.params_init_min_max,self.checkdict,fit_kws=fit_kws,**kwargs)
+        super().fit(self.params_init_min_max,self.checkdict,init_resid=init_resid,fit_kws=fit_kws,**kwargs)
         #eprint('self',self,'base params',self.baseparams)
         #eprint('sbparams',self.sbparams)
         # print('params',self.params)
