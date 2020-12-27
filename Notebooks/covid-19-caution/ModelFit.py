@@ -1490,9 +1490,9 @@ class SliderFit(ModelFit):
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
-            self.tol_widget = widgets.FloatText(value=-7.,description='tol',disabled=False)
+            self.tol_widget = widgets.FloatText(value=-3.,description='tol',disabled=False)
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
-            self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
+            self.target_confirmed_widget = widgets.Checkbox(value=False,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
             self.target_confirmed_widget.observe(self.on_target_change,names='value')
         fit_output_text = 'Fit output will be displayed here.'
@@ -1566,7 +1566,7 @@ class SliderFit(ModelFit):
         ## hook up fittypes_widget...
         def update_fittype(*args):
             self.fit_method = self.fittypes_widget.value
-            do_the_fit(None)
+            # do_the_fit(None)
 
         self.fittypes_widget.observe(update_fittype,'value')
 
@@ -1610,7 +1610,7 @@ class SliderFit(ModelFit):
                                                         continuous_update=False,readout_format='.3f')})
                         #slidedict[pm].observe(functools.partial(self.on_slider_param_change,pm),names='value') # this might have been an alternative
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
-                        checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
+                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
                 checkdict.update({'all':Checkbox(value=False,description='all',disabled=False,layout=check_layout,style=style)})
                 checkdict['all'].observe(self.set_all_check,names='value')
             elif param_class == 'base':
@@ -1622,7 +1622,7 @@ class SliderFit(ModelFit):
                                                         layout=slider_layout,
                                                         continuous_update=False,readout_format='.3f')})
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
-                        checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
+                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
                 checkdict.update({'all':Checkbox(value=False,description='all',disabled=False,layout=check_layout,style=style)})
                 checkdict['all'].observe(self.set_all_check,names='value')
         else:
