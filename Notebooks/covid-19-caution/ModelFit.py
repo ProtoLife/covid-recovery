@@ -2,8 +2,7 @@ import lmfit
 import copy
 import os
 import io
-
-from functools import partial # partial can be used to provide extra parameters to callbacks (e.g. reduce_fcn for lmfit.minimize)
+# import functools  # partial can be used to provide extra parameters to callbacks, currently commented out
 from time import time
 from ipywidgets import widgets
 from ipywidgets.widgets import interact, interactive, interactive_output, fixed, Widget             
@@ -23,7 +22,7 @@ class ModelFit:
     """ We collect all information related to a fit between a pygom model and a set of data in this class
         It has access to the model structure and defines all required parameters and details of fit """
     def __init__(self,modelname='SEIR',basedata=None,model=None,country='',run_id='',datatypes='all',fit_targets=['confirmed','deaths'],
-                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='ode',
+                 data_src='owid',startdate=None,stopdate=None,simdays=None,new=True,fit_method='leastsq',param_class='base',
                  agestructure=1):
         """
         if run_id is '', self.run_id takes a default value of default_run_id = modelname+'_'+country
@@ -458,7 +457,14 @@ class ModelFit:
             self.initial_values[1] = t0
 
     def set_I0(self,logI_0):
-        self.sbparams['logI_0']=logI_0
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        # set all instances of logI_0 param in param lists:
+        for ptype in plist:
+            for p in ptype.keys():
+                if p == 'logI_0':
+                    ptype[p] = logI_0
+        # self.sbparams['logI_0']=logI_0
+        # transfer I0 value to model
         I0 = 10**logI_0
         self.model.initial_values[0][0] = 1.0 - I0
         self.model.initial_values[0][self.model.I_1] = I0    # use model specific position of initial infective compartment
@@ -871,11 +877,9 @@ class ModelFit:
             else:
                 weight = 1.
             rtn[ls] = {}
-            self.resid = {}
             rtn[ls]['data'] = weight*np.array(fitdata[ls])
             rtn[ls]['soln'] = weight*np.sum(self.soln[:,slices[ls]],axis=1) #  sum over all species in 'confirmed' or only one species for 'deaths'
             rtn[ls]['resid'] = rtn[ls]['soln']-rtn[ls]['data']
-            self.resid[ls] = rtn[ls]['resid'].copy()
         return rtn
 
     def solve4fitlog(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
@@ -920,7 +924,7 @@ class ModelFit:
             self.logresid[ls] = (lsdat-lfdat).copy() # reduces amount of information stored for efficiency
         return rtn
 
-    def fit(self,params_init_min_max,checkdict=None,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,init_resid=False,fit_kws={}):
+    def fit(self,params_init_min_max,checkdict=None,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
         """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
             from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
             to data specified in fit_data, with option of diagnosis output diag
@@ -930,8 +934,7 @@ class ModelFit:
 
         # 1. param_class
         param_class = self.param_class
-        if not init_resid:
-            print('fit: param_class = ',param_class)
+        print('fit: param_class = ',param_class)
         if param_class not in ['ode','base']:
             print('parameters must be either all in class ode or base currently, not',param_class) # logI_0 is in both classes
             return
@@ -1034,12 +1037,7 @@ class ModelFit:
                 modelfit.set_I0(parvals['logI_0'])    
 
             # try log(1+xxx) by using solve4fitlog
-            if self.resid_scale_widget.value == 'linear':
-                fittry = modelfit.solve4fit(species=modelfit.fit_targets,datasets=modelfit.fit_data)
-            elif self.resid_scale_widget.value == 'log':
-                fittry = modelfit.solve4fitlog(species=modelfit.fit_targets,datasets=modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
-            else:
-                print('value of resid_scale must be linear or log, but is', self.resid_scale_widget.value)
+            fittry = modelfit.solve4fitlog(species=modelfit.fit_targets,datasets=modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
             #rmsres2 = np.sqrt(np.sum(np.square(resd)))
             #print('resid: ',rmsres2)
             fitresid = np.concatenate([fittry[fit_target]['resid'] for fit_target in modelfit.fit_targets])
@@ -1053,59 +1051,15 @@ class ModelFit:
             return np.sqrt(np.sum(np.square(diffs))) # corrected to produce scalar as required
 
         def med_thresh(diffs):
-            # NB diffs is a signed array
-            dabs = np.absolute(diffs)
-            dsgn = np.sign(diffs)
-            th = np.median(dabs)  # same as med = np.percentile(dabs,50)
-            dabs_th = np.minimum(dabs,th) 
-            d_th = dsgn * dabs_th
-            return np.sqrt(np.sum(np.square(d_th)))
+            med = np.median(diffs)
+            dd = [min(d,med) for d in diffs]
+            return np.sqrt(np.sum(np.square(dd)))
 
-        def quart_thresh(diffs):
-            # NB diffs is a signed array
-            dabs = np.absolute(diffs)
-            dsgn = np.sign(diffs)
-            th = np.percentile(dabs,25)
-            dabs_th = np.minimum(dabs,th) 
-            d_th = dsgn * dabs_th
-            return np.sqrt(np.sum(np.square(d_th)))
-
-        def percentile_thresh(diffs,percentile=100):
-            # NB diffs is a signed array
-            dabs = np.absolute(diffs)
-            dsgn = np.sign(diffs)
-            th = np.percentile(dabs,percentile)
-            dabs_th = np.minimum(dabs,th) 
-            d_th = dsgn * dabs_th
-            return np.sqrt(np.sum(np.square(d_th)))
-
-        def med_hard(diffs):    
-            dabs = np.absolute(diffs)
-            dsgn = np.sign(diffs)
-            med = np.median(dabs)
-            dabs_th = med * np.heaviside(dabs-med,1.0) 
-            d_th = dsgn * dabs_th
-            return np.sqrt(np.sum(np.square(d_th)))
-
-        def med_hard_binary(diffs):
-            # original routine, does not account for signed nature of diffs properly
+        def med_hard(diffs):
             med = np.median(diffs)
             dd = [0 if d < med else 1 for d in diffs]
             return np.sqrt(np.sum(np.square(dd)))
-
-
-        if init_resid:
-            initfit = lmfit.Minimizer(resid, params_lmf,  fcn_args=(self,))
-            initfit.prepare_fit()
-            residual = resid(params_lmf, self)
-            pc = self.pc_thresh_widget.value
-            if pc == 100 or self.fittypes_widget.value == 'leastsq':
-                res = lsq(residual)
-            else:
-                res = percentile_thresh(residual,self.pc_thresh_widget.value) 
-            self.resid_text.value = res
-            # print('in init_resid',res)
-            return 
+            
 
         ## do the fit -------------------------------------------------------------------------------------------------------
         try:
@@ -1126,22 +1080,11 @@ class ModelFit:
                     pars.pretty_print()
                     self.fit_display_widget.value = tmpstdout.getvalue()   #  fit_output_widget global.
                     sys.stdout = prev_stdout
+
                     # self.paramall.append(params.copy())
-
-                # To use custom reduce_fcn, comment out first line below and use one of 4 lines below it or block of 3 lines underneath.  Don't forget to not use fit method = leastsq.
-                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
-                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=lsq,**fit_kws)          # lsq (same as above)
-                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=med_hard,**fit_kws)     # med_hard
-                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=med_thresh,**fit_kws)   # med_thresh
-                # fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=quart_thresh,**fit_kws) # quart_thresh
-
-                # custom reduce_fcn option using percentil obtained from widget
-                if fit_method == 'leastsq' or self.pc_thresh_widget.value == 100:    # non scalar routine or threshold not effective, don't use custom reduce_fcn
-                    fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
-                else:
-                    pc_thresh = partial(percentile_thresh, percentile=self.pc_thresh_widget.value)  # uses functools to emulate a single parameter function
-                    pc_thresh.__doc__ = 'Threshold residuals with absolute values > percentile in widget.'
-                    fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=pc_thresh,**fit_kws) # quart_thresh
+                fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
+                # To use custom reduce_fcn, comment out line above, use line below.  Don't forget to not use fit method = leastsq.
+                #fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,reduce_fcn=med_hard,**fit_kws)
 
                 print('elapsed time = ',time()-start)
                 self.checkparams(params_init_min_max)
@@ -1372,7 +1315,7 @@ class SliderFit(ModelFit):
         else:
             self.paramtypes_widget = paramtypes_widget
         if  runid_widget is None:
-            self.runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False,layout={'width': 'max-content'})
+            self.runid_widget = Text(value='First up',placeholder='Enter run id',description='Run_id:',disabled=False)
         else:
             self.runid_widget = runid_widget
 
@@ -1483,7 +1426,6 @@ class SliderFit(ModelFit):
             self.setup_data(country,data_src);
             self.transfer_cur_to_plot();
 
-        self.fit(fit_targets=self.fit_targets,init_resid=True,fit_kws={})  # update residual in widget
         #if not MyModel is None:
         #    print('displaying with MyModel',MyModel)
         #    display(MyModel.slbox)
@@ -1500,8 +1442,6 @@ class SliderFit(ModelFit):
         val = change['new']   
         self.set_param(pm,float(val))
         self.transfer_cur_to_plot();
-        self.fit(fit_targets=self.fit_targets,init_resid=True,fit_kws={})
-        # print('changed slider param')
 
     def transfer_cur_to_plot(self):
         if self.param_class == 'ode':
@@ -1519,7 +1459,6 @@ class SliderFit(ModelFit):
             clear_output(wait=True)
             display(self.fig)
             #self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
-
 
     def on_scale_change(self,change):
         self.transfer_cur_to_plot();
@@ -1551,13 +1490,11 @@ class SliderFit(ModelFit):
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
-            self.tol_widget = widgets.BoundedIntText(value=-7,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
+            self.tol_widget = widgets.FloatText(value=-7.,description='tol',disabled=False)
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
             self.target_confirmed_widget.observe(self.on_target_change,names='value')
-            self.pc_thresh_widget = widgets.BoundedIntText(value=100,min=0,max=100,step=5,description='pc_thresh',disabled=False,layout={'width': 'max-content'})
-            self.resid_scale_widget = widgets.Dropdown(options=['linear','log'],value='log',description='fit scale',layout={'width': 'max-content'})
         fit_output_text = 'Fit output will be displayed here.'
         if modify_cur:
             self.fit_display_widget.value = fit_output_text
@@ -1586,8 +1523,7 @@ class SliderFit(ModelFit):
 
         if modify_cur:
             self.slbox.close()
-        self.slbox=HBox([VBox([HBox([self.scale_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget],layout={'min_height':'40px'})]),
-            HBox([self.resid_scale_widget,self.pc_thresh_widget]),self.slfitplot]),self.sliderbox,self.fitbox])
+        self.slbox=HBox([VBox([HBox([self.scale_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget])]),self.slfitplot]),self.sliderbox,self.fitbox])
         if modify_cur:
             display(self.slbox)
 
@@ -1616,6 +1552,8 @@ class SliderFit(ModelFit):
                         fit_kws = {'tol':val}
                 else:
                     fit_kws = {}
+                #####################################
+                ## fit here
                 self.fit(fit_targets=self.fit_targets,fit_kws=fit_kws)
                 #print("just after fit")
                 self.fit_display_widget.value = mystdout.getvalue()   #  fit_output_widget global.
@@ -1657,7 +1595,7 @@ class SliderFit(ModelFit):
             checkdict = self.checkdict            
         if slidedict == {}:
             slider_layout = Layout(width='400px', height='12px')
-            check_layout = Layout(width='max-content', height='12px')
+            check_layout = Layout(width='240px', height='12px')
             style = {'description_width': 'initial'}
             modelname=self.modelname
             # slidedict.update({'figsize':fixed((8,5))})
@@ -1732,7 +1670,6 @@ class SliderFit(ModelFit):
             for p in ptype.keys():
                 if p in self.slidedict.keys():
                     # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
-
                     self.slidedict[p].value = ptype[p]
         self.reobserve_sliders()
 
@@ -1755,12 +1692,12 @@ class SliderFit(ModelFit):
                     # eprint('transferring ',p,'value was',self.slidedict[p].value,'value is',ptype[p])
                     self.slidedict[p].observe(self.on_slider_param_change,names='value') # restore observe for plot
 
-    def fit(self,fit_kws={},init_resid=False,**kwargs):
+    def fit(self,fit_kws={},**kwargs):
         # print('entering fit')
         # self.checkparams
         self.transfer_cur_to_params_init()
         # eprint(self.params_init_min_max)
-        super().fit(self.params_init_min_max,self.checkdict,init_resid=init_resid,fit_kws=fit_kws,**kwargs)
+        super().fit(self.params_init_min_max,self.checkdict,fit_kws=fit_kws,**kwargs)
         #eprint('self',self,'base params',self.baseparams)
         #eprint('sbparams',self.sbparams)
         # print('params',self.params)
@@ -1768,7 +1705,7 @@ class SliderFit(ModelFit):
         # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
         self.transfer_cur_to_params_init()
         self.transfer_cur_to_sliders() # does not redraw plot
-        self.transfer_cur_to_plot();   # does redraw plot
+        self.transfer_cur_to_plot();   # does redraw plot, puts in self.fig
 
         #eprint('after transfer')
         
