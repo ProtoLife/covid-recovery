@@ -64,7 +64,6 @@ class ModelFit:
         self.simdays = simdays
         self.datatypes = datatypes
         self.fit_targets = fit_targets
-
         dirnm = os.getcwd()
         # construct default name for file / run_id
         if country != '':
@@ -924,13 +923,20 @@ class ModelFit:
             self.logresid[ls] = (lsdat-lfdat).copy() # reduces amount of information stored for efficiency
         return rtn
 
+    def per_iteration(self, pars, iteration, resid, *args, **kws): # for diag per iteration data collection
+        rmsres2 = np.sqrt(np.sum(np.square(resid)))
+        self.residall.append((iteration,rmsres2))
+        self.paramall.append((iteration,pars))  
+
+
     def fit(self,params_init_min_max,checkdict=None,fit_targets='default',fit_data='default',diag=True,report=True,conf_interval=False,fit_kws={}):
         """ fits parameters described in params_init_min_max, format 3 or 4-tuple (val,min,max,step)
             from class 'ode' or 'base', using method fit_method, and fit target quantitites fit_targets
             to data specified in fit_data, with option of diagnosis output diag
         """
         fit_method = self.fit_method
-        # process input parameters ------------------------------------------------------------------------------------------
+        ################################################################################
+        # process input parameters
 
         # 1. param_class
         param_class = self.param_class
@@ -997,7 +1003,8 @@ class ModelFit:
                 print('or dictionary with each entry as tuple (initial_value,min,max,step).')
                 return
 
-        # prepare parameters for lmfit ------------------------------------------------------------------------------------
+        ################################################################################
+        # prepare parameters for lmfit
         params_lmf = lmfit.Parameters()
         some_parameters_to_fit = False
         for pp in params_init_min_max:
@@ -1016,7 +1023,8 @@ class ModelFit:
         if 'logI_0' in params_lmf: # set other ad hoc params in both sets like this
                 self.set_I0(params_lmf['logI_0'].value) 
 
-        ## modify resid here for other optimizations -----------------------------------------------------------------------
+        ################################################################################
+        ## modify resid here for other optimizations
         def resid(pars,*args):
             # print('------------------------------- new resid call ------------------------------------')
             if args:
@@ -1060,27 +1068,14 @@ class ModelFit:
             dd = [0 if d < med else 1 for d in diffs]
             return np.sqrt(np.sum(np.square(dd)))
             
-
-        ## do the fit -------------------------------------------------------------------------------------------------------
+        ################################################################################
+        ## do the fit 
         try:
             if diag:
                 start = time()
                 self.residall = []
                 self.paramall = []
-                def per_iteration(pars, iteration, resid, *args, **kws):
-                    rmsres2 = np.sqrt(np.sum(np.square(resid)))
-                    self.residall.append((iteration,rmsres2))
-                    self.paramall.append((iteration,pars))  
-                    if isinstance(self.iter_text,widgets.Widget):
-                        self.iter_text.value = iteration
-                        self.resid_text.value = rmsres2
-                    prev_stdout = sys.stdout
-                    sys.stdout = tmpstdout = io.StringIO()
-                    print('Iteration:',iteration)
-                    pars.pretty_print()
-                    self.fit_display_widget.value = tmpstdout.getvalue()   #  fit_output_widget global.
-                    sys.stdout = prev_stdout
-
+                per_iteration = self.per_iteration
                     # self.paramall.append(params.copy())
                 fit_output = lmfit.minimize(resid, params_lmf, method=fit_method,args=(self,),iter_cb=per_iteration,**fit_kws)
                 # To use custom reduce_fcn, comment out line above, use line below.  Don't forget to not use fit method = leastsq.
@@ -1113,7 +1108,8 @@ class ModelFit:
             print('Problem with fit...')
             print(e)
 
-        ## set model params to fitted values, dump to file --------------------------------------------------------------------
+        ################################################################################
+        ## set model params to fitted values, dump to file 
         if 'fit_output' in locals():
             for x in fit_output.params:
                 if x in self.params:
@@ -1145,42 +1141,6 @@ class ModelFit:
             print('Problem with fit, model params not changed')
 
 
-
-    def slidefitplot(self,figsize = (15,15),**myparams):
-        """
-        perform plot of confirmed cases and deaths with current values of slider parameters
-        stored in teh dictionary myparams
-        note currently deaths are here magnified by x10
-        """
-        country = myparams['country']
-        data_src = myparams['data_src']
-        if self.country != country or self.data_src != data_src:
-            self.country = country
-            self.data_src = data_src
-            self.setup_data(country,data_src)
-
-        param_class = self.param_class
-        for pm in myparams:
-            if (pm is 'param_class') or (pm is 'figsize') or (pm is 'country') or (pm is 'data_src'):
-                continue
-            if pm is 'logI_0':
-                self.set_I0(myparams[pm])
-            else:
-                if param_class == 'ode':
-                    if pm not in self.params:
-                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
-                        return
-                    else:
-                        self.set_param(pm,myparams[pm])
-                elif param_class == 'base':
-                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
-                        print('Error:  this',self.modelname,'does not have base parameter',pm)
-                        return
-                    else:
-                        self.set_base_param(pm,myparams[pm])
-                # print('new parameters',self.model.parameters)
-        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},scale =self.scale_widget.value,
-                       datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
 
 
 class Scan(ModelFit):
@@ -1363,6 +1323,27 @@ class SliderFit(ModelFit):
 #        if not modify_cur:
         self.makeslbox(modify_cur)
 
+    def per_iteration(self, pars, iteration, resid, *args, **kws):
+        rmsres2 = np.sqrt(np.sum(np.square(resid)))
+        self.residall.append((iteration,rmsres2))
+        self.paramall.append((iteration,pars))  
+        ## SliderFit: for output to widgets
+        if hasattr(self,'iter_text'):
+            if isinstance(self.iter_text,widgets.Widget):
+                self.iter_text.value = iteration
+        if hasattr(self,'resid_text'):
+            if isinstance(self.resid_text,widgets.Widget):
+                self.resid_text.value = rmsres2
+        if hasattr(self,'fit_display_widget'):
+            try:
+                prev_stdout = sys.stdout
+                sys.stdout = tmpstdout = io.StringIO()
+                print('Iteration:',iteration)
+                pars.pretty_print()
+                self.fit_display_widget.value = tmpstdout.getvalue()   #  fit_output_widget global.
+            finally:
+                sys.stdout = prev_stdout
+
     def on_param_change(self,change):
         """
         modelnames_widget = Dropdown(options=possmodels,description='model',layout={'width': 'max-content'},value=chosen_model)
@@ -1474,6 +1455,42 @@ class SliderFit(ModelFit):
             elif targ == 'confirmed':
                 self.fit_targets.insert(0,targ)
         # print('on target change',targ,val,self.fit_targets)
+
+    def slidefitplot(self,figsize = (15,15),**myparams):
+        """
+        perform plot of confirmed cases and deaths with current values of slider parameters
+        stored in teh dictionary myparams
+        note currently deaths are here magnified by x10
+        """
+        country = myparams['country']
+        data_src = myparams['data_src']
+        if self.country != country or self.data_src != data_src:
+            self.country = country
+            self.data_src = data_src
+            self.setup_data(country,data_src)
+
+        param_class = self.param_class
+        for pm in myparams:
+            if (pm is 'param_class') or (pm is 'figsize') or (pm is 'country') or (pm is 'data_src'):
+                continue
+            if pm is 'logI_0':
+                self.set_I0(myparams[pm])
+            else:
+                if param_class == 'ode':
+                    if pm not in self.params:
+                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
+                        return
+                    else:
+                        self.set_param(pm,myparams[pm])
+                elif param_class == 'base':
+                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
+                        print('Error:  this',self.modelname,'does not have base parameter',pm)
+                        return
+                    else:
+                        self.set_base_param(pm,myparams[pm])
+                # print('new parameters',self.model.parameters)
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},scale =self.scale_widget.value,
+                       datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
 
     def makeslbox(self,modify_cur):
         #################################
