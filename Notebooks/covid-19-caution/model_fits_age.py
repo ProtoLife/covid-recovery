@@ -179,19 +179,32 @@ def make_model(mod_name,age_structure=None):
             rtn['param_list'] = param_list
             rtn['model'] = model
             return rtn
-        else:
-            state = ['S', 'I', 'R', 'D']
-            param_list = ['beta', 'gamma','mu','N']
-            transition = [
-                Transition(origin='S', destination='I', equation='beta*I*S',
-                           transition_type=TransitionType.T),
-                Transition(origin='I', destination='R', equation='gamma*I',
-                           transition_type=TransitionType.T),
-                Transition(origin='I', destination='D', equation='mu*I',
-                           transition_type=TransitionType.T)    
-            ]
-
-            model = DeterministicOde(state, param_list, transition=transition)
+        else: 
+            seasonal = False           
+            if seasonal:               # implement time-dependent beta via dervied parameter, using TransitionType.ODE ... code still needs supporting superstructure
+                pi = 3.14159
+                param_list = ['beta', 'gamma','mu','N','beta_p']    # new parameter beta_p as seasonal variation amplitude of beta - also need phase - for this need year-registered time
+                state = ['S', 'I', 'R', 'D', 'tau']
+                derived_param = [('betaT', 'beta*(1+betap*sin(2*pi*tau/365.)')]  
+                transition = [
+                    Transition(origin='S', equation='-betaT*I*S',transition_type=TransitionType.ODE),
+                    Transition(origin='I', equation='betaT*I*S-gamma*I-mu*I',transition_type=TransitionType.ODE),
+                    Transition(origin='tau',equation='1',transition_type=TransitionType.ODE)
+                ]   
+                model = DeterministicOde(state, param_list, derived_param=derived_param, transition=transition)
+                model.tau=slice(4,5)
+            else:
+                param_list = ['beta', 'gamma','mu','N']
+                state = ['S', 'I', 'R', 'D']
+                transition = [
+                    Transition(origin='S', destination='I', equation='beta*I*S',
+                               transition_type=TransitionType.T),
+                    Transition(origin='I', destination='R', equation='gamma*I',
+                               transition_type=TransitionType.T),
+                    Transition(origin='I', destination='D', equation='mu*I',
+                               transition_type=TransitionType.T)    
+                ]
+                model = DeterministicOde(state, param_list, transition=transition)
             model.modelname='SIR'
             model.ei=1
             model.confirmed=slice(1,4)  # cases 1-3 i.e. I, R and D
