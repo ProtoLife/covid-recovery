@@ -180,12 +180,14 @@ def make_model(mod_name,age_structure=None):
             rtn['model'] = model
             return rtn
         else: 
-            seasonal = False           
-            if seasonal:               # implement time-dependent beta via dervied parameter, using TransitionType.ODE ... code still needs supporting superstructure
+            seasonal = False           # ... code still needs supporting superstructure  
+                                       # ... also still need year-registered time and/or phase parameter      
+            if seasonal:               # implement time-dependent beta via derived parameter, using TransitionType.ODE
                 pi = 3.14159
-                param_list = ['beta', 'gamma','mu','N','beta_p']    # new parameter beta_p as seasonal variation amplitude of beta - also need phase - for this need year-registered time
+                beta_p
+                param_list = ['beta', 'gamma','mu','N','beta_p']    # new parameter beta_p as seasonal variation amplitude of beta 
                 state = ['S', 'I', 'R', 'D', 'tau']
-                derived_param = [('betaT', 'beta*(1+betap*sin(2*pi*tau/365.)')]  
+                derived_param = [('betaT', 'beta*(1+beta_p*sin(2*pi*tau/365.)')]  
                 transition = [
                     Transition(origin='S', equation='-betaT*I*S',transition_type=TransitionType.ODE),
                     Transition(origin='I', equation='betaT*I*S-gamma*I-mu*I',transition_type=TransitionType.ODE),
