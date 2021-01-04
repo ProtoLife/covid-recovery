@@ -565,6 +565,27 @@ class ModelFit:
             seasonal_variation = [1.+seasonal_amplitude*np.cos(2.*pi*(j*step+start_days_after_max)/365.) for j in range(int(365./step))] # monthly, starting in Jan, currently no latititude dependence  
             return seasonal_variation
 
+     def seasonal_odeint(self, step, season_var)
+            tvec = self.tsim
+            model = self.model    
+            tvec_part = np.array(range(step))
+            self.soln = np.zeros(length(self.tsim))
+            final_day_mod_step = self.tsim[-1] % step
+            ivals = model.initial_values[0]
+            for j in range(0,365,step):
+                if j+step>365:
+                    final_day_mod_step = self.tsim[-1] % step
+                else:
+                    final_day_mod_step = step-1
+                tvecp = tvec_part[1::final_day_mod_step+1]
+                self.soln[j*step:j*step+final_day_mod_step+1] = scipy.integrate.odeint(model.ode, model.initial_values[0], tvecp) 
+                if j+step<365:
+                     model.initial_values[0] = self.soln[j*step+final_day_mod_step]
+                     if 'I3' in model.name:
+                        model.parameters['beta_1'] = season_var[int(j/step)]
+                     else:
+                        model.parameters['beta'] = season_var[int(j/step)]
+            model.initial_values[0] = ivals
 
     def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axis=None,
                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None,
@@ -640,24 +661,7 @@ class ModelFit:
         if seasons:  # stepwise integration with new parameter 'beta_1' on  each segment
             step = 30
             season_var = seasonal(0.1, 0, 22, step=step)
-            tvec_part = np.array(range(step))
-            self.soln = np.zeros(length(self.tsim))
-            final_day_mod_step = self.tsim[-1] % step
-            ivals = model.initial_values[0]
-            for j in range(0,365,step):
-                if j+step>365:
-                    final_day_mod_step = self.tsim[-1] % step
-                else:
-                    final_day_mod_step = step-1
-                tvecp = tvec_part[1::final_day_mod_step+1]
-                self.soln[j*step:j*step+final_day_mod_step+1] = scipy.integrate.odeint(model.ode, model.initial_values[0], tvecp) 
-                if j+step<365:
-                     model.initial_values[0] = self.soln[j*step+final_day_mod_step]
-                     if 'I3' in model.name:
-                        model.parameters['beta_1'] = season_var[int(j/step)]
-                     else:
-                        model.parameters['beta'] = season_var[int(j/step)]
-            model.initial_values[0] = ivals
+            self.seasonal_odeint( step , season_var)
         else:
             self.soln = scipy.integrate.odeint(model.ode, model.initial_values[0], tvec[1::])
         # print('debug, calling scipy integrate on self.model with IC', model.initial_values[0])
