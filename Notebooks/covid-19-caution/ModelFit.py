@@ -458,7 +458,14 @@ class ModelFit:
             self.initial_values[1] = t0
 
     def set_I0(self,logI_0):
-        self.sbparams['logI_0']=logI_0
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        # set all instances of logI_0 param in param lists:
+        for ptype in plist:
+            for p in ptype.keys():
+                if p == 'logI_0':
+                    ptype[p] = logI_0
+        # self.sbparams['logI_0']=logI_0
+        # transfer I0 value to model
         I0 = 10**logI_0
         self.model.initial_values[0][0] = 1.0 - I0
         self.model.initial_values[0][self.model.I_1] = I0    # use model specific position of initial infective compartment
@@ -1201,45 +1208,6 @@ class ModelFit:
         else:
             print('Problem with fit, model params not changed')
 
-
-
-    def slidefitplot(self,figsize = (15,15),**myparams):
-        """
-        perform plot of confirmed cases and deaths with current values of slider parameters
-        stored in teh dictionary myparams
-        note currently deaths are here magnified by x10
-        """
-        country = myparams['country']
-        data_src = myparams['data_src']
-        if self.country != country or self.data_src != data_src:
-            self.country = country
-            self.data_src = data_src
-            self.setup_data(country,data_src)
-
-        param_class = self.param_class
-        for pm in myparams:
-            if (pm is 'param_class') or (pm is 'figsize') or (pm is 'country') or (pm is 'data_src'):
-                continue
-            if pm is 'logI_0':
-                self.set_I0(myparams[pm])
-            else:
-                if param_class == 'ode':
-                    if pm not in self.params:
-                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
-                        return
-                    else:
-                        self.set_param(pm,myparams[pm])
-                elif param_class == 'base':
-                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
-                        print('Error:  this',self.modelname,'does not have base parameter',pm)
-                        return
-                    else:
-                        self.set_base_param(pm,myparams[pm])
-                # print('new parameters',self.model.parameters)
-        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},scale =self.scale_widget.value,
-                       datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
-
-
 class Scan(ModelFit):
     def __init__(self,*,countries,scanplot=True,params_init_min_max,**kwargs):
         super().__init__(**kwargs)
@@ -1536,6 +1504,43 @@ class SliderFit(ModelFit):
                 self.fit_targets.insert(0,targ)
         # print('on target change',targ,val,self.fit_targets)
 
+    def slidefitplot(self,figsize = (15,15),**myparams):
+        """
+        perform plot of confirmed cases and deaths with current values of slider parameters
+        stored in teh dictionary myparams
+        note currently deaths are here magnified by x10
+        """
+        country = myparams['country']
+        data_src = myparams['data_src']
+        if self.country != country or self.data_src != data_src:
+            self.country = country
+            self.data_src = data_src
+            self.setup_data(country,data_src)
+
+        param_class = self.param_class
+        for pm in myparams:
+            if (pm is 'param_class') or (pm is 'figsize') or (pm is 'country') or (pm is 'data_src'):
+                continue
+            if pm is 'logI_0':
+                self.set_I0(myparams[pm])
+            else:
+                if param_class == 'ode':
+                    if pm not in self.params:
+                        print('Error:  this',self.modelname,'does not have ode parameter',pm)
+                        return
+                    else:
+                        self.set_param(pm,myparams[pm])
+                elif param_class == 'base':
+                    if pm not in list(self.sbparams) + list(self.cbparams) + list(self.fbparams):
+                        print('Error:  this',self.modelname,'does not have base parameter',pm)
+                        return
+                    else:
+                        self.set_base_param(pm,myparams[pm])
+                # print('new parameters',self.model.parameters)
+        self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},scale =self.scale_widget.value,
+                       datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
+
+
     def makeslbox(self,modify_cur):
         #################################
         ## set up widgets
@@ -1551,7 +1556,7 @@ class SliderFit(ModelFit):
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
-            self.tol_widget = widgets.BoundedIntText(value=-7,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
+            self.tol_widget = widgets.BoundedIntText(value=-3,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
@@ -1586,8 +1591,8 @@ class SliderFit(ModelFit):
 
         if modify_cur:
             self.slbox.close()
-        self.slbox=HBox([VBox([HBox([self.scale_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget],layout={'min_height':'40px'})]),
-            HBox([self.resid_scale_widget,self.pc_thresh_widget]),self.slfitplot]),self.sliderbox,self.fitbox])
+        self.slbox=HBox([VBox([HBox([self.scale_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget],layout={'min_height':'60px'})]),
+            HBox([self.resid_scale_widget,self.pc_thresh_widget],layout={'min_height':'40px'}),self.slfitplot]),self.sliderbox,self.fitbox])
         if modify_cur:
             display(self.slbox)
 
@@ -1672,7 +1677,7 @@ class SliderFit(ModelFit):
                                                         continuous_update=False,readout_format='.3f')})
                         #slidedict[pm].observe(functools.partial(self.on_slider_param_change,pm),names='value') # this might have been an alternative
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
-                        checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
+                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
                 checkdict.update({'all':Checkbox(value=False,description='all',disabled=False,layout=check_layout,style=style)})
                 checkdict['all'].observe(self.set_all_check,names='value')
             elif param_class == 'base':
@@ -1684,7 +1689,7 @@ class SliderFit(ModelFit):
                                                         layout=slider_layout,
                                                         continuous_update=False,readout_format='.3f')})
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
-                        checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
+                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
                 checkdict.update({'all':Checkbox(value=False,description='all',disabled=False,layout=check_layout,style=style)})
                 checkdict['all'].observe(self.set_all_check,names='value')
         else:
