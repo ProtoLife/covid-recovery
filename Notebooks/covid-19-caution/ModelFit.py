@@ -565,7 +565,7 @@ class ModelFit:
             seasonal_variation = [1.+seasonal_amplitude*np.cos(2.*pi*(j*step+start_days_after_max)/365.) for j in range(int(365./step))] # monthly, starting in Jan, currently no latititude dependence  
             return seasonal_variation
 
-    def seasonal_odeint(self, step, season_var):
+    def seasonal_odeint(self, step, season_var, caller='plot'):
             """
             ode integration with seasonal variation of parameter beta (or beta_1 for models with I3)
 
@@ -574,19 +574,27 @@ class ModelFit:
                 The initial value point should be the first element of this sequence. 
                 This sequence must be monotonically increasing or monotonically decreasing; repeated values are allowed.
             """
+
             tvec = self.tsim
-            model = self.model    
+            model = self.model  
+            ivals = model.initial_values[0]
+            if caller == 'fit':
+                foff = 1
+            else:
+                foff = 0  
             tvec_part = np.array(range(0,step+1))
-            self.soln = np.zeros((len(self.tsim)-1,len(model.initial_values[0])))
+            self.soln = np.zeros((len(self.tsim)-(1-foff),len(model.initial_values[0])))
+            if caller == 'fit':
+                self.soln[0,:] = ivals
             final_day = round(self.tsim[-1]) 
             final_day_mod_step = final_day % step
-            ivals = model.initial_values[0]
+
             if 'I3' in model.modelname:
                 beta = self.params['beta_1']
             else:
                 beta = self.params['beta']
             # execute segmented integration over subintervals
-            # self.soln[0,:] = ivals  # integration returns soln with first elts at time point dt not 0 
+
             for j in range(0,final_day+1,step):
                 if j+step>final_day:
                     final_day_sub = final_day_mod_step-1
@@ -594,10 +602,10 @@ class ModelFit:
                     final_day_sub = step-1                
                 # print('subinterval at',j,'ivals',ivals,'tvecp',tvecp)
                 tvecp = tvec_part[0:final_day_sub+2]
-                self.soln[j:j+final_day_sub+1,:] = scipy.integrate.odeint(model.ode, ivals, tvecp) [1:,:]
+                self.soln[foff+j:j+final_day_sub+1+foff,:] = scipy.integrate.odeint(model.ode, ivals, tvecp) [1:,:]
                 # print(j,'...',j+final_day_sub)
                 if j+step<final_day:
-                    ivals = self.soln[j+final_day_sub]  # set initial values to end of this interval
+                    ivals = self.soln[j+final_day_sub+foff]  # set initial values to end of this interval
                     if 'I3' in model.modelname:
                         model.parameters = {'beta_1' : beta * season_var[int(j/step)]}
                         self.params['beta_1'] = beta * season_var[int(j/step)]
@@ -912,7 +920,7 @@ class ModelFit:
                 fitdata[ls] = None
         return fitdata
 
-    def solve4fit(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
+    def solve4fit(self,species = ['deaths'],datasets=['deaths_corrected_smoothed'],seasons=False):
         fitdata = self.get_fitdata(species,datasets)
         lspecies = [x for x in fitdata]
         tmaxf = len(fitdata[lspecies[0]])            
@@ -921,7 +929,13 @@ class ModelFit:
         tvecf=np.arange(0,tmaxf,1)
         tvecf1 = tvecf[1:]
         # print('In solve4fit debug, self', self,'self.model.parameters:',self.model.parameters)
-        self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
+        if seasons:  # stepwise integration with new parameter 'beta_1' on  each segment
+            step = 30
+            season_var = self.seasonal(0.1, 0, 22, step)
+            # print('step',step,'season_var',season_var)
+            self.soln = self.seasonal_odeint(step, season_var, caller='fit')
+        else:
+            self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
         rtn = {}
         slices = {}
         for ls in lspecies:
@@ -943,7 +957,7 @@ class ModelFit:
             self.resid[ls] = rtn[ls]['resid'].copy()
         return rtn
 
-    def solve4fitlog(self,species = ['deaths'],datasets=['deaths_corrected_smoothed']):
+    def solve4fitlog(self,species = ['deaths'],datasets=['deaths_corrected_smoothed'],seasons=False):
         """
         like solve4fit() but take log of data and soln before computing residual.
         """
@@ -954,7 +968,14 @@ class ModelFit:
         tvec = self.tsim
         tvecf=np.arange(0,tmaxf,1)
         tvecf1 = tvecf[1:]
-        self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
+        if seasons:  # stepwise integration with new parameter 'beta_1' on  each segment
+            step = 30
+            season_var = self.seasonal(0.1, 0, 22, step)
+            # print('step',step,'season_var',season_var)
+            self.soln = self.seasonal_odeint(step, season_var, caller='fit')
+        else:
+            self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
+
         rtn = {}
         slices = {}
         self.logresid = {}
@@ -1098,11 +1119,11 @@ class ModelFit:
             if 'logI_0' in params_lmf:
                 modelfit.set_I0(parvals['logI_0'])    
 
-            # try log(1+xxx) by using solve4fitlog
+
             if self.resid_scale_widget.value == 'linear':
-                fittry = modelfit.solve4fit(species=modelfit.fit_targets,datasets=modelfit.fit_data)
+                fittry = modelfit.solve4fit(species=modelfit.fit_targets,datasets=modelfit.fit_data,seasons=self.seasons_widget.value)
             elif self.resid_scale_widget.value == 'log':
-                fittry = modelfit.solve4fitlog(species=modelfit.fit_targets,datasets=modelfit.fit_data) # use solve4fitlog to get residuals as log(soln)-log(data)
+                fittry = modelfit.solve4fitlog(species=modelfit.fit_targets,datasets=modelfit.fit_data,seasons=self.seasons_widget.value) # use solve4fitlog to get residuals as log(soln)-log(data)
             else:
                 print('value of resid_scale must be linear or log, but is', self.resid_scale_widget.value)
             #rmsres2 = np.sqrt(np.sum(np.square(resd)))
