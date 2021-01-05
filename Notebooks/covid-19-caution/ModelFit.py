@@ -555,7 +555,7 @@ class ModelFit:
             # line, = ax.plot(...
             # line.set_dashes([2,2,2+age,2])
 
-    def seasonal(seasonal_amplitude, max_day_of_year, first_sim_day, step=30):
+    def seasonal(self, seasonal_amplitude, max_day_of_year, first_sim_day, step=30):
             pi = 3.14159
             seasonal_amplitude = 0.1
             if first_sim_day >= max_day_of_year:
@@ -565,31 +565,59 @@ class ModelFit:
             seasonal_variation = [1.+seasonal_amplitude*np.cos(2.*pi*(j*step+start_days_after_max)/365.) for j in range(int(365./step))] # monthly, starting in Jan, currently no latititude dependence  
             return seasonal_variation
 
-     def seasonal_odeint(self, step, season_var)
+    def seasonal_odeint(self, step, season_var):
+            """
+            ode integration with seasonal variation of parameter beta (or beta_1 for models with I3)
+
+            NB scipy.integrate.odeint uses tarray with following properties which do not seem consistent with pygom calls tvec[1::]
+                A sequence of time points for which to solve for y. 
+                The initial value point should be the first element of this sequence. 
+                This sequence must be monotonically increasing or monotonically decreasing; repeated values are allowed.
+            """
             tvec = self.tsim
             model = self.model    
-            tvec_part = np.array(range(step))
-            self.soln = np.zeros(length(self.tsim))
-            final_day_mod_step = self.tsim[-1] % step
+            tvec_part = np.array(range(0,step+1))
+            self.soln = np.zeros((len(self.tsim)-1,len(model.initial_values[0])))
+            final_day = round(self.tsim[-1]) 
+            final_day_mod_step = final_day % step
             ivals = model.initial_values[0]
-            for j in range(0,365,step):
-                if j+step>365:
-                    final_day_mod_step = self.tsim[-1] % step
+            if 'I3' in model.modelname:
+                beta = self.params['beta_1']
+            else:
+                beta = self.params['beta']
+            # execute segmented integration over subintervals
+            # self.soln[0,:] = ivals  # integration returns soln with first elts at time point dt not 0 
+            for j in range(0,final_day+1,step):
+                if j+step>final_day:
+                    final_day_sub = final_day_mod_step-1
                 else:
-                    final_day_mod_step = step-1
-                tvecp = tvec_part[1::final_day_mod_step+1]
-                self.soln[j*step:j*step+final_day_mod_step+1] = scipy.integrate.odeint(model.ode, model.initial_values[0], tvecp) 
-                if j+step<365:
-                     model.initial_values[0] = self.soln[j*step+final_day_mod_step]
-                     if 'I3' in model.name:
-                        model.parameters['beta_1'] = season_var[int(j/step)]
-                     else:
-                        model.parameters['beta'] = season_var[int(j/step)]
-            model.initial_values[0] = ivals
+                    final_day_sub = step-1                
+                # print('subinterval at',j,'ivals',ivals,'tvecp',tvecp)
+                tvecp = tvec_part[0:final_day_sub+2]
+                self.soln[j:j+final_day_sub+1,:] = scipy.integrate.odeint(model.ode, ivals, tvecp) [1:,:]
+                # print(j,'...',j+final_day_sub)
+                if j+step<final_day:
+                    ivals = self.soln[j+final_day_sub]  # set initial values to end of this interval
+                    if 'I3' in model.modelname:
+                        model.parameters = {'beta_1' : beta * season_var[int(j/step)]}
+                        self.params['beta_1'] = beta * season_var[int(j/step)]
+                    else:
+                        model.parameters = {'beta' : beta * season_var[int(j/step)]}
+                        self.params['beta'] = beta * season_var[int(j/step)]
+                    self.refresh_base()
+            # return beta or beta_1 parameter to unsegmented value
+            if 'I3' in model.modelname:
+                model.parameters = {'beta_1' : beta }
+                self.params['beta_1'] = beta
+            else:
+                model.parameters = {'beta' : beta }
+                self.params['beta'] = beta
+            self.refresh_base()
+            return self.soln
 
     def solveplot(self, species=['confirmed'],summing='daily',averaging='weekly',mag = {'deaths':10},axis=None,
                   scale='linear',plottitle= '',label='',newplot = True, gbrcolors=False, figsize = None,
-                  outfile = None,datasets=['confirmed_corrected_smoothed'],age_groups=None,background='white',seasons=None):
+                  outfile = None,datasets=['confirmed_corrected_smoothed'],age_groups=None,background='white',seasons=True):
         """
         solve ODEs and plot for fitmodel indicated
         
@@ -660,8 +688,9 @@ class ModelFit:
             
         if seasons:  # stepwise integration with new parameter 'beta_1' on  each segment
             step = 30
-            season_var = seasonal(0.1, 0, 22, step=step)
-            self.seasonal_odeint( step , season_var)
+            season_var = self.seasonal(0.1, 0, 22, step)
+            # print('step',step,'season_var',season_var)
+            self.soln = self.seasonal_odeint(step, season_var)
         else:
             self.soln = scipy.integrate.odeint(model.ode, model.initial_values[0], tvec[1::])
         # print('debug, calling scipy integrate on self.model with IC', model.initial_values[0])
@@ -1273,7 +1302,7 @@ class ModelFit:
                         self.set_base_param(pm,myparams[pm])
                 # print('new parameters',self.model.parameters)
         self.solveplot(species=['deaths','confirmed','caution_fraction','economy'],mag = {'deaths':10},scale =self.scale_widget.value,
-                       datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize)
+                       datasets=['deaths_corrected_smoothed','confirmed_corrected_smoothed'],age_groups=self.age_structure,figsize = figsize,seasons=self.seasons_widget.value)
 
 
 class Scan(ModelFit):
@@ -1588,6 +1617,7 @@ class SliderFit(ModelFit):
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
             self.tol_widget = widgets.BoundedIntText(value=-7,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
+            self.seasons_widget = widgets.Checkbox(value=False,description='seasons',disabled=False,layout={'width': 'max-content'},style=style)
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
@@ -1622,7 +1652,7 @@ class SliderFit(ModelFit):
 
         if modify_cur:
             self.slbox.close()
-        self.slbox=HBox([VBox([HBox([self.scale_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget],layout={'min_height':'40px'})]),
+        self.slbox=HBox([VBox([HBox([self.scale_widget,self.seasons_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget],layout={'min_height':'40px'})]),
             HBox([self.resid_scale_widget,self.pc_thresh_widget]),self.slfitplot]),self.sliderbox,self.fitbox])
         if modify_cur:
             display(self.slbox)
