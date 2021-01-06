@@ -1896,7 +1896,7 @@ class SliderFit(ModelFit):
         else:
             print("Error:  bad param_class.")
 
-    def reinit_params(self):
+    def reinit_params(self,b):
         # print('entering fit')
         # self.checkparams
         self.reinit_cur()
