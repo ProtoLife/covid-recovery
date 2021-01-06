@@ -1613,8 +1613,10 @@ class SliderFit(ModelFit):
             display(self.fig)
             #self.slidefitplot(figsize=(6,6),**pdic,**x_dic);
 
-
     def on_scale_change(self,change):
+        self.transfer_cur_to_plot();
+
+    def on_seasons_change(self,change):
         self.transfer_cur_to_plot();
 
     def on_target_change(self,change):
@@ -1646,6 +1648,7 @@ class SliderFit(ModelFit):
             self.scale_widget.observe(self.on_scale_change,names='value')
             self.tol_widget = widgets.BoundedIntText(value=-3,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
             self.seasons_widget = widgets.Checkbox(value=False,description='seasons',disabled=False,layout={'width': 'max-content'},style=style)
+            self.seasons_widget.observe(self.on_seasons_change,names='value')
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
