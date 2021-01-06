@@ -458,7 +458,14 @@ class ModelFit:
             self.initial_values[1] = t0
 
     def set_I0(self,logI_0):
-        self.sbparams['logI_0']=logI_0
+        plist = (self.odeparams,self.sbparams,self.cbparams,self.fbparams,self.dbparams)
+        # set all instances of logI_0 param in param lists:
+        for ptype in plist:
+            for p in ptype.keys():
+                if p == 'logI_0':
+                    ptype[p] = logI_0
+        # self.sbparams['logI_0']=logI_0
+        # transfer I0 value to model
         I0 = 10**logI_0
         self.model.initial_values[0][0] = 1.0 - I0
         self.model.initial_values[0][self.model.I_1] = I0    # use model specific position of initial infective compartment
@@ -1637,7 +1644,7 @@ class SliderFit(ModelFit):
             self.resid_text = widgets.FloatText(value=0.,description='resid',disabled=False)
             self.scale_widget = widgets.Dropdown(options=['linear','log'],value='linear',description='scale',layout={'width': 'max-content'})
             self.scale_widget.observe(self.on_scale_change,names='value')
-            self.tol_widget = widgets.BoundedIntText(value=-7,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
+            self.tol_widget = widgets.BoundedIntText(value=-3,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
             self.seasons_widget = widgets.Checkbox(value=False,description='seasons',disabled=False,layout={'width': 'max-content'},style=style)
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
@@ -1759,7 +1766,7 @@ class SliderFit(ModelFit):
                                                         continuous_update=False,readout_format='.3f')})
                         #slidedict[pm].observe(functools.partial(self.on_slider_param_change,pm),names='value') # this might have been an alternative
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
-                        checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
+                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
                 checkdict.update({'all':Checkbox(value=False,description='all',disabled=False,layout=check_layout,style=style)})
                 checkdict['all'].observe(self.set_all_check,names='value')
             elif param_class == 'base':
@@ -1771,7 +1778,7 @@ class SliderFit(ModelFit):
                                                         layout=slider_layout,
                                                         continuous_update=False,readout_format='.3f')})
                         slidedict[pm].observe(self.on_slider_param_change,names='value')
-                        checkdict.update({pm+'_fix':Checkbox(value=True,description=pm,disabled=False,layout=check_layout,style=style)})
+                        checkdict.update({pm+'_fix':Checkbox(value=False,description=pm,disabled=False,layout=check_layout,style=style)})
                 checkdict.update({'all':Checkbox(value=False,description='all',disabled=False,layout=check_layout,style=style)})
                 checkdict['all'].observe(self.set_all_check,names='value')
         else:
