@@ -66,6 +66,8 @@ class ModelFit:
         self.datatypes = datatypes
         self.fit_targets = fit_targets
 
+        self.season_params = [0.1, -32., 0, 22, 30] # [amplitude, latitude(deg), day of max in northern hem., start day of simln, step in days]
+
         dirnm = os.getcwd()
         # construct default name for file / run_id
         if country != '':
@@ -562,14 +564,14 @@ class ModelFit:
             # line, = ax.plot(...
             # line.set_dashes([2,2,2+age,2])
 
-    def seasonal(self, seasonal_amplitude, max_day_of_year, first_sim_day, step=30):
+    def seasonal(self, seasonal_amplitude, latitude, max_day_of_year, first_sim_day, step=30):
             pi = 3.14159
-            # seasonal_amplitude = 0.1
+
             if first_sim_day >= max_day_of_year:
                 start_days_after_max = first_sim_day-max_day_of_year
             else:
                 start_days_after_max = 365+first_sim_day-max_day_of_year
-            seasonal_variation = [1.+seasonal_amplitude*np.cos(2.*pi*(j*step+start_days_after_max)/365.) for j in range(int(365./step))] # monthly, starting in Jan, currently no latititude dependence  
+            seasonal_variation = [1.+seasonal_amplitude*np.sin(pi*latitude/180.)*np.cos(2.*pi*(j*step+start_days_after_max)/365.) for j in range(int(365./step))] # monthly, starting in Jan, currently no latititude dependence  
             return seasonal_variation
 
     def seasonal_odeint(self, step, season_var, caller='plot'):
@@ -702,8 +704,9 @@ class ModelFit:
             # fig, axeslist = plt.subplots(1, nmodels, figsize=(nmodels*8,6))
             
         if seasons:  # stepwise integration with new parameter 'beta_1' on  each segment
-            step = 30
-            season_var = self.seasonal(0.1, 0, 22, step)
+            # season_var = self.seasonal(0.1, -32., 0, 22, 30)
+            season_var = self.seasonal(*self.season_params)
+            step = self.season_params[4]
             # print('step',step,'season_var',season_var)
             self.soln = self.seasonal_odeint(step, season_var)
         else:
@@ -937,9 +940,9 @@ class ModelFit:
         tvecf1 = tvecf[1:]
         # print('In solve4fit debug, self', self,'self.model.parameters:',self.model.parameters)
         if seasons:  # stepwise integration with new parameter 'beta_1' on  each segment
-            step = 30
-            season_var = self.seasonal(0.1, 0, 22, step)
-            # print('step',step,'season_var',season_var)
+            # season_var = self.seasonal(0.1, -32., 0, 22, 30)
+            season_var = self.seasonal(*self.season_params)
+            step = self.season_params[4]
             self.soln = self.seasonal_odeint(step, season_var, caller='fit')
         else:
             self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
@@ -976,9 +979,9 @@ class ModelFit:
         tvecf=np.arange(0,tmaxf,1)
         tvecf1 = tvecf[1:]
         if seasons:  # stepwise integration with new parameter 'beta_1' on  each segment
-            step = 30
-            season_var = self.seasonal(0.1, 0, 22, step)
-            # print('step',step,'season_var',season_var)
+            # season_var = self.seasonal(0.1, -32., 0, 22, 30)
+            season_var = self.seasonal(*self.season_params)
+            step = self.season_params[4]
             self.soln = self.seasonal_odeint(step, season_var, caller='fit')
         else:
             self.soln = scipy.integrate.odeint(self.model.ode, self.model.initial_values[0], tvec)
@@ -1619,6 +1622,9 @@ class SliderFit(ModelFit):
     def on_seasons_change(self,change):
         self.transfer_cur_to_plot();
 
+    def on_refresh_plot(self,b):
+        self.transfer_cur_to_plot();
+
     def on_target_change(self,change):
         targ = change['owner'].description
         val = change['new']
@@ -1649,6 +1655,8 @@ class SliderFit(ModelFit):
             self.tol_widget = widgets.BoundedIntText(value=-3,min=-10,max=-1,step=1,description='tol',disabled=False,layout={'width': 'max-content'})
             self.seasons_widget = widgets.Checkbox(value=False,description='seasons',disabled=False,layout={'width': 'max-content'},style=style)
             self.seasons_widget.observe(self.on_seasons_change,names='value')
+            self.refresh_plot_button =  widgets.Button(description="Refresh",layout=widgets.Layout(border='solid 1px',width='max-content'))
+            self.refresh_plot_button.on_click(self.on_refresh_plot)
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
@@ -1683,7 +1691,7 @@ class SliderFit(ModelFit):
 
         if modify_cur:
             self.slbox.close()
-        self.slbox=HBox([VBox([HBox([self.scale_widget,self.seasons_widget,VBox([self.target_confirmed_widget,self.target_deaths_widget],layout={'min_height':'40px'})]),
+        self.slbox=HBox([VBox([HBox([self.scale_widget,self.seasons_widget,self.refresh_plot_button,VBox([self.target_confirmed_widget,self.target_deaths_widget],layout={'min_height':'40px'})]),
             HBox([self.resid_scale_widget,self.pc_thresh_widget]),self.slfitplot]),self.sliderbox,self.fitbox])
         if modify_cur:
             display(self.slbox)
