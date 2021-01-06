@@ -1657,6 +1657,8 @@ class SliderFit(ModelFit):
             self.seasons_widget.observe(self.on_seasons_change,names='value')
             self.refresh_plot_button =  widgets.Button(description="Refresh",layout=widgets.Layout(border='solid 1px',width='max-content'))
             self.refresh_plot_button.on_click(self.on_refresh_plot)
+            self.reinit_params_button =  widgets.Button(description="Reinit",layout=widgets.Layout(border='solid 1px',width='max-content'))
+            self.reinit_params_button.on_click(self.reinit_params)            
             self.target_deaths_widget = widgets.Checkbox(value=True,description='deaths',disabled=False,layout=check_layout,style=style)
             self.target_confirmed_widget = widgets.Checkbox(value=True,description='confirmed',disabled=False,layout=check_layout,style=style)
             self.target_deaths_widget.observe(self.on_target_change,names='value')
@@ -1687,7 +1689,7 @@ class SliderFit(ModelFit):
         self.checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='400px',width='280px'))
         self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget,self.tol_widget]), 
-                          HBox([VBox([Label('Adjustable params:'),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
+                          HBox([VBox([HBox([Label('Adjustable params:'),reinit_params_button]),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
 
         if modify_cur:
             self.slbox.close()
@@ -1876,7 +1878,33 @@ class SliderFit(ModelFit):
         self.transfer_cur_to_plot();   # does redraw plot
 
         #eprint('after transfer')
-        
+
+    def reinit_cur(self):
+        model_d = copy.deepcopy(fullmodels[self.modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
+        self.odeparams = model_d['params']
+        self.cbparams = model_d['cbparams']
+        self.sbparams = model_d['sbparams']
+        self.fbparams = model_d['fbparams']
+        self.dbparams = model_d['dbparams']
+        self.initial_values = model_d['initial_values']
+        self.baseparams = {**self.sbparams,**self.cbparams,**self.fbparams}  # now a merged dictionary
+
+        if self.param_class == 'ode':
+            self.params = copy.deepcopy(self.odeparams)
+        elif self.param_class == 'base':
+            self.params = copy.deepcopy(self.baseparams)
+        else:
+            print("Error:  bad param_class.")
+
+    def reinit_params(self):
+        # print('entering fit')
+        # self.checkparams
+        self.reinit_cur()
+        self.transfer_cur_to_params_init()
+        self.transfer_cur_to_sliders() # does not redraw plot
+        self.transfer_cur_to_plot();   # does redraw plot
+
+        #eprint('after transfer')
 class SliderFitWrap(SliderFit):
     def __init__(self,*args,**kwargs):
         super().__init__(**kwargs)
