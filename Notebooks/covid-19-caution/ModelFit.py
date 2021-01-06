@@ -557,7 +557,7 @@ class ModelFit:
 
     def seasonal(self, seasonal_amplitude, max_day_of_year, first_sim_day, step=30):
             pi = 3.14159
-            seasonal_amplitude = 0.1
+            # seasonal_amplitude = 0.1
             if first_sim_day >= max_day_of_year:
                 start_days_after_max = first_sim_day-max_day_of_year
             else:
