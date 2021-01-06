@@ -1637,6 +1637,30 @@ class SliderFit(ModelFit):
                 self.fit_targets.insert(0,targ)
         # print('on target change',targ,val,self.fit_targets)
 
+    def reinit_cur(self):
+        model_d = copy.deepcopy(fullmodels[self.modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
+        self.odeparams = model_d['params']
+        self.cbparams = model_d['cbparams']
+        self.sbparams = model_d['sbparams']
+        self.fbparams = model_d['fbparams']
+        self.dbparams = model_d['dbparams']
+        self.initial_values = model_d['initial_values']
+        self.baseparams = {**self.sbparams,**self.cbparams,**self.fbparams}  # now a merged dictionary
+
+        if self.param_class == 'ode':
+            self.params = copy.deepcopy(self.odeparams)
+        elif self.param_class == 'base':
+            self.params = copy.deepcopy(self.baseparams)
+        else:
+            print("Error:  bad param_class.")
+            return None
+
+    def reinit_params(self,b):
+        self.reinit_cur()
+        self.transfer_cur_to_params_init()
+        self.transfer_cur_to_sliders() # does not redraw plot
+        self.transfer_cur_to_plot();   # does redraw plot
+
     def makeslbox(self,modify_cur):
         #################################
         ## set up widgets
@@ -1689,7 +1713,8 @@ class SliderFit(ModelFit):
         self.checks= VBox([w1 for w1 in list(self.checkdict.values()) if isinstance(w1,Widget)],
                      layout = widgets.Layout(height='400px',width='280px'))
         self.sliderbox = VBox([HBox([self.fit_button,self.fittypes_widget,self.tol_widget]), 
-                          HBox([VBox([HBox([Label('Adjustable params:'),reinit_params_button]),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
+                          #HBox([VBox([Label('Adjustable params:'),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
+                          HBox([VBox([HBox([Label('Adjustable params:'),self.reinit_params_button]),self.sliders]),VBox([Label('Fixed/Adjustable params:'),self.checks])])])
 
         if modify_cur:
             self.slbox.close()
@@ -1868,43 +1893,13 @@ class SliderFit(ModelFit):
         self.transfer_cur_to_params_init()
         # eprint(self.params_init_min_max)
         super().fit(self.params_init_min_max,self.checkdict,init_resid=init_resid,fit_kws=fit_kws,**kwargs)
-        #eprint('self',self,'base params',self.baseparams)
-        #eprint('sbparams',self.sbparams)
-        # print('params',self.params)
         # next line should be same as
         # self.params_init_min_max = self.transfer_fit_to_params_init(self.params_init_min_max)
         self.transfer_cur_to_params_init()
         self.transfer_cur_to_sliders() # does not redraw plot
         self.transfer_cur_to_plot();   # does redraw plot
 
-        #eprint('after transfer')
 
-    def reinit_cur(self):
-        model_d = copy.deepcopy(fullmodels[self.modelname])  # should avoid modifying fullmodels at all from fits, otherwise never clear what parameters are
-        self.odeparams = model_d['params']
-        self.cbparams = model_d['cbparams']
-        self.sbparams = model_d['sbparams']
-        self.fbparams = model_d['fbparams']
-        self.dbparams = model_d['dbparams']
-        self.initial_values = model_d['initial_values']
-        self.baseparams = {**self.sbparams,**self.cbparams,**self.fbparams}  # now a merged dictionary
-
-        if self.param_class == 'ode':
-            self.params = copy.deepcopy(self.odeparams)
-        elif self.param_class == 'base':
-            self.params = copy.deepcopy(self.baseparams)
-        else:
-            print("Error:  bad param_class.")
-
-    def reinit_params(self,b):
-        # print('entering fit')
-        # self.checkparams
-        self.reinit_cur()
-        self.transfer_cur_to_params_init()
-        self.transfer_cur_to_sliders() # does not redraw plot
-        self.transfer_cur_to_plot();   # does redraw plot
-
-        #eprint('after transfer')
 class SliderFitWrap(SliderFit):
     def __init__(self,*args,**kwargs):
         super().__init__(**kwargs)
