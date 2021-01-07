@@ -25,7 +25,7 @@ owid_to_jhu_str_country = {}  # defined globally for convenience in country conv
 continent = {}
 continents = []
 data_days = -1
-final_date = "12/6/20" # 1 day earlier for JHU, since better sync offset by 1
+final_date = "12/18/20" # 1 day earlier for JHU, since better sync offset by 1
 daystop = None # will be specified in get_data_owid
 
 def Float(x):
@@ -49,6 +49,18 @@ def dic_invert(d):
         if len(inv[k]) == 1:
             inv[k] = inv[k][0]
     return inv
+
+def get_jhu_lat(jhu_file):
+    dat = []
+    with open(jhu_file, newline='') as csvfile:
+        myreader = csv.reader(csvfile, delimiter=',')
+        latkeyed = {}
+        i = 0
+        for row in myreader:
+            if i != 0:            # not first row which has headers (headers are ignored here)
+                latkeyed.update({(row[1]:row[0]):row[2]}) # 3rd column of csv file is latitude
+            i = i + 1;
+    return latkeyed
 
 def get_data(jhu_file, lastdate=None):
     global data_days
@@ -136,7 +148,6 @@ def get_data(jhu_file, lastdate=None):
         if country != 'dates' and country[1] not in ['',' ']:
             del popkeyed[country]
     # print('First four dates:',popkeyed['dates'][0:4])
-
     return popkeyed
 
 def jhu_to_owid_str_country_md(countries_owid): 
@@ -972,6 +983,7 @@ confirmed = get_data(base+'time_series_covid19_confirmed_global.csv',final_date)
 print('jhu data selected from',confirmed['dates'][0],'to',confirmed['dates'][-1])
 deaths = get_data(base+'time_series_covid19_deaths_global.csv',final_date)
 recovered = get_data(base+'time_series_covid19_recovered_global.csv',final_date)
+countries_latitudes = get_jhu_lat(base+'time_series_covid19_deaths_global.csv')
 
 countries_jhu = [cc for cc in confirmed if cc is not 'dates']
 
