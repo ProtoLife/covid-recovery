@@ -58,8 +58,33 @@ def get_jhu_lat(jhu_file):
         i = 0
         for row in myreader:
             if i != 0:            # not first row which has headers (headers are ignored here)
-                latkeyed.update({(row[1],row[0]):row[2]}) # 3rd column of csv file is latitude
+                if row[2] not in  ('',' '):
+                    lat =  float(row[2])
+                    latkeyed.update({(row[1],row[0]): lat}) # 3rd column of csv file is latitude
+                else:
+                    print('bad latitude',row[2],'for country', (row[1],row[0]))
             i = i + 1;
+     # assemble mean latitude for countries with multiple regions    
+
+    slatkeyed = {}                                                    # need to work with new dictionary, since changing a dictionary in a loop is a problem                            
+    for country,lat in latkeyed.items():                              # also because this enables us to assign states only like Canada, Australia and China to ''
+        if country[1] != '':                                          # UK, France, Denmark and Netherlands have both '' (main country) and non '' territories/regions
+            if (country[0],'') not in latkeyed.keys():                # only states, ignore overseas territories, recognized as such if mother country in database as (country,'')
+                countrymother = (country[0],'')
+                if countrymother in slatkeyed:
+                    (nregions,sumlat) = (1+slatkeyed[countrymother][0],lat+slatkeyed[countrymother][1])
+                else:
+                    (nregions,sumlat) =  (1,lat)                       
+                slatkeyed.update({countrymother:(nregions,sumlat)})
+
+    for countrymother,(nregions,sumlat) in slatkeyed.items():         # by construction there is no entry yet in latkeyed for slatkeyed entries
+        meanlat = sumlat/nregions
+        latkeyed.update({countrymother:meanlat})
+
+    countrylist = list(latkeyed.keys())                               # remove regions/states to preserve only countries
+    for country in countrylist:
+        if country[1] not in ['',' ']:
+            del latkeyed[country]
     return latkeyed
 
 def get_data(jhu_file, lastdate=None):
@@ -125,7 +150,7 @@ def get_data(jhu_file, lastdate=None):
     for country,tseries in popkeyed.items():                          # also because this enables us to assign states only like Canada, Australia and China to ''
         if country!='dates' and country[1] != '':                     # UK, France, Denmark and Netherlands have both '' (main country) and non '' territories/regions
             if (country[0],'') in popkeyed.keys():
-                countrytotal = (country[0],'')                        # lump overseas terriotries together with mother country
+                countrytotal = (country[0],'')                        # lump overseas territories together with mother country
                 #countrytotal = (country[0]+'_Overseas','')            # sum overseas territories separately
             else:
                 countrytotal = (country[0],'')
@@ -1115,6 +1140,7 @@ for cont in continents:
             confirmed[cont_jhu] = confirmed[cont_jhu] + confirmed[cc_jhu]
             recovered[cont_jhu] = recovered[cont_jhu] + recovered[cc_jhu]
 # JHU
+countries_common_latitudes = {cc:countries_latitudes[owid_to_jhu_country(cc)] for cc in countries_common if owid_to_jhu_country(cc) in countries_latitudes}
 deaths_jhu = {cc:deaths[owid_to_jhu_country(cc)] for cc in countries_common}
 deaths_jhu.update({'dates':deaths['dates']})  # add dates to dictionary
 confirmed_jhu = {cc:confirmed[owid_to_jhu_country(cc)] for cc in countries_common}

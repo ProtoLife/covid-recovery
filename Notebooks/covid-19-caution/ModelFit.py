@@ -59,6 +59,7 @@ class ModelFit:
         else:
             print("Error:  data_src must be one of jhu or owid.")
         self.basedata = basedata
+        self.latitudes = basedata.countries_common_latitudes
 
         self.startdate = startdate
         self.stopdate = stopdate
@@ -66,7 +67,11 @@ class ModelFit:
         self.datatypes = datatypes
         self.fit_targets = fit_targets
 
-        self.season_params = [0.1, -32., 0, 22, 30] # [amplitude, latitude(deg), day of max in northern hem., start day of simln, step in days]
+        if country != '' and country in self.latitudes:
+            lat = self.latitudes[country]
+        else:
+            lat = 0.
+        self.season_params = [0.1, lat, 0, 22, 30] # [amplitude, latitude(deg), day of max in northern hem., start day of simln, step in days]
 
         dirnm = os.getcwd()
         # construct default name for file / run_id
@@ -176,6 +181,11 @@ class ModelFit:
         self.country = country
         self.dbparams['country']=country
         self.population = self.basedata.population_owid[self.country_str][-2] # -2 seems to get all countries population (no zeros)
+        if country != '' and country in self.latitudes:
+            lat = self.latitudes[country]
+            self.season_params[1] = lat
+        else:
+            self.season_params[1] =  0.
 
         fmt_jhu = '%m/%d/%y'
         if self.data_src == 'owid' or self.data_src == 'jhu':
