@@ -9,14 +9,19 @@ deaths,"Argentina","growth too fast",35,2306.000000,2039.066216,266.933784
 deaths,"Argentina","growth too fast",36,5522.000000,1969.200160,3552.799840
 deaths,"Argentina","growth too fast",40,2485.000000,2375.351873,109.648127
 deaths,"Argentina","growth too fast",41,2324.000000,2183.607533,140.392467
+deaths,"Argentina","decay too fast",44,1409.000000,1518.278624,-109.278624
 deaths,"Australia","negative reported",19,-1.000000,1.449490,-2.449490
+deaths,"Austria","growth too fast",43,508.000000,423.340827,84.659173
+deaths,"Austria","growth too fast",44,657.000000,552.826086,104.173914
 deaths,"Belgium","growth too fast",9,199.000000,127.168450,71.831550
 deaths,"Belgium","growth too fast",12,2334.000000,1694.931376,639.068624
 deaths,"Belgium","growth too fast",13,1633.000000,1332.676206,300.323794
 deaths,"Belgium","growth too fast",15,821.000000,729.255799,91.744201
 deaths,"Belgium","negative reported",31,-92.000000,41.773402,-133.773402
-deaths,"Belgium","growth too fast",40,720.000000,499.157997,220.842003
+deaths,"Belgium","decay too fast",39,261.000000,331.205197,-70.205197
+deaths,"Belgium","growth too fast",40,720.000000,605.017699,114.982301
 deaths,"Belgium","growth too fast",42,1371.000000,1254.940846,116.059154
+deaths,"Belgium","growth too fast",43,1305.000000,1103.357536,201.642464
 deaths,"Bolivia","growth too fast",28,571.000000,465.160732,105.839268
 deaths,"Bolivia","growth too fast",32,497.000000,401.276630,95.723370
 deaths,"Bolivia","growth too fast",33,1905.000000,376.556282,1528.443718
@@ -40,8 +45,9 @@ deaths,"Brazil","growth too fast",37,4277.000000,4200.299106,76.700894
 deaths,"Brazil","growth too fast",39,3440.000000,2999.034626,440.965374
 deaths,"Brazil","decay too fast",41,2137.000000,3384.467805,-1247.467805
 deaths,"Brazil","decay too fast",42,3175.000000,3369.809277,-194.809277
+deaths,"Brazil","decay too fast",44,3399.000000,3731.301902,-332.301902
 deaths,"Canada","growth too fast",15,1231.000000,974.579365,256.420635
-deaths,"Canada","growth too fast",16,1051.000000,939.612404,111.387596
+deaths,"Canada","growth too fast",16,1051.000000,978.496717,72.503283
 deaths,"Canada","decay too fast",17,675.000000,855.786857,-180.786857
 deaths,"Canada","growth too fast",19,735.000000,435.095376,299.904624
 deaths,"Canada","growth too fast",37,241.000000,93.260858,147.739142
@@ -53,20 +59,18 @@ deaths,"China","growth too fast",3,736.000000,311.147711,424.852289
 deaths,"China","growth too fast",5,508.000000,407.624453,100.375547
 deaths,"China","growth too fast",13,1290.000000,3.486766,1286.513234
 deaths,"Colombia","growth too fast",23,987.000000,788.521218,198.478782
-deaths,"Colombia","growth too fast",26,1659.000000,1567.261770,91.738230
 deaths,"Colombia","decay too fast",30,2038.000000,2160.053541,-122.053541
 deaths,"Colombia","growth too fast",31,2284.000000,2172.033625,111.966375
-deaths,"Colombia","decay too fast",33,1657.000000,1722.442112,-65.442112
 deaths,"Colombia","decay too fast",35,1081.000000,1324.788212,-243.788212
-deaths,"Colombia","growth too fast",36,1450.000000,1223.158852,226.841148
 deaths,"Colombia","decay too fast",37,984.000000,1191.338093,-207.338093
-deaths,"Congo","negative reported",33,-19.000000,0.000000,-19.000000
+deaths,"Congo","negative reported",33,-19.000000,3.177837,-22.177837
 deaths,"Cuba","negative reported",30,-1.000000,2.221389,-3.221389
 deaths,"Czechia","negative reported",24,-1.000000,7.949419,-8.949419
 deaths,"Czechia","growth too fast",39,615.000000,542.698401,72.301599
 deaths,"Czechia","growth too fast",40,1017.000000,796.011479,220.988521
 deaths,"Czechia","growth too fast",41,1468.000000,1015.815169,452.184831
 deaths,"Czechia","growth too fast",42,1425.000000,1149.338854,275.661146
+deaths,"Czechia","decay too fast",44,905.000000,980.969087,-75.969087
 deaths,"Ecuador","decay too fast",13,157.000000,235.948588,-78.948588
 deaths,"Ecuador","growth too fast",14,340.000000,254.309844,85.690156
 deaths,"Ecuador","growth too fast",15,754.000000,316.594739,437.405261
@@ -78,6 +82,7 @@ deaths,"Ecuador","growth too fast",31,271.000000,197.697296,73.302704
 deaths,"Ecuador","growth too fast",33,4101.000000,225.100427,3875.899573
 deaths,"Ecuador","growth too fast",34,280.000000,209.878029,70.121971
 deaths,"Ecuador","growth too fast",37,708.000000,182.361593,525.638407
+deaths,"Ecuador","growth too fast",44,243.000000,153.004853,89.995147
 deaths,"Estonia","negative reported",28,-6.000000,0.000000,-6.000000
 deaths,"Finland","growth too fast",13,97.000000,31.012105,65.987895
 deaths,"Finland","negative reported",25,-1.000000,0.345900,-1.345900
@@ -89,20 +94,21 @@ deaths,"France","growth too fast",16,1439.000000,1182.650941,256.349059
 deaths,"France","decay too fast",18,448.000000,650.080575,-202.080575
 deaths,"France","decay too fast",37,504.000000,617.712386,-113.712386
 deaths,"France","growth too fast",41,3030.000000,2743.715334,286.284666
+deaths,"France","growth too fast",44,3843.000000,3554.613471,288.386529
 deaths,"Germany","growth too fast",41,805.000000,573.138126,231.861874
 deaths,"Germany","growth too fast",42,1106.000000,892.059366,213.940634
+deaths,"Germany","growth too fast",44,1978.000000,1872.931736,105.068264
+deaths,"Greece","growth too fast",43,388.000000,222.167824,165.832176
 deaths,"Guatemala","growth too fast",20,176.000000,73.621886,102.378114
 deaths,"Guatemala","growth too fast",25,312.000000,246.993648,65.006352
+deaths,"Guatemala","growth too fast",43,192.000000,105.907839,86.092161
 deaths,"Honduras","growth too fast",23,165.000000,81.028001,83.971999
-deaths,"Honduras","growth too fast",27,301.000000,121.146380,179.853620
-deaths,"Honduras","decay too fast",29,96.000000,164.653472,-68.653472
 deaths,"Honduras","growth too fast",31,184.000000,95.493196,88.506804
 deaths,"Hungary","growth too fast",41,513.000000,439.430462,73.569538
 deaths,"Hungary","growth too fast",42,637.000000,566.183077,70.816923
 deaths,"India","growth too fast",15,735.000000,511.598129,223.401871
 deaths,"India","growth too fast",19,1652.000000,1421.971367,230.028633
 deaths,"India","growth too fast",20,2135.000000,1702.266749,432.733251
-deaths,"India","growth too fast",26,4999.000000,4561.906835,437.093165
 deaths,"India","growth too fast",28,5867.000000,5746.706188,120.293812
 deaths,"India","growth too fast",29,6455.000000,6103.463322,351.536678
 deaths,"India","growth too fast",30,6809.000000,6579.990263,229.009737
@@ -116,7 +122,10 @@ deaths,"India","growth too fast",37,6717.000000,6501.045811,215.954189
 deaths,"India","decay too fast",38,5671.000000,5791.153004,-120.153004
 deaths,"India","decay too fast",40,3784.000000,4567.712679,-783.712679
 deaths,"India","decay too fast",41,3895.000000,4156.890617,-261.890617
+deaths,"India","decay too fast",43,3494.000000,3579.225059,-85.225059
+deaths,"India","growth too fast",44,3553.000000,3382.809868,170.190132
 deaths,"Indonesia","growth too fast",12,216.000000,125.279582,90.720418
+deaths,"Indonesia","growth too fast",17,235.000000,151.735165,83.264835
 deaths,"Indonesia","decay too fast",25,456.000000,556.752925,-100.752925
 deaths,"Indonesia","growth too fast",26,703.000000,447.250479,255.749521
 deaths,"Indonesia","growth too fast",35,883.000000,755.412250,127.587750
@@ -134,30 +143,30 @@ deaths,"Iran","decay too fast",38,1717.000000,1784.392779,-67.392779
 deaths,"Iran","growth too fast",40,2463.000000,2357.456398,105.543602
 deaths,"Iran","growth too fast",41,2872.000000,2677.366577,194.633423
 deaths,"Iran","growth too fast",42,3136.000000,2898.326289,237.673711
-deaths,"Ireland","growth too fast",13,308.000000,219.360314,88.639686
+deaths,"Iran","growth too fast",43,3296.000000,2947.681871,348.318129
+deaths,"Iran","growth too fast",44,3272.000000,2865.417883,406.582117
 deaths,"Ireland","growth too fast",14,438.000000,219.643636,218.356364
 deaths,"Italy","decay too fast",11,4364.000000,4626.025865,-262.025865
 deaths,"Italy","growth too fast",12,3891.000000,3778.826023,112.173977
 deaths,"Italy","growth too fast",13,3379.000000,3029.369142,349.630858
-deaths,"Italy","growth too fast",15,1991.000000,1869.365511,121.634489
-deaths,"Italy","growth too fast",17,1118.000000,1048.154629,69.845371
+deaths,"Italy","growth too fast",15,1991.000000,1913.431364,77.568636
 deaths,"Italy","decay too fast",18,656.000000,774.852672,-118.852672
 deaths,"Italy","decay too fast",22,164.000000,231.019214,-67.019214
-deaths,"Italy","decay too fast",27,40.000000,108.543452,-68.543452
-deaths,"Italy","growth too fast",30,187.000000,46.729056,140.270944
+deaths,"Italy","growth too fast",30,187.000000,57.879194,129.120806
 deaths,"Italy","decay too fast",37,165.000000,256.862844,-91.862844
 deaths,"Italy","growth too fast",40,1154.000000,1069.709257,84.290743
 deaths,"Italy","growth too fast",41,2070.000000,1982.614204,87.385796
 deaths,"Japan","growth too fast",13,147.000000,73.924411,73.075589
 deaths,"Jordan","growth too fast",42,478.000000,376.683960,101.316040
+deaths,"Jordan","growth too fast",43,506.000000,415.551174,90.448826
 deaths,"Kazakhstan","growth too fast",28,316.000000,237.841973,78.158027
-deaths,"Kazakhstan","growth too fast",29,324.000000,249.132912,74.867088
+deaths,"Kazakhstan","growth too fast",29,324.000000,208.031145,115.968855
 deaths,"Kyrgyzstan","growth too fast",26,1044.000000,61.636091,982.363909
-deaths,"Kyrgyzstan","growth too fast",27,153.000000,60.067428,92.932572
-deaths,"Kyrgyzstan","negative reported",31,-441.000000,8.146840,-449.146840
+deaths,"Kyrgyzstan","growth too fast",27,153.000000,69.384722,83.615278
+deaths,"Kyrgyzstan","negative reported",31,-441.000000,5.477030,-446.477030
 deaths,"Mexico","decay too fast",18,2534.000000,2621.337549,-87.337549
 deaths,"Mexico","growth too fast",19,3501.000000,3128.800467,372.199533
-deaths,"Mexico","decay too fast",20,3399.000000,3492.802925,-93.802925
+deaths,"Mexico","decay too fast",20,3399.000000,3537.671916,-138.671916
 deaths,"Mexico","decay too fast",21,3803.000000,4094.865622,-291.865622
 deaths,"Mexico","growth too fast",22,5313.000000,3809.603179,1503.396821
 deaths,"Mexico","decay too fast",23,4129.000000,4309.970719,-180.970719
@@ -174,8 +183,10 @@ deaths,"Mexico","growth too fast",35,3260.000000,2852.856469,407.143531
 deaths,"Mexico","growth too fast",37,5018.000000,2551.408549,2466.591451
 deaths,"Mexico","decay too fast",38,2189.000000,2533.643581,-344.643581
 deaths,"Mexico","growth too fast",40,3358.000000,2498.614858,859.385142
-deaths,"Mexico","growth too fast",41,2999.000000,2783.023495,215.976505
+deaths,"Mexico","growth too fast",41,2999.000000,2758.650731,240.349269
 deaths,"Mexico","growth too fast",42,3284.000000,3192.964918,91.035082
+deaths,"Mexico","decay too fast",43,3048.000000,3434.260656,-386.260656
+deaths,"Mexico","growth too fast",44,4138.000000,3648.360624,489.639376
 deaths,"Monaco","negative reported",32,-3.000000,0.000000,-3.000000
 deaths,"Netherlands","growth too fast",13,865.000000,739.165927,125.834073
 deaths,"Netherlands","growth too fast",15,495.000000,428.115197,66.884803
@@ -183,8 +194,9 @@ deaths,"Netherlands","growth too fast",41,515.000000,380.901270,134.098730
 deaths,"Netherlands","growth too fast",42,539.000000,439.325034,99.674966
 deaths,"Pakistan","growth too fast",21,766.000000,681.798810,84.201190
 deaths,"Pakistan","growth too fast",22,733.000000,616.382534,116.617466
+deaths,"Pakistan","growth too fast",43,469.000000,240.626120,228.373880
 deaths,"Peru","growth too fast",17,881.000000,771.946392,109.053608
-deaths,"Peru","decay too fast",19,932.000000,1019.443695,-87.443695
+deaths,"Peru","decay too fast",19,932.000000,1001.570864,-69.570864
 deaths,"Peru","growth too fast",21,1373.000000,1157.007354,215.992646
 deaths,"Peru","growth too fast",26,5039.000000,1345.898116,3693.101884
 deaths,"Peru","decay too fast",27,1162.000000,1385.178381,-223.178381
@@ -192,7 +204,9 @@ deaths,"Peru","decay too fast",29,1289.000000,1360.721646,-71.721646
 deaths,"Peru","growth too fast",30,5121.000000,1276.210412,3844.789588
 deaths,"Peru","growth too fast",31,1290.000000,1115.480495,174.519505
 deaths,"Peru","growth too fast",33,1168.000000,950.424345,217.575655
-deaths,"Peru","growth too fast",38,568.000000,491.080609,76.919391
+deaths,"Peru","growth too fast",38,568.000000,468.153363,99.846637
+deaths,"Peru","growth too fast",41,415.000000,348.159939,66.840061
+deaths,"Peru","decay too fast",43,286.000000,354.171810,-68.171810
 deaths,"Philippines","decay too fast",27,112.000000,176.487413,-64.487413
 deaths,"Philippines","growth too fast",30,457.000000,305.055058,151.944942
 deaths,"Philippines","growth too fast",34,719.000000,434.810019,284.189981
@@ -201,12 +215,13 @@ deaths,"Philippines","growth too fast",37,507.000000,435.348370,71.651630
 deaths,"Philippines","decay too fast",39,286.000000,369.087496,-83.087496
 deaths,"Poland","growth too fast",40,1130.000000,1041.624808,88.375192
 deaths,"Poland","growth too fast",41,1693.000000,1557.355210,135.644790
-deaths,"Poland","growth too fast",42,2238.000000,2139.480438,98.519562
+deaths,"Poland","growth too fast",43,3008.000000,2837.640698,170.359302
+deaths,"Poland","growth too fast",44,3480.000000,2860.417411,619.582589
 deaths,"Russia","growth too fast",19,1234.000000,1015.296856,218.703144
 deaths,"Russia","decay too fast",22,944.000000,1088.558733,-144.558733
 deaths,"Russia","growth too fast",24,1158.000000,1026.349297,131.650703
 deaths,"Russia","growth too fast",25,1094.000000,1023.440322,70.559678
-deaths,"Russia","decay too fast",36,929.000000,1016.223852,-87.223852
+deaths,"Russia","growth too fast",44,3163.000000,3043.328907,119.671093
 deaths,"Somalia","negative reported",33,-1.000000,0.774176,-1.774176
 deaths,"South Africa","decay too fast",23,552.000000,629.935558,-77.935558
 deaths,"South Africa","growth too fast",24,876.000000,805.441745,70.558255
@@ -217,8 +232,6 @@ deaths,"South Africa","decay too fast",34,507.000000,643.748823,-136.748823
 deaths,"South Africa","decay too fast",35,511.000000,684.501682,-173.501682
 deaths,"South Africa","decay too fast",40,321.000000,534.360459,-213.360459
 deaths,"South Africa","decay too fast",42,399.000000,481.719355,-82.719355
-deaths,"Spain","growth too fast",11,5099.000000,4851.495247,247.504753
-deaths,"Spain","growth too fast",12,3868.000000,3740.471316,127.528684
 deaths,"Spain","growth too fast",14,2386.000000,2187.724696,198.275304
 deaths,"Spain","decay too fast",15,1527.000000,1640.447163,-113.447163
 deaths,"Spain","negative reported",18,-821.000000,0.000000,-821.000000
@@ -230,11 +243,15 @@ deaths,"Spain","decay too fast",37,715.000000,827.323929,-112.323929
 deaths,"Spain","decay too fast",40,1118.000000,1189.862141,-71.862141
 deaths,"Spain","growth too fast",41,2847.000000,1380.451787,1466.548213
 deaths,"Spain","growth too fast",42,1975.000000,1583.343250,391.656750
-deaths,"Sudan","growth too fast",19,138.000000,67.819812,70.180188
+deaths,"Spain","decay too fast",43,1830.000000,1917.855389,-87.855389
+deaths,"Spain","growth too fast",44,2083.000000,1761.848563,321.151437
+deaths,"Sudan","growth too fast",19,138.000000,45.428379,92.571621
 deaths,"Sudan","growth too fast",42,279.000000,4.371770,274.628230
 deaths,"Sweden","negative reported",37,-1.000000,0.000000,-1.000000
 deaths,"Switzerland","negative reported",39,-69.000000,67.790804,-136.790804
+deaths,"Tunisia","growth too fast",40,413.000000,230.264009,182.735991
 deaths,"Tunisia","growth too fast",42,574.000000,463.583704,110.416296
+deaths,"Tunisia","growth too fast",44,493.000000,420.761105,72.238895
 deaths,"Turkey","growth too fast",13,848.000000,722.534490,125.465510
 deaths,"Turkey","growth too fast",14,683.000000,575.635389,107.364611
 deaths,"Ukraine","growth too fast",42,1274.000000,1133.207665,140.792335
@@ -244,29 +261,37 @@ deaths,"United Kingdom","decay too fast",16,2676.000000,2816.556373,-140.556373
 deaths,"United Kingdom","growth too fast",18,1890.000000,1606.076827,283.923173
 deaths,"United Kingdom","decay too fast",37,390.000000,457.633035,-67.633035
 deaths,"United Kingdom","growth too fast",40,1608.000000,1485.390712,122.609288
+deaths,"United Kingdom","growth too fast",43,2850.000000,2753.525706,96.474294
+deaths,"United Kingdom","growth too fast",44,3258.000000,2971.641156,286.358844
 deaths,"United States","growth too fast",13,15613.000000,14803.625238,809.374762
 deaths,"United States","growth too fast",14,13827.000000,13278.937278,548.062722
+deaths,"United States","growth too fast",15,12571.000000,12058.962910,512.037090
 deaths,"United States","decay too fast",16,10328.000000,10472.044025,-144.044025
 deaths,"United States","growth too fast",17,9098.000000,8946.760949,151.239051
 deaths,"United States","decay too fast",18,6895.000000,7351.310484,-456.310484
 deaths,"United States","growth too fast",19,6638.000000,6470.753820,167.246180
+deaths,"United States","decay too fast",20,5215.000000,5291.807416,-76.807416
 deaths,"United States","decay too fast",21,4540.000000,4623.716687,-83.716687
 deaths,"United States","decay too fast",22,4088.000000,4569.188581,-481.188581
 deaths,"United States","decay too fast",23,3861.000000,4541.600863,-680.600863
 deaths,"United States","decay too fast",24,4662.000000,4803.026352,-141.026352
 deaths,"United States","growth too fast",26,6200.000000,5964.917335,235.082665
 deaths,"United States","growth too fast",27,7658.000000,6528.956610,1129.043390
+deaths,"United States","growth too fast",28,7312.000000,6951.632244,360.367756
 deaths,"United States","decay too fast",29,7002.000000,7095.592649,-93.592649
-deaths,"United States","growth too fast",30,7108.000000,6771.575676,336.424324
+deaths,"United States","growth too fast",30,7108.000000,6660.973413,447.026587
+deaths,"United States","growth too fast",31,6525.000000,6380.120441,144.879559
+deaths,"United States","decay too fast",32,5996.000000,6086.570649,-90.570649
 deaths,"United States","decay too fast",33,4951.000000,5702.077146,-751.077146
 deaths,"United States","growth too fast",34,5867.000000,5413.753323,453.246677
-deaths,"United States","growth too fast",35,5322.000000,5246.887468,75.112532
+deaths,"United States","growth too fast",35,5322.000000,5212.241293,109.758707
 deaths,"United States","decay too fast",36,4981.000000,5305.042890,-324.042890
 deaths,"United States","decay too fast",37,5018.000000,5194.264704,-176.264704
 deaths,"United States","decay too fast",38,4961.000000,5294.101717,-333.101717
 deaths,"United States","decay too fast",39,5506.000000,5580.461606,-74.461606
 deaths,"United States","decay too fast",40,5711.000000,5986.404121,-275.404121
-deaths,"United States","growth too fast",41,6679.000000,6607.526424,71.473576
+deaths,"United States","decay too fast",41,6679.000000,6843.120064,-164.120064
+deaths,"United States","growth too fast",43,9359.000000,9190.428656,168.571344
 deaths,"Venezuela","negative reported",15,-6.000000,0.000000,-6.000000
 deaths,"World","decay too fast",15,35969.000000,36255.324308,-286.324308
 deaths,"World","decay too fast",16,32606.000000,33597.048879,-991.048879
@@ -293,60 +318,11 @@ deaths,"World","growth too fast",37,38982.000000,38748.602662,233.397338
 deaths,"World","decay too fast",38,36361.000000,39591.904112,-3230.904112
 deaths,"World","decay too fast",39,39131.000000,40377.700506,-1246.700506
 deaths,"World","growth too fast",42,60183.000000,57372.292041,2810.707959
+deaths,"World","growth too fast",43,66052.000000,65448.239749,603.760251
+deaths,"World","growth too fast",44,71566.000000,69056.486273,2509.513727
 deaths,"Yemen","growth too fast",21,112.000000,38.210182,73.789818
-deaths,"Asia","decay too fast",17,1790.000000,2066.310915,-276.310915
-deaths,"Asia","decay too fast",20,3634.000000,3728.397711,-94.397711
-deaths,"Asia","growth too fast",21,5838.000000,4449.268648,1388.731352
-deaths,"Asia","growth too fast",22,4468.000000,4349.846765,118.153235
-deaths,"Asia","decay too fast",24,5128.000000,5650.652229,-522.652229
-deaths,"Asia","growth too fast",25,5890.000000,5666.184978,223.815022
-deaths,"Asia","growth too fast",26,8113.000000,6261.317153,1851.682847
-deaths,"Asia","decay too fast",27,6750.000000,6887.556860,-137.556860
-deaths,"Asia","growth too fast",29,8165.000000,7739.344989,425.655011
-deaths,"Asia","growth too fast",30,8513.000000,8216.522374,296.477626
-deaths,"Asia","decay too fast",31,8007.000000,8640.804850,-633.804850
-deaths,"Asia","decay too fast",32,8796.000000,8908.115211,-112.115211
-deaths,"Asia","growth too fast",33,9496.000000,9089.317214,406.682786
-deaths,"Asia","growth too fast",34,10221.000000,9388.402563,832.597437
-deaths,"Asia","growth too fast",35,9758.000000,9360.077771,397.922229
-deaths,"Asia","growth too fast",36,9328.000000,9046.191541,281.808459
-deaths,"Asia","growth too fast",37,8693.000000,8352.919558,340.080442
-deaths,"Asia","decay too fast",38,7609.000000,7701.061215,-92.061215
-deaths,"Asia","decay too fast",40,5899.000000,6567.701371,-668.701371
-deaths,"Asia","decay too fast",41,6013.000000,6276.127300,-263.127300
-deaths,"Asia","decay too fast",42,5897.000000,6104.901130,-207.901130
-deaths,"Africa","growth too fast",21,1002.000000,932.320812,69.679188
-deaths,"Africa","decay too fast",23,979.000000,1114.849314,-135.849314
-deaths,"Africa","growth too fast",24,1306.000000,1207.160582,98.839418
-deaths,"Africa","decay too fast",25,1389.000000,1595.452232,-206.452232
-deaths,"Africa","growth too fast",26,1986.000000,1889.799559,96.200441
-deaths,"Africa","growth too fast",28,2540.000000,2376.740322,163.259678
-deaths,"Africa","growth too fast",29,2429.000000,2182.103134,246.896866
-deaths,"Africa","growth too fast",30,2152.000000,2035.779643,116.220357
-deaths,"Africa","decay too fast",31,1707.000000,1808.898600,-101.898600
-deaths,"Africa","decay too fast",34,1109.000000,1265.082087,-156.082087
-deaths,"Africa","decay too fast",35,1093.000000,1314.215351,-221.215351
-deaths,"Africa","decay too fast",36,1178.000000,1274.878478,-96.878478
-deaths,"Africa","growth too fast",38,1560.000000,1329.953348,230.046652
-deaths,"Africa","decay too fast",40,1497.000000,1576.791575,-79.791575
-deaths,"Africa","growth too fast",42,2141.000000,1816.714067,324.285933
-deaths,"South America","growth too fast",14,3717.000000,3014.193637,702.806363
-deaths,"South America","growth too fast",15,4785.000000,4362.358351,422.641649
-deaths,"South America","growth too fast",16,6458.000000,6277.431903,180.568097
-deaths,"South America","growth too fast",19,9336.000000,9260.843968,75.156032
-deaths,"South America","growth too fast",20,10161.000000,9851.498750,309.501250
-deaths,"South America","growth too fast",21,10584.000000,10378.046967,205.953033
-deaths,"South America","growth too fast",22,10979.000000,10841.966369,137.033631
-deaths,"South America","growth too fast",26,16926.000000,12080.042673,4845.957327
-deaths,"South America","decay too fast",31,12768.000000,14099.853976,-1331.853976
-deaths,"South America","decay too fast",32,11567.000000,13268.234030,-1701.234030
-deaths,"South America","growth too fast",33,15840.000000,12652.165500,3187.834500
-deaths,"South America","growth too fast",36,13441.000000,9642.878778,3798.121222
-deaths,"South America","growth too fast",37,9713.000000,9211.196431,501.803569
-deaths,"South America","growth too fast",39,8534.000000,8303.002518,230.997482
-deaths,"South America","decay too fast",41,6747.000000,7644.073143,-897.073143
-deaths,"Europe","growth too fast",13,22687.000000,21980.054112,706.945888
-deaths,"Europe","growth too fast",14,17811.000000,16953.388512,857.611488
+deaths,"Yemen","negative reported",46,-18.000000,0.000000,-18.000000
+deaths,"Europe","growth too fast",13,22687.000000,19201.126442,3485.873558
 deaths,"Europe","growth too fast",16,10177.000000,9637.841845,539.158155
 deaths,"Europe","growth too fast",17,7345.000000,6984.975246,360.024754
 deaths,"Europe","decay too fast",20,3944.000000,4051.345586,-107.345586
@@ -364,7 +340,21 @@ deaths,"Europe","decay too fast",36,4544.000000,4759.264267,-215.264267
 deaths,"Europe","decay too fast",37,5348.000000,5812.794532,-464.794532
 deaths,"Europe","decay too fast",38,7128.000000,7335.396790,-207.396790
 deaths,"Europe","decay too fast",39,9894.000000,10209.243688,-315.243688
-deaths,"Oceania","negative reported",19,-1.000000,1.307881,-2.307881
+deaths,"Europe","growth too fast",43,31360.000000,30863.959965,496.040035
+deaths,"Europe","growth too fast",44,34360.000000,32072.284837,2287.715163
+deaths,"Middle_East","decay too fast",16,1028.000000,1269.439096,-241.439096
+deaths,"Middle_East","decay too fast",18,1007.000000,1227.524229,-220.524229
+deaths,"Middle_East","growth too fast",25,3131.000000,2994.803625,136.196375
+deaths,"Middle_East","growth too fast",26,3069.000000,2959.509639,109.490361
+deaths,"Middle_East","decay too fast",29,2470.000000,2564.625871,-94.625871
+deaths,"Middle_East","decay too fast",31,2233.000000,2419.662416,-186.662416
+deaths,"Middle_East","decay too fast",32,2272.000000,2343.313897,-71.313897
+deaths,"Middle_East","decay too fast",37,3249.000000,3345.436426,-96.436426
+deaths,"Middle_East","decay too fast",38,3494.000000,3604.859593,-110.859593
+deaths,"Middle_East","growth too fast",41,4788.000000,4650.076788,137.923212
+deaths,"Middle_East","growth too fast",42,5163.000000,4964.321852,198.678148
+deaths,"Middle_East","growth too fast",43,5443.000000,5172.661383,270.338617
+deaths,"Middle_East","growth too fast",44,5722.000000,5197.336056,524.663944
 deaths,"North America","decay too fast",14,15819.000000,15941.893351,-122.893351
 deaths,"North America","growth too fast",15,15078.000000,14429.729702,648.270298
 deaths,"North America","decay too fast",16,13040.000000,13286.355670,-246.355670
@@ -388,20 +378,66 @@ deaths,"North America","decay too fast",34,8978.000000,9327.063976,-349.063976
 deaths,"North America","growth too fast",35,9251.000000,8816.355007,434.644993
 deaths,"North America","decay too fast",36,8248.000000,8672.836602,-424.836602
 deaths,"North America","growth too fast",37,10787.000000,8511.616904,2275.383096
+deaths,"North America","decay too fast",38,7778.000000,8710.328334,-932.328334
 deaths,"North America","growth too fast",40,9729.000000,9383.634777,345.365223
 deaths,"North America","decay too fast",41,10388.000000,10581.166420,-193.166420
 deaths,"North America","decay too fast",42,11448.000000,12004.922435,-556.922435
-deaths,"Middle_East","decay too fast",16,1028.000000,1269.439096,-241.439096
-deaths,"Middle_East","decay too fast",18,1007.000000,1227.524229,-220.524229
-deaths,"Middle_East","growth too fast",25,3131.000000,2994.803625,136.196375
-deaths,"Middle_East","growth too fast",26,3069.000000,2959.509639,109.490361
-deaths,"Middle_East","decay too fast",29,2470.000000,2564.625871,-94.625871
-deaths,"Middle_East","decay too fast",31,2233.000000,2419.662416,-186.662416
-deaths,"Middle_East","decay too fast",32,2272.000000,2343.313897,-71.313897
-deaths,"Middle_East","decay too fast",37,3249.000000,3345.436426,-96.436426
-deaths,"Middle_East","decay too fast",38,3494.000000,3604.859593,-110.859593
-deaths,"Middle_East","growth too fast",41,4788.000000,4650.076788,137.923212
-deaths,"Middle_East","growth too fast",42,5163.000000,4964.321852,198.678148
+deaths,"North America","decay too fast",43,13393.000000,13556.456516,-163.456516
+deaths,"North America","growth too fast",44,15893.000000,15568.704992,324.295008
+deaths,"Oceania","negative reported",19,-1.000000,1.307881,-2.307881
+deaths,"Africa","growth too fast",21,1002.000000,932.320812,69.679188
+deaths,"Africa","decay too fast",23,979.000000,1114.849314,-135.849314
+deaths,"Africa","growth too fast",24,1306.000000,1207.160582,98.839418
+deaths,"Africa","decay too fast",25,1389.000000,1595.452232,-206.452232
+deaths,"Africa","growth too fast",26,1986.000000,1889.799559,96.200441
+deaths,"Africa","growth too fast",28,2540.000000,2376.740322,163.259678
+deaths,"Africa","growth too fast",29,2429.000000,2182.103134,246.896866
+deaths,"Africa","growth too fast",30,2152.000000,2035.779643,116.220357
+deaths,"Africa","decay too fast",31,1707.000000,1808.898600,-101.898600
+deaths,"Africa","decay too fast",34,1109.000000,1265.082087,-156.082087
+deaths,"Africa","decay too fast",35,1093.000000,1314.215351,-221.215351
+deaths,"Africa","decay too fast",36,1178.000000,1274.878478,-96.878478
+deaths,"Africa","growth too fast",38,1560.000000,1329.953348,230.046652
+deaths,"Africa","decay too fast",40,1497.000000,1576.791575,-79.791575
+deaths,"Africa","growth too fast",42,2141.000000,1816.714067,324.285933
+deaths,"Asia","decay too fast",17,1790.000000,2066.310915,-276.310915
+deaths,"Asia","decay too fast",20,3634.000000,3769.600634,-135.600634
+deaths,"Asia","growth too fast",21,5838.000000,4481.986725,1356.013275
+deaths,"Asia","decay too fast",24,5128.000000,5650.652229,-522.652229
+deaths,"Asia","growth too fast",25,5890.000000,5666.184978,223.815022
+deaths,"Asia","growth too fast",26,8113.000000,6261.317153,1851.682847
+deaths,"Asia","decay too fast",27,6750.000000,6887.556860,-137.556860
+deaths,"Asia","growth too fast",29,8165.000000,7739.344989,425.655011
+deaths,"Asia","growth too fast",30,8513.000000,8216.522374,296.477626
+deaths,"Asia","decay too fast",31,8007.000000,8640.804850,-633.804850
+deaths,"Asia","decay too fast",32,8796.000000,8908.115211,-112.115211
+deaths,"Asia","growth too fast",33,9496.000000,9089.317214,406.682786
+deaths,"Asia","growth too fast",34,10221.000000,9388.402563,832.597437
+deaths,"Asia","growth too fast",35,9758.000000,9360.077771,397.922229
+deaths,"Asia","growth too fast",36,9328.000000,9046.191541,281.808459
+deaths,"Asia","growth too fast",37,8693.000000,8352.919558,340.080442
+deaths,"Asia","decay too fast",38,7609.000000,7701.061215,-92.061215
+deaths,"Asia","decay too fast",40,5899.000000,6567.701371,-668.701371
+deaths,"Asia","decay too fast",41,6013.000000,6276.127300,-263.127300
+deaths,"Asia","decay too fast",42,5897.000000,6055.327069,-158.327069
+deaths,"Asia","growth too fast",44,6407.000000,6254.011084,152.988916
+deaths,"South America","growth too fast",14,3717.000000,3087.496483,629.503517
+deaths,"South America","growth too fast",15,4785.000000,4545.048277,239.951723
+deaths,"South America","growth too fast",16,6458.000000,6277.431903,180.568097
+deaths,"South America","growth too fast",20,10161.000000,9851.498750,309.501250
+deaths,"South America","growth too fast",21,10584.000000,10378.046967,205.953033
+deaths,"South America","growth too fast",22,10979.000000,10841.966369,137.033631
+deaths,"South America","growth too fast",26,16926.000000,12080.042673,4845.957327
+deaths,"South America","growth too fast",30,16289.000000,12303.844454,3985.155546
+deaths,"South America","growth too fast",31,12768.000000,11771.746758,996.253242
+deaths,"South America","growth too fast",33,15840.000000,10973.443890,4866.556110
+deaths,"South America","decay too fast",34,10303.000000,10464.433497,-161.433497
+deaths,"South America","decay too fast",35,10083.000000,12317.725227,-2234.725227
+deaths,"South America","growth too fast",36,13441.000000,9642.878778,3798.121222
+deaths,"South America","growth too fast",37,9713.000000,9211.196431,501.803569
+deaths,"South America","growth too fast",39,8534.000000,8303.002518,230.997482
+deaths,"South America","decay too fast",41,6747.000000,7898.885067,-1151.885067
+deaths,"South America","decay too fast",44,7108.000000,7590.004685,-482.004685
 confirmed,"Afghanistan","growth too fast",17,3037.000000,2758.548197,278.451803
 confirmed,"Afghanistan","growth too fast",18,4362.000000,3526.750892,835.249108
 confirmed,"Afghanistan","growth too fast",19,5018.000000,4004.090041,1013.909959
@@ -420,6 +456,8 @@ confirmed,"Afghanistan","decay too fast",36,115.000000,360.877234,-245.877234
 confirmed,"Afghanistan","decay too fast",37,331.000000,397.094844,-66.094844
 confirmed,"Afghanistan","growth too fast",39,600.000000,527.833442,72.166558
 confirmed,"Afghanistan","decay too fast",41,667.000000,788.969684,-121.969684
+confirmed,"Afghanistan","growth too fast",43,1382.000000,1029.714631,352.285369
+confirmed,"Afghanistan","growth too fast",44,1423.000000,1196.202501,226.797499
 confirmed,"Albania","growth too fast",25,663.000000,594.161064,68.838936
 confirmed,"Albania","growth too fast",31,1116.000000,1036.668243,79.331757
 confirmed,"Albania","decay too fast",32,761.000000,1044.479475,-283.479475
@@ -428,8 +466,10 @@ confirmed,"Albania","decay too fast",37,1093.000000,1167.030173,-74.030173
 confirmed,"Albania","growth too fast",39,2038.000000,1662.827063,375.172937
 confirmed,"Albania","decay too fast",41,2406.000000,2507.450580,-101.450580
 confirmed,"Albania","growth too fast",42,3490.000000,3015.439791,474.560209
+confirmed,"Albania","growth too fast",43,4412.000000,3584.059600,827.940400
 confirmed,"Algeria","decay too fast",12,602.000000,671.303514,-69.303514
 confirmed,"Algeria","growth too fast",14,999.000000,898.468697,100.531303
+confirmed,"Algeria","growth too fast",15,1176.000000,1047.266874,128.733126
 confirmed,"Algeria","decay too fast",19,834.000000,1200.432061,-366.432061
 confirmed,"Algeria","growth too fast",26,4129.000000,3892.758279,236.241721
 confirmed,"Algeria","growth too fast",27,4347.000000,3787.863843,559.136157
@@ -438,15 +478,18 @@ confirmed,"Algeria","growth too fast",29,3561.000000,3459.672776,101.327224
 confirmed,"Algeria","growth too fast",32,2453.000000,2331.024391,121.975609
 confirmed,"Algeria","decay too fast",36,1111.000000,1232.470217,-121.470217
 confirmed,"Algeria","decay too fast",37,968.000000,1261.519776,-293.519776
+confirmed,"Algeria","decay too fast",38,1119.000000,1338.974888,-219.974888
 confirmed,"Algeria","decay too fast",40,1975.000000,2101.342432,-126.342432
 confirmed,"Algeria","decay too fast",41,2837.000000,3021.125292,-184.125292
 confirmed,"Algeria","growth too fast",42,4939.000000,4343.316674,595.683326
+confirmed,"Algeria","growth too fast",44,7458.000000,6929.252928,528.747072
 confirmed,"Andorra","growth too fast",19,89.000000,5.204203,83.795797
 confirmed,"Andorra","growth too fast",37,518.000000,430.445390,87.554610
 confirmed,"Andorra","growth too fast",38,622.000000,509.777971,112.222029
 confirmed,"Andorra","growth too fast",40,756.000000,596.711045,159.288955
+confirmed,"Andorra","growth too fast",44,468.000000,403.332770,64.667230
 confirmed,"Angola","growth too fast",28,374.000000,288.641229,85.358771
-confirmed,"Angola","decay too fast",30,229.000000,338.244675,-109.244675
+confirmed,"Angola","decay too fast",30,229.000000,314.229970,-85.229970
 confirmed,"Angola","decay too fast",36,639.000000,767.152106,-128.152106
 confirmed,"Angola","decay too fast",37,844.000000,908.779630,-64.779630
 confirmed,"Angola","growth too fast",38,1138.000000,1066.206963,71.793037
@@ -474,8 +517,10 @@ confirmed,"Argentina","growth too fast",39,104587.000000,88594.411596,15992.5884
 confirmed,"Argentina","growth too fast",40,90150.000000,84811.295861,5338.704139
 confirmed,"Argentina","decay too fast",41,73228.000000,78124.959692,-4896.959692
 confirmed,"Argentina","decay too fast",42,67491.000000,68242.968913,-751.968913
+confirmed,"Argentina","growth too fast",43,64915.000000,59956.149837,4958.850163
+confirmed,"Argentina","decay too fast",44,49997.000000,55130.819066,-5133.819066
 confirmed,"Armenia","decay too fast",12,238.000000,316.623008,-78.623008
-confirmed,"Armenia","decay too fast",16,976.000000,1146.031721,-170.031721
+confirmed,"Armenia","decay too fast",16,976.000000,1068.526588,-92.526588
 confirmed,"Armenia","growth too fast",17,1746.000000,1452.011776,293.988224
 confirmed,"Armenia","growth too fast",18,2610.000000,1885.584180,724.415820
 confirmed,"Armenia","growth too fast",21,4029.000000,3587.986385,441.013615
@@ -486,22 +531,24 @@ confirmed,"Armenia","growth too fast",26,2603.000000,2494.931176,108.068824
 confirmed,"Armenia","decay too fast",29,1204.000000,1401.467787,-197.467787
 confirmed,"Armenia","growth too fast",30,1296.000000,1219.817703,76.182297
 confirmed,"Armenia","decay too fast",31,951.000000,1132.528901,-181.528901
-confirmed,"Armenia","decay too fast",32,1001.000000,1150.066061,-149.066061
+confirmed,"Armenia","decay too fast",32,1001.000000,1195.569065,-194.569065
 confirmed,"Armenia","decay too fast",33,1055.000000,1129.182200,-74.182200
-confirmed,"Armenia","decay too fast",37,3623.000000,3851.048485,-228.048485
-confirmed,"Armenia","decay too fast",38,5522.000000,6034.882106,-512.882106
+confirmed,"Armenia","decay too fast",37,3623.000000,3776.613389,-153.613389
+confirmed,"Armenia","decay too fast",38,5522.000000,5803.867041,-281.867041
 confirmed,"Armenia","growth too fast",39,10841.000000,8919.044985,1921.955015
 confirmed,"Armenia","growth too fast",41,14529.000000,12421.612352,2107.387648
 confirmed,"Armenia","growth too fast",42,13117.000000,10993.431981,2123.568019
+confirmed,"Armenia","decay too fast",43,9299.000000,10718.577699,-1419.577699
+confirmed,"Armenia","decay too fast",44,8891.000000,9257.978397,-366.978397
 confirmed,"Australia","growth too fast",9,2129.000000,195.924592,1933.075408
 confirmed,"Australia","decay too fast",12,354.000000,422.259141,-68.259141
-confirmed,"Australia","decay too fast",13,200.000000,271.035875,-71.035875
 confirmed,"Australia","decay too fast",23,471.000000,544.910834,-73.910834
 confirmed,"Australia","growth too fast",24,1308.000000,709.683844,598.316156
 confirmed,"Australia","growth too fast",27,3308.000000,2434.643358,873.356642
 confirmed,"Australia","growth too fast",28,3369.000000,2410.560454,958.439546
 confirmed,"Australia","growth too fast",29,2470.000000,2117.181443,352.818557
 confirmed,"Australia","growth too fast",30,1665.000000,1568.436003,96.563997
+confirmed,"Australia","decay too fast",42,32.000000,98.403737,-66.403737
 confirmed,"Austria","growth too fast",12,1232.000000,1110.978657,121.021343
 confirmed,"Austria","growth too fast",23,464.000000,345.842227,118.157773
 confirmed,"Austria","growth too fast",24,674.000000,453.004416,220.995584
@@ -518,6 +565,8 @@ confirmed,"Austria","decay too fast",37,6371.000000,6806.959758,-435.959758
 confirmed,"Austria","decay too fast",38,8167.000000,8497.633201,-330.633201
 confirmed,"Austria","decay too fast",39,11620.000000,13128.283328,-1508.283328
 confirmed,"Austria","growth too fast",40,22105.000000,19448.084152,2656.915848
+confirmed,"Austria","growth too fast",43,47041.000000,43301.542849,3739.457151
+confirmed,"Austria","growth too fast",44,37355.000000,34718.851378,2636.148622
 confirmed,"Azerbaijan","decay too fast",13,265.000000,412.409790,-147.409790
 confirmed,"Azerbaijan","decay too fast",14,256.000000,412.692417,-156.692417
 confirmed,"Azerbaijan","growth too fast",16,675.000000,599.786969,75.213031
@@ -540,6 +589,8 @@ confirmed,"Azerbaijan","growth too fast",38,1976.000000,1890.887453,85.112547
 confirmed,"Azerbaijan","growth too fast",39,4138.000000,3246.019754,891.980246
 confirmed,"Azerbaijan","growth too fast",41,7721.000000,7545.761827,175.238173
 confirmed,"Azerbaijan","decay too fast",42,9343.000000,10459.824540,-1116.824540
+confirmed,"Azerbaijan","decay too fast",43,13778.000000,13915.827146,-137.827146
+confirmed,"Azerbaijan","growth too fast",44,22107.000000,17891.946050,4215.053950
 confirmed,"Bahamas","growth too fast",26,150.000000,62.030939,87.969061
 confirmed,"Bahamas","growth too fast",30,521.000000,352.341306,168.658694
 confirmed,"Bahamas","decay too fast",33,335.000000,405.507648,-70.507648
@@ -547,22 +598,25 @@ confirmed,"Bahamas","decay too fast",36,424.000000,529.713646,-105.713646
 confirmed,"Bahamas","growth too fast",38,672.000000,523.916329,148.083671
 confirmed,"Bahamas","growth too fast",39,750.000000,511.623417,238.376583
 confirmed,"Bahamas","decay too fast",41,275.000000,349.303168,-74.303168
-confirmed,"Bahrain","growth too fast",12,813.000000,359.845739,453.154261
-confirmed,"Bahrain","decay too fast",15,1159.000000,1241.704335,-82.704335
+confirmed,"Bahrain","growth too fast",12,813.000000,356.954892,456.045108
+confirmed,"Bahrain","growth too fast",16,1999.000000,1508.630316,490.369684
 confirmed,"Bahrain","growth too fast",21,3763.000000,3578.646855,184.353145
-confirmed,"Bahrain","growth too fast",23,3756.000000,3611.718440,144.281560
-confirmed,"Bahrain","growth too fast",24,3691.000000,3470.218629,220.781371
-confirmed,"Bahrain","growth too fast",25,3556.000000,3307.927593,248.072407
-confirmed,"Bahrain","decay too fast",26,2912.000000,3037.146561,-125.146561
-confirmed,"Bahrain","decay too fast",27,2759.000000,2841.728554,-82.728554
-confirmed,"Bahrain","decay too fast",28,2134.000000,2627.001755,-493.001755
-confirmed,"Bahrain","growth too fast",29,2837.000000,2447.538333,389.461667
+confirmed,"Bahrain","growth too fast",23,3756.000000,3682.608168,73.391832
+confirmed,"Bahrain","growth too fast",24,3691.000000,3500.574634,190.425366
+confirmed,"Bahrain","growth too fast",25,3556.000000,3347.935320,208.064680
+confirmed,"Bahrain","decay too fast",26,2912.000000,3092.413414,-180.413414
+confirmed,"Bahrain","growth too fast",27,2759.000000,2654.627489,104.372511
+confirmed,"Bahrain","decay too fast",28,2134.000000,2607.796269,-473.796269
+confirmed,"Bahrain","growth too fast",29,2837.000000,2647.413666,189.586334
 confirmed,"Bahrain","decay too fast",31,2453.000000,2567.360693,-114.360693
-confirmed,"Bahrain","growth too fast",35,4512.000000,4331.908598,180.091402
+confirmed,"Bahrain","growth too fast",33,4774.000000,2889.290049,1884.709951
+confirmed,"Bahrain","growth too fast",34,4982.000000,2981.018375,2000.981625
 confirmed,"Bahrain","decay too fast",37,3048.000000,3138.615828,-90.615828
-confirmed,"Bahrain","decay too fast",38,2532.000000,2623.483149,-91.483149
-confirmed,"Bahrain","growth too fast",40,2051.000000,1895.277590,155.722410
+confirmed,"Bahrain","decay too fast",38,2532.000000,2652.179372,-120.179372
+confirmed,"Bahrain","growth too fast",40,2051.000000,1914.087599,136.912401
 confirmed,"Bahrain","decay too fast",41,1524.000000,1657.089776,-133.089776
+confirmed,"Bahrain","decay too fast",43,1125.000000,1239.641261,-114.641261
+confirmed,"Bahrain","decay too fast",44,1030.000000,1191.873275,-161.873275
 confirmed,"Bangladesh","decay too fast",16,6438.000000,6573.586508,-135.586508
 confirmed,"Bangladesh","growth too fast",17,9648.000000,8918.359429,729.640571
 confirmed,"Bangladesh","decay too fast",18,11810.000000,11899.376615,-89.376615
@@ -584,6 +638,8 @@ confirmed,"Bangladesh","growth too fast",39,10268.000000,10189.137512,78.862488
 confirmed,"Bangladesh","decay too fast",40,9933.000000,10505.273629,-572.273629
 confirmed,"Bangladesh","growth too fast",41,11246.000000,10849.937364,396.062636
 confirmed,"Bangladesh","decay too fast",42,11192.000000,11760.531825,-568.531825
+confirmed,"Bangladesh","growth too fast",43,13961.000000,13005.138426,955.861574
+confirmed,"Bangladesh","growth too fast",44,15279.000000,13144.483231,2134.516769
 confirmed,"Belarus","growth too fast",16,6604.000000,6402.326441,201.673559
 confirmed,"Belarus","growth too fast",17,6599.000000,6336.677716,262.322284
 confirmed,"Belarus","growth too fast",18,6487.000000,6220.529536,266.470464
@@ -595,20 +651,21 @@ confirmed,"Belarus","decay too fast",29,700.000000,860.531118,-160.531118
 confirmed,"Belarus","decay too fast",30,747.000000,875.588132,-128.588132
 confirmed,"Belarus","growth too fast",31,1215.000000,925.698116,289.301884
 confirmed,"Belarus","growth too fast",32,1137.000000,1065.221416,71.778584
-confirmed,"Belarus","growth too fast",37,2963.000000,2895.297069,67.702931
 confirmed,"Belarus","growth too fast",39,4646.000000,4547.529142,98.470858
 confirmed,"Belarus","growth too fast",40,6149.000000,5523.203873,625.796127
 confirmed,"Belarus","growth too fast",41,6766.000000,6608.689103,157.310897
 confirmed,"Belarus","decay too fast",42,7160.000000,7611.090148,-451.090148
+confirmed,"Belarus","growth too fast",43,8935.000000,8759.329846,175.670154
+confirmed,"Belarus","growth too fast",44,10622.000000,9882.697926,739.302074
 confirmed,"Belgium","growth too fast",12,9826.000000,8861.288059,964.711941
 confirmed,"Belgium","growth too fast",13,7988.000000,6934.955506,1053.044494
 confirmed,"Belgium","growth too fast",14,5722.000000,5459.740448,262.259552
 confirmed,"Belgium","decay too fast",15,2901.000000,4066.274908,-1165.274908
-confirmed,"Belgium","growth too fast",16,2868.000000,2479.536119,388.463881
-confirmed,"Belgium","decay too fast",17,1947.000000,2089.664213,-142.664213
+confirmed,"Belgium","growth too fast",16,2868.000000,2627.350204,240.649796
+confirmed,"Belgium","growth too fast",18,1614.000000,1472.986895,141.013105
 confirmed,"Belgium","decay too fast",19,918.000000,1149.359626,-231.359626
-confirmed,"Belgium","decay too fast",21,637.000000,745.036172,-108.036172
-confirmed,"Belgium","decay too fast",23,591.000000,729.075594,-138.075594
+confirmed,"Belgium","decay too fast",21,637.000000,796.768139,-159.768139
+confirmed,"Belgium","decay too fast",23,591.000000,861.508009,-270.508009
 confirmed,"Belgium","decay too fast",26,1609.000000,1686.627507,-77.627507
 confirmed,"Belgium","growth too fast",27,3159.000000,2714.275508,444.724492
 confirmed,"Belgium","growth too fast",29,4175.000000,3978.543679,196.456321
@@ -624,14 +681,18 @@ confirmed,"Belgium","growth too fast",39,78173.000000,53634.143833,24538.856167
 confirmed,"Belgium","growth too fast",40,122126.000000,64741.635573,57384.364427
 confirmed,"Belgium","growth too fast",41,87083.000000,60999.318434,26083.681566
 confirmed,"Belgium","decay too fast",42,41052.000000,46829.122032,-5777.122032
+confirmed,"Belgium","growth too fast",43,29871.000000,29704.615364,166.384636
 confirmed,"Belize","decay too fast",35,139.000000,235.420125,-96.420125
 confirmed,"Belize","growth too fast",37,381.000000,257.865519,123.134481
 confirmed,"Belize","decay too fast",40,266.000000,351.307864,-85.307864
 confirmed,"Belize","growth too fast",41,716.000000,376.344541,339.655459
 confirmed,"Belize","growth too fast",42,619.000000,416.266617,202.733383
+confirmed,"Belize","decay too fast",43,422.000000,550.455326,-128.455326
+confirmed,"Belize","decay too fast",44,497.000000,671.543518,-174.543518
 confirmed,"Benin","growth too fast",16,199.000000,23.532301,175.467699
 confirmed,"Benin","negative reported",17,-204.000000,14.879300,-218.879300
 confirmed,"Benin","growth too fast",21,292.000000,69.710415,222.289585
+confirmed,"Benin","decay too fast",24,86.000000,278.876653,-192.876653
 confirmed,"Bolivia","decay too fast",13,262.000000,336.531819,-74.531819
 confirmed,"Bolivia","growth too fast",15,914.000000,761.771572,152.228428
 confirmed,"Bolivia","decay too fast",17,1815.000000,1913.010744,-98.010744
@@ -640,7 +701,7 @@ confirmed,"Bolivia","growth too fast",19,3858.000000,3489.429950,368.570050
 confirmed,"Bolivia","decay too fast",20,3920.000000,4390.133723,-470.133723
 confirmed,"Bolivia","growth too fast",21,5334.000000,5224.542920,109.457080
 confirmed,"Bolivia","growth too fast",22,7004.000000,5770.360891,1233.639109
-confirmed,"Bolivia","growth too fast",24,8585.000000,8388.236213,196.763787
+confirmed,"Bolivia","growth too fast",24,8585.000000,8411.217191,173.782809
 confirmed,"Bolivia","growth too fast",25,10043.000000,9149.020016,893.979984
 confirmed,"Bolivia","growth too fast",26,11096.000000,9973.732756,1122.267244
 confirmed,"Bolivia","decay too fast",27,9982.000000,10368.861676,-386.861676
@@ -648,15 +709,18 @@ confirmed,"Bolivia","growth too fast",28,11189.000000,10072.089026,1116.910974
 confirmed,"Bolivia","growth too fast",29,10036.000000,9233.603363,802.396637
 confirmed,"Bolivia","growth too fast",30,9606.000000,8507.511210,1098.488790
 confirmed,"Bolivia","decay too fast",31,7064.000000,7444.093140,-380.093140
-confirmed,"Bolivia","decay too fast",32,5652.000000,6834.752045,-1182.752045
-confirmed,"Bolivia","growth too fast",33,5424.000000,4859.253385,564.746615
+confirmed,"Bolivia","decay too fast",32,5652.000000,6412.965204,-760.965204
+confirmed,"Bolivia","growth too fast",33,5424.000000,5270.574538,153.425462
 confirmed,"Bolivia","growth too fast",34,5214.000000,4390.094474,823.905526
 confirmed,"Bolivia","decay too fast",35,3199.000000,3748.362106,-549.362106
-confirmed,"Bolivia","growth too fast",36,3098.000000,2950.015559,147.984441
-confirmed,"Bolivia","decay too fast",38,1350.000000,1533.233770,-183.233770
+confirmed,"Bolivia","growth too fast",36,3098.000000,3021.731641,76.268359
+confirmed,"Bolivia","decay too fast",38,1350.000000,1556.637114,-206.637114
+confirmed,"Bolivia","decay too fast",39,1126.000000,1229.785887,-103.785887
 confirmed,"Bolivia","growth too fast",40,1039.000000,956.031823,82.968177
 confirmed,"Bolivia","decay too fast",41,717.000000,867.659344,-150.659344
 confirmed,"Bolivia","decay too fast",42,688.000000,831.451878,-143.451878
+confirmed,"Bolivia","growth too fast",43,867.000000,736.130164,130.869836
+confirmed,"Bolivia","decay too fast",44,634.000000,815.639623,-181.639623
 confirmed,"Bosnia and Herzegovina","growth too fast",23,992.000000,780.651253,211.348747
 confirmed,"Bosnia and Herzegovina","growth too fast",26,1781.000000,1659.919255,121.080745
 confirmed,"Bosnia and Herzegovina","growth too fast",27,1982.000000,1800.532097,181.467903
@@ -667,6 +731,8 @@ confirmed,"Bosnia and Herzegovina","growth too fast",34,2061.000000,1784.204633,
 confirmed,"Bosnia and Herzegovina","decay too fast",36,1433.000000,1678.818518,-245.818518
 confirmed,"Bosnia and Herzegovina","growth too fast",39,5090.000000,4347.810862,742.189138
 confirmed,"Bosnia and Herzegovina","growth too fast",42,10787.000000,9938.178345,848.821655
+confirmed,"Bosnia and Herzegovina","decay too fast",43,8464.000000,8951.795016,-487.795016
+confirmed,"Bosnia and Herzegovina","decay too fast",44,7495.000000,7778.157200,-283.157200
 confirmed,"Botswana","growth too fast",23,135.000000,44.549724,90.450276
 confirmed,"Botswana","growth too fast",25,208.000000,118.378628,89.621372
 confirmed,"Botswana","decay too fast",26,70.000000,138.703366,-68.703366
@@ -675,7 +741,6 @@ confirmed,"Botswana","decay too fast",28,0.000000,129.501651,-129.501651
 confirmed,"Botswana","growth too fast",29,410.000000,173.672167,236.327833
 confirmed,"Botswana","growth too fast",31,254.000000,167.979719,86.020281
 confirmed,"Botswana","growth too fast",33,528.000000,283.878445,244.121555
-confirmed,"Botswana","growth too fast",35,354.000000,234.072907,119.927093
 confirmed,"Botswana","decay too fast",36,251.000000,454.838847,-203.838847
 confirmed,"Botswana","decay too fast",37,47.000000,519.095444,-472.095444
 confirmed,"Botswana","growth too fast",38,695.000000,623.773571,71.226429
@@ -683,10 +748,14 @@ confirmed,"Botswana","growth too fast",39,2009.000000,580.500278,1428.499722
 confirmed,"Botswana","decay too fast",40,719.000000,1129.047537,-410.047537
 confirmed,"Botswana","growth too fast",41,1193.000000,985.597703,207.402297
 confirmed,"Botswana","decay too fast",42,390.000000,825.575595,-435.575595
-confirmed,"Brazil","decay too fast",16,67392.000000,69146.938415,-1754.938415
-confirmed,"Brazil","growth too fast",17,106922.000000,95462.104933,11459.895067
-confirmed,"Brazil","growth too fast",19,176703.000000,157189.315579,19513.684421
-confirmed,"Brazil","growth too fast",20,187887.000000,177612.992782,10274.007218
+confirmed,"Botswana","growth too fast",43,1369.000000,874.852049,494.147951
+confirmed,"Botswana","decay too fast",44,664.000000,768.840423,-104.840423
+confirmed,"Brazil","growth too fast",14,37151.000000,30315.390989,6835.609011
+confirmed,"Brazil","growth too fast",15,48586.000000,46096.893337,2489.106663
+confirmed,"Brazil","growth too fast",16,67392.000000,67214.640528,177.359472
+confirmed,"Brazil","growth too fast",17,106922.000000,92794.445416,14127.554584
+confirmed,"Brazil","growth too fast",19,176703.000000,160703.669223,15999.330777
+confirmed,"Brazil","growth too fast",20,187887.000000,184185.152140,3701.847860
 confirmed,"Brazil","decay too fast",21,175314.000000,196629.440797,-21315.440797
 confirmed,"Brazil","growth too fast",22,249972.000000,214718.002105,35253.997895
 confirmed,"Brazil","growth too fast",23,268744.000000,228655.516499,40088.483501
@@ -702,12 +771,14 @@ confirmed,"Brazil","growth too fast",32,280247.000000,251557.199393,28689.800607
 confirmed,"Brazil","decay too fast",33,196808.000000,237640.883418,-40832.883418
 confirmed,"Brazil","decay too fast",34,216940.000000,226671.051435,-9731.051435
 confirmed,"Brazil","decay too fast",35,202316.000000,203080.662443,-764.662443
-confirmed,"Brazil","growth too fast",36,189390.000000,186277.770681,3112.229319
-confirmed,"Brazil","decay too fast",38,140942.000000,148657.479084,-7715.479084
-confirmed,"Brazil","growth too fast",39,154244.000000,154172.660605,71.339395
-confirmed,"Brazil","growth too fast",40,170746.000000,165104.046362,5641.953638
+confirmed,"Brazil","decay too fast",36,189390.000000,190145.846893,-755.846893
+confirmed,"Brazil","decay too fast",37,181352.000000,181952.213229,-600.213229
+confirmed,"Brazil","decay too fast",38,140942.000000,173424.144305,-32482.144305
+confirmed,"Brazil","decay too fast",39,154244.000000,172667.178991,-18423.178991
+confirmed,"Brazil","growth too fast",40,170746.000000,167275.641585,3470.358415
 confirmed,"Brazil","decay too fast",41,95649.000000,178881.778565,-83232.778565
 confirmed,"Brazil","decay too fast",42,191557.000000,196618.827743,-5061.827743
+confirmed,"Brazil","decay too fast",44,222453.000000,225643.917878,-3190.917878
 confirmed,"Bulgaria","growth too fast",13,297.000000,211.215257,85.784743
 confirmed,"Bulgaria","growth too fast",14,409.000000,231.407191,177.592809
 confirmed,"Bulgaria","decay too fast",17,231.000000,317.292499,-86.292499
@@ -724,6 +795,8 @@ confirmed,"Bulgaria","decay too fast",32,867.000000,946.107545,-79.107545
 confirmed,"Bulgaria","decay too fast",33,823.000000,940.568153,-117.568153
 confirmed,"Bulgaria","growth too fast",39,7423.000000,7278.554932,144.445068
 confirmed,"Bulgaria","growth too fast",40,13220.000000,12456.809976,763.190024
+confirmed,"Bulgaria","growth too fast",43,23710.000000,22311.883967,1398.116033
+confirmed,"Bulgaria","growth too fast",44,22193.000000,21153.827203,1039.172797
 confirmed,"Burkina Faso","decay too fast",32,23.000000,88.664255,-65.664255
 confirmed,"Burundi","growth too fast",25,112.000000,23.916021,88.083979
 confirmed,"Cameroon","decay too fast",12,266.000000,358.053318,-92.053318
@@ -741,9 +814,10 @@ confirmed,"Cameroon","growth too fast",35,409.000000,328.141354,80.858646
 confirmed,"Cameroon","decay too fast",36,126.000000,268.305292,-142.305292
 confirmed,"Cameroon","growth too fast",37,365.000000,272.514192,92.485808
 confirmed,"Cameroon","decay too fast",39,129.000000,200.775210,-71.775210
+confirmed,"Cameroon","growth too fast",43,1038.000000,388.005448,649.994552
 confirmed,"Canada","decay too fast",12,10155.000000,10345.969103,-190.969103
 confirmed,"Canada","growth too fast",13,12490.000000,10512.476684,1977.523316
-confirmed,"Canada","growth too fast",14,11158.000000,10553.730117,604.269883
+confirmed,"Canada","growth too fast",14,11158.000000,10695.680787,462.319213
 confirmed,"Canada","growth too fast",15,11744.000000,10228.379101,1515.620899
 confirmed,"Canada","decay too fast",16,8580.000000,9117.715066,-537.715066
 confirmed,"Canada","decay too fast",17,7961.000000,8304.746140,-343.746140
@@ -755,7 +829,6 @@ confirmed,"Canada","growth too fast",26,3254.000000,2646.596132,607.403868
 confirmed,"Canada","decay too fast",28,2710.000000,2912.260486,-202.260486
 confirmed,"Canada","decay too fast",29,2793.000000,2952.151363,-159.151363
 confirmed,"Canada","decay too fast",30,2445.000000,2990.788234,-545.788234
-confirmed,"Canada","decay too fast",31,3211.000000,3305.668798,-94.668798
 confirmed,"Canada","decay too fast",32,3691.000000,3823.287251,-132.287251
 confirmed,"Canada","decay too fast",33,4429.000000,4892.860293,-463.860293
 confirmed,"Canada","decay too fast",34,5923.000000,6221.886050,-298.886050
@@ -766,6 +839,8 @@ confirmed,"Canada","decay too fast",39,17255.000000,17934.230513,-679.230513
 confirmed,"Canada","decay too fast",40,19766.000000,20504.804738,-738.804738
 confirmed,"Canada","decay too fast",41,22099.000000,23254.642824,-1155.642824
 confirmed,"Canada","growth too fast",42,32457.000000,27023.353879,5433.646121
+confirmed,"Canada","growth too fast",43,33308.000000,31335.694662,1972.305338
+confirmed,"Canada","decay too fast",44,37403.000000,37510.917755,-107.917755
 confirmed,"Cape Verde","growth too fast",23,298.000000,218.395815,79.604185
 confirmed,"Cape Verde","decay too fast",27,228.000000,300.062570,-72.062570
 confirmed,"Cape Verde","decay too fast",35,416.000000,503.194303,-87.194303
@@ -774,6 +849,7 @@ confirmed,"Cape Verde","growth too fast",38,727.000000,633.229962,93.770038
 confirmed,"Cape Verde","growth too fast",39,678.000000,602.551076,75.448924
 confirmed,"Cape Verde","decay too fast",40,481.000000,578.531766,-97.531766
 confirmed,"Cape Verde","growth too fast",42,545.000000,463.768682,81.231318
+confirmed,"Cape Verde","growth too fast",44,488.000000,395.886142,92.113858
 confirmed,"Central African Republic","growth too fast",19,533.000000,462.921470,70.078530
 confirmed,"Central African Republic","growth too fast",20,664.000000,518.788694,145.211306
 confirmed,"Central African Republic","growth too fast",21,653.000000,582.293118,70.706882
@@ -782,29 +858,29 @@ confirmed,"Central African Republic","decay too fast",25,173.000000,297.255829,-
 confirmed,"Central African Republic","decay too fast",27,15.000000,119.414160,-104.414160
 confirmed,"Chile","growth too fast",17,24140.000000,23288.954262,851.045738
 confirmed,"Chile","growth too fast",20,44544.000000,40439.677480,4104.322520
-confirmed,"Chile","growth too fast",21,38405.000000,37845.586656,559.413344
-confirmed,"Chile","decay too fast",23,25477.000000,26427.416580,-950.416580
-confirmed,"Chile","growth too fast",24,21675.000000,21357.528661,317.471339
-confirmed,"Chile","decay too fast",25,17482.000000,17853.603343,-371.603343
-confirmed,"Chile","decay too fast",28,13135.000000,13673.075977,-538.075977
+confirmed,"Chile","growth too fast",21,38405.000000,35708.398478,2696.601522
+confirmed,"Chile","growth too fast",22,33961.000000,31735.891137,2225.108863
+confirmed,"Chile","decay too fast",23,25477.000000,26642.128428,-1165.128428
+confirmed,"Chile","decay too fast",24,21675.000000,22094.805408,-419.805408
+confirmed,"Chile","decay too fast",25,17482.000000,17870.427668,-388.427668
+confirmed,"Chile","decay too fast",28,13135.000000,13670.606454,-535.606454
 confirmed,"Chile","growth too fast",29,13363.000000,13147.133335,215.866665
 confirmed,"Chile","decay too fast",30,11815.000000,12612.737207,-797.737207
 confirmed,"Chile","decay too fast",31,12253.000000,12447.133321,-194.133321
 confirmed,"Chile","growth too fast",32,12399.000000,12008.559780,390.440220
 confirmed,"Chile","decay too fast",33,12168.000000,12347.160429,-179.160429
 confirmed,"Chile","growth too fast",36,13116.000000,11374.740079,1741.259921
-confirmed,"Chile","growth too fast",37,11266.000000,11092.111910,173.888090
 confirmed,"Chile","growth too fast",39,10635.000000,10416.341465,218.658535
 confirmed,"Chile","decay too fast",40,9919.000000,10093.887592,-174.887592
 confirmed,"Chile","decay too fast",41,9532.000000,9933.105517,-401.105517
 confirmed,"Chile","growth too fast",42,9856.000000,9722.733989,133.266011
+confirmed,"Chile","decay too fast",43,9574.000000,9786.343179,-212.343179
+confirmed,"Chile","decay too fast",44,9650.000000,10089.022652,-439.022652
 confirmed,"China","growth too fast",3,29308.000000,16508.189721,12799.810279
-confirmed,"China","decay too fast",6,1937.000000,2482.461336,-545.461336
 confirmed,"China","growth too fast",9,626.000000,335.736404,290.263596
 confirmed,"China","growth too fast",10,650.000000,395.127640,254.872360
 confirmed,"China","decay too fast",11,451.000000,540.559495,-89.559495
 confirmed,"China","growth too fast",21,278.000000,90.694257,187.305743
-confirmed,"China","growth too fast",22,207.000000,111.663509,95.336491
 confirmed,"China","growth too fast",26,718.000000,627.484504,90.515496
 confirmed,"China","growth too fast",27,1444.000000,672.630794,771.369206
 confirmed,"China","growth too fast",28,971.000000,737.427022,233.572978
@@ -832,6 +908,8 @@ confirmed,"Colombia","decay too fast",39,53391.000000,55084.597405,-1693.597405
 confirmed,"Colombia","growth too fast",40,62749.000000,56102.765290,6646.234710
 confirmed,"Colombia","growth too fast",41,64855.000000,57532.387340,7322.612660
 confirmed,"Colombia","decay too fast",42,56035.000000,59099.146822,-3064.146822
+confirmed,"Colombia","decay too fast",43,51478.000000,57841.144976,-6363.144976
+confirmed,"Colombia","decay too fast",44,54997.000000,57005.838704,-2008.838704
 confirmed,"Congo","growth too fast",16,127.000000,60.276845,66.723155
 confirmed,"Congo","growth too fast",24,439.000000,344.518690,94.481310
 confirmed,"Congo","growth too fast",25,537.000000,400.605165,136.394835
@@ -840,9 +918,11 @@ confirmed,"Congo","growth too fast",28,346.000000,272.399861,73.600139
 confirmed,"Congo","decay too fast",30,105.000000,191.429625,-86.429625
 confirmed,"Congo","growth too fast",32,649.000000,127.592578,521.407422
 confirmed,"Congo","growth too fast",33,263.000000,133.811938,129.188062
+confirmed,"Congo","growth too fast",43,253.000000,79.470560,173.529440
+confirmed,"Congo","decay too fast",44,0.000000,74.704861,-74.704861
 confirmed,"Costa Rica","growth too fast",26,3583.000000,3485.049566,97.950434
 confirmed,"Costa Rica","growth too fast",27,4161.000000,3874.131918,286.868082
-confirmed,"Costa Rica","decay too fast",28,3780.000000,4315.395839,-535.395839
+confirmed,"Costa Rica","decay too fast",28,3780.000000,4269.783873,-489.783873
 confirmed,"Costa Rica","growth too fast",29,5059.000000,4745.764725,313.235275
 confirmed,"Costa Rica","decay too fast",30,4946.000000,5141.795892,-195.795892
 confirmed,"Costa Rica","growth too fast",32,7166.000000,6293.143415,872.856585
@@ -854,27 +934,29 @@ confirmed,"Costa Rica","growth too fast",38,8324.000000,7565.721396,758.278604
 confirmed,"Costa Rica","decay too fast",40,6954.000000,7322.906870,-368.906870
 confirmed,"Costa Rica","decay too fast",41,6797.000000,7075.521001,-278.521001
 confirmed,"Costa Rica","decay too fast",42,6572.000000,6947.822945,-375.822945
+confirmed,"Costa Rica","growth too fast",43,7292.000000,6984.394866,307.605134
+confirmed,"Costa Rica","growth too fast",44,7511.000000,7002.891234,508.108766
 confirmed,"Cote d'Ivoire","growth too fast",13,350.000000,238.881415,111.118585
 confirmed,"Cote d'Ivoire","growth too fast",16,400.000000,324.544543,75.455457
 confirmed,"Cote d'Ivoire","decay too fast",23,1658.000000,1782.739443,-124.739443
-confirmed,"Cote d'Ivoire","growth too fast",24,1758.000000,1637.287948,120.712052
-confirmed,"Cote d'Ivoire","growth too fast",25,1804.000000,1493.649529,310.350471
+confirmed,"Cote d'Ivoire","growth too fast",25,1804.000000,1629.378325,174.621675
 confirmed,"Cote d'Ivoire","decay too fast",28,469.000000,743.239242,-274.239242
 confirmed,"Cote d'Ivoire","decay too fast",29,442.000000,569.977123,-127.977123
 confirmed,"Cote d'Ivoire","growth too fast",33,661.000000,443.549515,217.450485
 confirmed,"Cote d'Ivoire","decay too fast",34,289.000000,413.791652,-124.791652
-confirmed,"Cote d'Ivoire","growth too fast",40,238.000000,158.800111,79.199889
+confirmed,"Cote d'Ivoire","decay too fast",39,133.000000,208.253328,-75.253328
+confirmed,"Cote d'Ivoire","growth too fast",40,238.000000,157.808291,80.191709
 confirmed,"Cote d'Ivoire","decay too fast",42,93.000000,161.505258,-68.505258
 confirmed,"Croatia","growth too fast",25,623.000000,547.363565,75.636435
 confirmed,"Croatia","growth too fast",26,595.000000,486.291192,108.708808
-confirmed,"Croatia","decay too fast",29,646.000000,718.559435,-72.559435
-confirmed,"Croatia","growth too fast",30,1279.000000,925.944308,353.055692
-confirmed,"Croatia","growth too fast",33,1823.000000,1635.645981,187.354019
+confirmed,"Croatia","growth too fast",30,1279.000000,726.947165,552.052835
+confirmed,"Croatia","growth too fast",33,1823.000000,1690.124434,132.875566
 confirmed,"Croatia","decay too fast",34,1362.000000,1502.753596,-140.753596
-confirmed,"Croatia","decay too fast",36,1255.000000,1761.150528,-506.150528
 confirmed,"Croatia","decay too fast",38,3545.000000,3855.501257,-310.501257
 confirmed,"Croatia","growth too fast",39,7316.000000,7248.096332,67.903668
 confirmed,"Croatia","decay too fast",42,16507.000000,16888.145235,-381.145235
+confirmed,"Croatia","decay too fast",43,17957.000000,18752.684979,-795.684979
+confirmed,"Croatia","growth too fast",44,21747.000000,20241.798564,1505.201436
 confirmed,"Cuba","growth too fast",13,373.000000,214.768786,158.231214
 confirmed,"Cuba","decay too fast",17,78.000000,170.270928,-92.270928
 confirmed,"Cuba","growth too fast",19,136.000000,53.525729,82.474271
@@ -886,11 +968,14 @@ confirmed,"Cuba","decay too fast",38,145.000000,362.787382,-217.787382
 confirmed,"Cuba","growth too fast",39,359.000000,254.391752,104.608248
 confirmed,"Cuba","growth too fast",40,345.000000,251.651849,93.348151
 confirmed,"Cuba","growth too fast",41,418.000000,343.119397,74.880603
+confirmed,"Cuba","decay too fast",43,238.000000,362.139877,-124.139877
 confirmed,"Cyprus","growth too fast",10,210.000000,116.419476,93.580524
 confirmed,"Cyprus","growth too fast",11,208.000000,116.019940,91.980060
 confirmed,"Cyprus","decay too fast",33,19.000000,86.029210,-67.029210
 confirmed,"Cyprus","growth too fast",39,869.000000,458.698000,410.302000
-confirmed,"Cyprus","growth too fast",41,1282.000000,1121.052526,160.947474
+confirmed,"Cyprus","growth too fast",41,1282.000000,1058.411195,223.588805
+confirmed,"Cyprus","growth too fast",42,1313.000000,1225.760289,87.239711
+confirmed,"Cyprus","decay too fast",43,1333.000000,1436.339886,-103.339886
 confirmed,"Czechia","growth too fast",10,1933.000000,1340.660068,592.339932
 confirmed,"Czechia","growth too fast",11,1711.000000,1143.981044,567.018956
 confirmed,"Czechia","decay too fast",12,864.000000,963.088192,-99.088192
@@ -907,6 +992,8 @@ confirmed,"Czechia","decay too fast",37,26502.000000,26983.518261,-481.518261
 confirmed,"Czechia","growth too fast",38,48253.000000,45581.296566,2671.703434
 confirmed,"Czechia","growth too fast",41,81877.000000,62261.681037,19615.318963
 confirmed,"Czechia","growth too fast",42,54730.000000,53711.403684,1018.596316
+confirmed,"Czechia","decay too fast",43,35080.000000,39380.861607,-4300.861607
+confirmed,"Czechia","decay too fast",44,29765.000000,35183.945040,-5418.945040
 confirmed,"Democratic Republic of Congo","growth too fast",18,825.000000,657.111855,167.888145
 confirmed,"Democratic Republic of Congo","growth too fast",19,984.000000,810.686184,173.313816
 confirmed,"Democratic Republic of Congo","decay too fast",21,768.000000,875.236061,-107.236061
@@ -917,19 +1004,19 @@ confirmed,"Democratic Republic of Congo","decay too fast",30,168.000000,238.6395
 confirmed,"Democratic Republic of Congo","decay too fast",34,99.000000,167.243202,-68.243202
 confirmed,"Denmark","growth too fast",10,1550.000000,834.359912,715.640088
 confirmed,"Denmark","growth too fast",11,2257.000000,940.901965,1316.098035
+confirmed,"Denmark","growth too fast",15,925.000000,799.930714,125.069286
 confirmed,"Denmark","growth too fast",22,292.000000,205.873238,86.126762
-confirmed,"Denmark","decay too fast",24,102.000000,298.981173,-196.981173
 confirmed,"Denmark","growth too fast",28,622.000000,510.137253,111.862747
 confirmed,"Denmark","growth too fast",29,1004.000000,638.303509,365.696491
 confirmed,"Denmark","decay too fast",31,599.000000,728.539711,-129.539711
 confirmed,"Denmark","growth too fast",33,1553.000000,1161.744492,391.255508
 confirmed,"Denmark","growth too fast",34,2483.000000,1437.417870,1045.582130
 confirmed,"Denmark","decay too fast",37,2766.000000,3155.413120,-389.413120
-confirmed,"Denmark","decay too fast",38,2871.000000,3680.016210,-809.016210
-confirmed,"Denmark","decay too fast",39,3751.000000,4017.571322,-266.571322
-confirmed,"Denmark","growth too fast",40,6275.000000,4795.029332,1479.970668
+confirmed,"Denmark","decay too fast",38,2871.000000,3234.521387,-363.521387
+confirmed,"Denmark","decay too fast",39,3751.000000,3828.641675,-77.641675
+confirmed,"Denmark","growth too fast",40,6275.000000,4512.946130,1762.053870
 confirmed,"Denmark","growth too fast",41,7720.000000,6243.905798,1476.094202
-confirmed,"Denmark","decay too fast",42,7213.000000,7700.245746,-487.245746
+confirmed,"Denmark","decay too fast",44,8292.000000,8692.973838,-400.973838
 confirmed,"Djibouti","growth too fast",12,456.000000,89.078940,366.921060
 confirmed,"Djibouti","growth too fast",13,395.000000,135.632588,259.367412
 confirmed,"Djibouti","decay too fast",16,151.000000,217.844812,-66.844812
@@ -952,15 +1039,15 @@ confirmed,"Dominican Republic","growth too fast",27,10300.000000,8195.574226,210
 confirmed,"Dominican Republic","growth too fast",28,8621.000000,7888.297644,732.702356
 confirmed,"Dominican Republic","decay too fast",29,6598.000000,6887.095753,-289.095753
 confirmed,"Dominican Republic","decay too fast",30,5876.000000,6043.177669,-167.177669
-confirmed,"Dominican Republic","decay too fast",31,3954.000000,5229.984470,-1275.984470
-confirmed,"Dominican Republic","decay too fast",32,3665.000000,4753.277387,-1088.277387
+confirmed,"Dominican Republic","decay too fast",31,3954.000000,5269.008798,-1315.008798
+confirmed,"Dominican Republic","decay too fast",32,3665.000000,4614.291362,-949.291362
 confirmed,"Dominican Republic","growth too fast",33,5087.000000,3913.143374,1173.856626
-confirmed,"Dominican Republic","growth too fast",34,4420.000000,4062.134892,357.865108
-confirmed,"Dominican Republic","decay too fast",36,2606.000000,3670.593717,-1064.593717
-confirmed,"Dominican Republic","growth too fast",37,4144.000000,3453.345585,690.654415
+confirmed,"Dominican Republic","growth too fast",34,4420.000000,4004.952721,415.047279
+confirmed,"Dominican Republic","decay too fast",35,3986.000000,4153.919726,-167.919726
+confirmed,"Dominican Republic","decay too fast",36,2606.000000,3701.508624,-1095.508624
+confirmed,"Dominican Republic","growth too fast",37,4144.000000,3441.007821,702.992179
 confirmed,"Dominican Republic","decay too fast",39,2807.000000,3014.295622,-207.295622
 confirmed,"Dominican Republic","growth too fast",40,3040.000000,2949.183962,90.816038
-confirmed,"Dominican Republic","decay too fast",41,2911.000000,3133.026815,-222.026815
 confirmed,"Ecuador","decay too fast",11,1802.000000,2260.580225,-458.580225
 confirmed,"Ecuador","growth too fast",12,3260.000000,2780.298710,479.701290
 confirmed,"Ecuador","decay too fast",13,2958.000000,3057.934230,-99.934230
@@ -986,24 +1073,26 @@ confirmed,"Ecuador","decay too fast",38,5315.000000,6035.765365,-720.765365
 confirmed,"Ecuador","growth too fast",39,6091.000000,5883.852165,207.147835
 confirmed,"Ecuador","growth too fast",40,9851.000000,5694.233677,4156.766323
 confirmed,"Ecuador","decay too fast",41,5481.000000,5796.387665,-315.387665
-confirmed,"Egypt","growth too fast",11,834.000000,555.955535,278.044465
+confirmed,"Ecuador","growth too fast",43,5733.000000,5436.773379,296.226621
+confirmed,"Ecuador","decay too fast",44,4892.000000,4993.840460,-101.840460
+confirmed,"Egypt","growth too fast",11,834.000000,529.141279,304.858721
 confirmed,"Egypt","growth too fast",15,2444.000000,2263.187426,180.812574
 confirmed,"Egypt","decay too fast",16,2848.000000,3125.098295,-277.098295
 confirmed,"Egypt","decay too fast",17,4174.000000,4430.782558,-256.782558
 confirmed,"Egypt","growth too fast",18,5790.000000,5087.771404,702.228596
 confirmed,"Egypt","growth too fast",21,10711.000000,10346.252230,364.747770
 confirmed,"Egypt","growth too fast",22,10693.000000,9598.185460,1094.814540
-confirmed,"Egypt","growth too fast",23,10169.000000,9040.243491,1128.756509
-confirmed,"Egypt","growth too fast",25,6517.000000,6061.684634,455.315366
+confirmed,"Egypt","growth too fast",25,6517.000000,6169.375097,347.624903
 confirmed,"Egypt","decay too fast",30,917.000000,1052.425718,-135.425718
 confirmed,"Egypt","growth too fast",32,1363.000000,1060.632451,302.367549
 confirmed,"Egypt","decay too fast",35,872.000000,955.203459,-83.203459
 confirmed,"Egypt","decay too fast",36,804.000000,914.457446,-110.457446
+confirmed,"Egypt","growth too fast",44,2520.000000,2249.304500,270.695500
 confirmed,"El Salvador","growth too fast",15,300.000000,229.210970,70.789030
 confirmed,"El Salvador","growth too fast",23,1664.000000,1410.194248,253.805752
 confirmed,"El Salvador","growth too fast",24,1844.000000,1770.165400,73.834600
 confirmed,"El Salvador","growth too fast",26,2420.000000,2349.225717,70.774283
-confirmed,"El Salvador","growth too fast",27,2853.000000,2484.470769,368.529231
+confirmed,"El Salvador","growth too fast",27,2853.000000,2610.056543,242.943457
 confirmed,"El Salvador","growth too fast",28,2896.000000,2824.572662,71.427338
 confirmed,"El Salvador","growth too fast",31,1320.000000,1230.524231,89.475769
 confirmed,"El Salvador","decay too fast",34,561.000000,673.832322,-112.832322
@@ -1011,10 +1100,11 @@ confirmed,"El Salvador","growth too fast",35,952.000000,707.653855,244.346145
 confirmed,"El Salvador","growth too fast",36,974.000000,761.547254,212.452746
 confirmed,"El Salvador","decay too fast",37,667.000000,1037.651236,-370.651236
 confirmed,"El Salvador","growth too fast",38,1219.000000,1099.318727,119.681273
-confirmed,"El Salvador","growth too fast",41,1337.000000,1162.159928,174.840072
-confirmed,"El Salvador","growth too fast",42,1248.000000,1105.448352,142.551648
+confirmed,"El Salvador","growth too fast",41,1337.000000,1206.646134,130.353866
+confirmed,"El Salvador","growth too fast",43,1079.000000,994.244793,84.755207
+confirmed,"El Salvador","decay too fast",44,775.000000,1146.605460,-371.605460
 confirmed,"Equatorial Guinea","growth too fast",17,320.000000,183.978485,136.021515
-confirmed,"Equatorial Guinea","decay too fast",18,140.000000,213.212649,-73.212649
+confirmed,"Equatorial Guinea","decay too fast",18,140.000000,227.617440,-87.617440
 confirmed,"Equatorial Guinea","decay too fast",20,0.000000,340.615450,-340.615450
 confirmed,"Estonia","growth too fast",11,349.000000,242.604767,106.395233
 confirmed,"Estonia","growth too fast",35,298.000000,232.846936,65.153064
@@ -1022,6 +1112,8 @@ confirmed,"Estonia","decay too fast",38,220.000000,338.605769,-118.605769
 confirmed,"Estonia","decay too fast",39,267.000000,382.529342,-115.529342
 confirmed,"Estonia","growth too fast",41,793.000000,718.417788,74.582212
 confirmed,"Estonia","growth too fast",42,1417.000000,1094.683165,322.316835
+confirmed,"Estonia","growth too fast",43,1834.000000,1605.271209,228.728791
+confirmed,"Estonia","growth too fast",44,2240.000000,2126.425139,113.574861
 confirmed,"Eswatini","growth too fast",24,340.000000,232.833165,107.166835
 confirmed,"Eswatini","growth too fast",27,556.000000,490.274953,65.725047
 confirmed,"Eswatini","decay too fast",28,391.000000,479.956711,-88.956711
@@ -1053,9 +1145,11 @@ confirmed,"Finland","growth too fast",38,1599.000000,1185.540930,413.459070
 confirmed,"Finland","decay too fast",40,1311.000000,1464.068644,-153.068644
 confirmed,"Finland","growth too fast",41,1553.000000,1459.578223,93.421777
 confirmed,"Finland","decay too fast",42,1423.000000,1692.937851,-269.937851
+confirmed,"Finland","decay too fast",43,1744.000000,1943.046874,-199.046874
+confirmed,"Finland","growth too fast",44,2862.000000,2122.379474,739.620526
 confirmed,"France","decay too fast",10,29976.000000,30703.672733,-727.672733
 confirmed,"France","negative reported",11,-4193.000000,52395.911627,-56588.911627
-confirmed,"France","decay too fast",17,2762.000000,4747.918145,-1985.918145
+confirmed,"France","decay too fast",17,2762.000000,4670.182076,-1908.182076
 confirmed,"France","growth too fast",18,4958.000000,3517.451512,1440.548488
 confirmed,"France","growth too fast",21,3562.000000,3473.684787,88.315213
 confirmed,"France","decay too fast",22,3112.000000,3494.259642,-382.259642
@@ -1063,7 +1157,7 @@ confirmed,"France","growth too fast",23,3920.000000,3720.260505,199.739495
 confirmed,"France","decay too fast",24,3646.000000,4029.710645,-383.710645
 confirmed,"France","decay too fast",25,3763.000000,4721.573691,-958.573691
 confirmed,"France","growth too fast",26,5659.000000,5588.798012,70.201988
-confirmed,"France","decay too fast",27,7090.000000,7255.100783,-165.100783
+confirmed,"France","decay too fast",27,7090.000000,7271.390054,-181.390054
 confirmed,"France","decay too fast",28,9014.000000,10182.451250,-1168.451250
 confirmed,"France","decay too fast",29,13913.000000,14001.369605,-88.369605
 confirmed,"France","growth too fast",30,20477.000000,19691.091865,785.908135
@@ -1077,8 +1171,10 @@ confirmed,"France","decay too fast",37,94732.000000,113738.481483,-19006.481483
 confirmed,"France","decay too fast",38,139299.000000,140086.374983,-787.374983
 confirmed,"France","growth too fast",39,190473.000000,179018.720994,11454.279006
 confirmed,"France","growth too fast",40,286372.000000,217748.491787,68623.508213
-confirmed,"France","growth too fast",41,321145.000000,229180.393639,91964.606361
-confirmed,"France","growth too fast",42,299240.000000,213974.133382,85265.866618
+confirmed,"France","growth too fast",41,321145.000000,250587.160481,70557.839519
+confirmed,"France","growth too fast",42,299240.000000,220092.648991,79147.351009
+confirmed,"France","decay too fast",43,188499.000000,198458.717112,-9959.717112
+confirmed,"France","decay too fast",44,98802.000000,169202.046960,-70400.046960
 confirmed,"Gabon","growth too fast",16,600.000000,268.359165,331.640835
 confirmed,"Gabon","growth too fast",18,864.000000,577.649608,286.350392
 confirmed,"Gabon","decay too fast",19,524.000000,619.967887,-95.967887
@@ -1100,13 +1196,14 @@ confirmed,"Georgia","decay too fast",38,4215.000000,4992.144678,-777.144678
 confirmed,"Georgia","growth too fast",39,8363.000000,7307.621881,1055.378119
 confirmed,"Georgia","growth too fast",40,12764.000000,9009.782333,3754.217667
 confirmed,"Georgia","growth too fast",42,20463.000000,18223.008113,2239.991887
+confirmed,"Georgia","growth too fast",43,23411.000000,21416.811603,1994.188397
+confirmed,"Georgia","growth too fast",44,25598.000000,24570.436770,1027.563230
 confirmed,"Germany","growth too fast",11,33387.000000,30095.292253,3291.707747
 confirmed,"Germany","decay too fast",12,19517.000000,20774.448053,-1257.448053
-confirmed,"Germany","growth too fast",13,15431.000000,14203.567008,1227.432992
-confirmed,"Germany","decay too fast",14,9880.000000,10208.656007,-328.656007
+confirmed,"Germany","growth too fast",13,15431.000000,15091.392251,339.607749
+confirmed,"Germany","decay too fast",14,9880.000000,10130.266814,-250.266814
 confirmed,"Germany","decay too fast",15,6421.000000,7478.841245,-1057.841245
-confirmed,"Germany","decay too fast",16,5048.000000,5365.404912,-317.404912
-confirmed,"Germany","growth too fast",17,4543.000000,4094.564053,448.435947
+confirmed,"Germany","growth too fast",17,4543.000000,4030.916262,512.083738
 confirmed,"Germany","decay too fast",18,3175.000000,3470.262482,-295.262482
 confirmed,"Germany","decay too fast",19,2276.000000,3109.961212,-833.961212
 confirmed,"Germany","decay too fast",20,2219.000000,2937.843265,-718.843265
@@ -1126,6 +1223,8 @@ confirmed,"Germany","decay too fast",35,12298.000000,12929.310747,-631.310747
 confirmed,"Germany","decay too fast",36,14193.000000,15530.938498,-1337.938498
 confirmed,"Germany","decay too fast",39,51767.000000,54466.133272,-2699.133272
 confirmed,"Germany","growth too fast",40,94480.000000,87205.920919,7274.079081
+confirmed,"Germany","decay too fast",43,128693.000000,128876.582782,-183.582782
+confirmed,"Germany","decay too fast",44,126305.000000,133414.547200,-7109.547200
 confirmed,"Ghana","growth too fast",14,920.000000,851.738596,68.261404
 confirmed,"Ghana","decay too fast",15,1017.000000,1477.642204,-460.642204
 confirmed,"Ghana","growth too fast",16,2439.000000,930.535203,1508.464797
@@ -1148,19 +1247,22 @@ confirmed,"Ghana","decay too fast",37,291.000000,377.707813,-86.707813
 confirmed,"Ghana","decay too fast",38,226.000000,371.139373,-145.139373
 confirmed,"Ghana","growth too fast",41,733.000000,601.131605,131.868395
 confirmed,"Ghana","growth too fast",42,1169.000000,672.873163,496.126837
+confirmed,"Ghana","decay too fast",44,594.000000,709.941555,-115.941555
 confirmed,"Greece","growth too fast",10,652.000000,475.917099,176.082901
-confirmed,"Greece","decay too fast",26,171.000000,236.510317,-65.510317
+confirmed,"Greece","growth too fast",13,256.000000,184.469512,71.530488
+confirmed,"Greece","decay too fast",26,171.000000,303.166157,-132.166157
 confirmed,"Greece","decay too fast",27,291.000000,379.298206,-88.298206
-confirmed,"Greece","growth too fast",28,722.000000,512.666990,209.333010
+confirmed,"Greece","growth too fast",28,722.000000,623.021541,98.978459
 confirmed,"Greece","decay too fast",32,1467.000000,1629.199278,-162.199278
 confirmed,"Greece","decay too fast",33,1454.000000,1712.309474,-258.309474
 confirmed,"Greece","growth too fast",34,1948.000000,1822.698156,125.301844
 confirmed,"Greece","growth too fast",35,2227.000000,2015.463887,211.536113
-confirmed,"Greece","decay too fast",36,2259.000000,2382.637332,-123.637332
 confirmed,"Greece","decay too fast",40,7294.000000,7635.766079,-341.766079
+confirmed,"Greece","growth too fast",43,18624.000000,16207.138252,2416.861748
+confirmed,"Greece","growth too fast",44,14045.000000,13701.045870,343.954130
 confirmed,"Guatemala","growth too fast",18,1836.000000,1337.736227,498.263773
-confirmed,"Guatemala","growth too fast",21,3307.000000,3076.937738,230.062262
-confirmed,"Guatemala","decay too fast",22,3751.000000,3876.792246,-125.792246
+confirmed,"Guatemala","growth too fast",21,3307.000000,3175.391162,131.608838
+confirmed,"Guatemala","decay too fast",22,3751.000000,4063.319435,-312.319435
 confirmed,"Guatemala","decay too fast",23,4453.000000,5104.998806,-651.998806
 confirmed,"Guatemala","growth too fast",24,6586.000000,5288.939583,1297.060417
 confirmed,"Guatemala","growth too fast",25,6281.000000,5298.586015,982.413985
@@ -1174,9 +1276,10 @@ confirmed,"Guatemala","growth too fast",36,4476.000000,3825.318436,650.681564
 confirmed,"Guatemala","growth too fast",37,4071.000000,3979.344289,91.655711
 confirmed,"Guatemala","decay too fast",38,3285.000000,3738.546717,-453.546717
 confirmed,"Guatemala","decay too fast",39,3407.000000,3539.929389,-132.929389
-confirmed,"Guatemala","growth too fast",40,3618.000000,3403.511347,214.488653
+confirmed,"Guatemala","growth too fast",40,3618.000000,3422.593073,195.406927
 confirmed,"Guatemala","decay too fast",41,3059.000000,3459.572051,-400.572051
 confirmed,"Guatemala","growth too fast",42,3694.000000,3468.350320,225.649680
+confirmed,"Guatemala","growth too fast",43,3523.000000,3454.438219,68.561781
 confirmed,"Guinea","growth too fast",14,633.000000,455.894921,177.105079
 confirmed,"Guinea","growth too fast",21,469.000000,372.740701,96.259299
 confirmed,"Guinea","decay too fast",23,276.000000,390.672008,-114.672008
@@ -1186,6 +1289,7 @@ confirmed,"Guinea","growth too fast",30,678.000000,471.717170,206.282830
 confirmed,"Guinea","decay too fast",31,337.000000,430.081622,-93.081622
 confirmed,"Guinea","decay too fast",34,208.000000,308.110460,-100.110460
 confirmed,"Guinea","decay too fast",42,174.000000,304.366926,-130.366926
+confirmed,"Guinea","decay too fast",43,176.000000,244.754156,-68.754156
 confirmed,"Guinea-Bissau","growth too fast",16,349.000000,273.527961,75.472039
 confirmed,"Guinea-Bissau","growth too fast",33,70.000000,4.312201,65.687799
 confirmed,"Guyana","negative reported",9,-2.000000,0.000000,-2.000000
@@ -1214,15 +1318,19 @@ confirmed,"Honduras","growth too fast",39,5420.000000,4058.874210,1361.125790
 confirmed,"Honduras","growth too fast",40,4641.000000,3753.600806,887.399194
 confirmed,"Honduras","decay too fast",41,3197.000000,3478.237365,-281.237365
 confirmed,"Honduras","decay too fast",42,2121.000000,3013.264241,-892.264241
+confirmed,"Honduras","decay too fast",43,2020.000000,2886.628255,-866.628255
+confirmed,"Honduras","growth too fast",44,3193.000000,2699.145400,493.854600
 confirmed,"Hungary","growth too fast",12,672.000000,466.051480,205.948520
 confirmed,"Hungary","growth too fast",13,632.000000,438.601844,193.398156
 confirmed,"Hungary","decay too fast",30,233.000000,419.528301,-186.528301
 confirmed,"Hungary","decay too fast",31,333.000000,803.864561,-470.864561
-confirmed,"Hungary","decay too fast",37,6737.000000,7518.594413,-781.594413
+confirmed,"Hungary","decay too fast",37,6737.000000,7247.100883,-510.100883
 confirmed,"Hungary","decay too fast",38,7686.000000,8282.206245,-596.206245
-confirmed,"Hungary","decay too fast",39,10480.000000,11477.055381,-997.055381
+confirmed,"Hungary","decay too fast",39,10480.000000,11468.254785,-988.254785
 confirmed,"Hungary","growth too fast",40,15915.000000,14963.666627,951.333373
-confirmed,"Hungary","growth too fast",41,26789.000000,20624.374544,6164.625456
+confirmed,"Hungary","growth too fast",41,26789.000000,23559.198744,3229.801256
+confirmed,"Hungary","growth too fast",43,34671.000000,33147.756918,1523.243082
+confirmed,"Hungary","decay too fast",44,30586.000000,32892.756387,-2306.756387
 confirmed,"Iceland","growth too fast",9,472.000000,161.338102,310.661898
 confirmed,"Iceland","growth too fast",10,517.000000,178.982513,338.017487
 confirmed,"Iceland","growth too fast",11,329.000000,155.907919,173.092081
@@ -1260,15 +1368,15 @@ confirmed,"India","decay too fast",39,390844.000000,402714.238513,-11870.238513
 confirmed,"India","decay too fast",40,327539.000000,361063.696212,-33524.696212
 confirmed,"India","decay too fast",41,322873.000000,329667.535100,-6794.535100
 confirmed,"India","growth too fast",42,317071.000000,306861.113139,10209.886861
+confirmed,"India","decay too fast",43,275570.000000,291790.340705,-16220.340705
+confirmed,"India","growth too fast",44,305422.000000,270125.373704,35296.626296
 confirmed,"Indonesia","decay too fast",14,2343.000000,2414.061129,-71.061129
-confirmed,"Indonesia","decay too fast",15,2658.000000,2801.142600,-143.142600
 confirmed,"Indonesia","growth too fast",16,3230.000000,3075.560211,154.439789
-confirmed,"Indonesia","growth too fast",17,4156.000000,3853.911490,302.088510
+confirmed,"Indonesia","growth too fast",17,4156.000000,3899.040041,256.959959
 confirmed,"Indonesia","decay too fast",18,4376.000000,4654.173374,-278.173374
 confirmed,"Indonesia","decay too fast",19,4280.000000,5578.035864,-1298.035864
 confirmed,"Indonesia","decay too fast",22,7425.000000,8415.375683,-990.375683
 confirmed,"Indonesia","decay too fast",23,9207.000000,9303.934950,-96.934950
-confirmed,"Indonesia","growth too fast",24,11342.000000,9435.295878,1906.704122
 confirmed,"Indonesia","growth too fast",26,11989.000000,11725.556771,263.443229
 confirmed,"Indonesia","growth too fast",27,12679.000000,12362.386422,316.613578
 confirmed,"Indonesia","decay too fast",28,12417.000000,13125.249466,-708.249466
@@ -1283,6 +1391,8 @@ confirmed,"Indonesia","growth too fast",38,28596.000000,28386.542420,209.457580
 confirmed,"Indonesia","growth too fast",39,28381.000000,27753.754619,627.245381
 confirmed,"Indonesia","decay too fast",41,21748.000000,29241.168098,-7493.168098
 confirmed,"Indonesia","growth too fast",42,26495.000000,26066.877943,428.122057
+confirmed,"Indonesia","growth too fast",43,31227.000000,30505.192311,721.807689
+confirmed,"Indonesia","decay too fast",44,33235.000000,35699.173653,-2464.173653
 confirmed,"Iran","growth too fast",9,10999.000000,10279.220796,719.779204
 confirmed,"Iran","growth too fast",10,21062.000000,10711.122792,10350.877208
 confirmed,"Iran","growth too fast",11,15752.000000,11491.465206,4260.534794
@@ -1312,6 +1422,8 @@ confirmed,"Iran","growth too fast",36,24725.000000,24001.960854,723.039146
 confirmed,"Iran","decay too fast",38,29599.000000,29824.936242,-225.936242
 confirmed,"Iran","growth too fast",41,57995.000000,57619.039089,375.960911
 confirmed,"Iran","growth too fast",42,71649.000000,71536.973553,112.026447
+confirmed,"Iran","growth too fast",43,88532.000000,77084.548430,11447.451570
+confirmed,"Iran","growth too fast",44,93229.000000,85144.647820,8084.352180
 confirmed,"Iraq","growth too fast",10,390.000000,260.488298,129.511702
 confirmed,"Iraq","growth too fast",11,460.000000,284.734049,175.265951
 confirmed,"Iraq","decay too fast",12,202.000000,371.769072,-169.769072
@@ -1336,6 +1448,8 @@ confirmed,"Iraq","decay too fast",38,22236.000000,25866.138829,-3630.138829
 confirmed,"Iraq","growth too fast",39,25362.000000,24327.166718,1034.833282
 confirmed,"Iraq","growth too fast",40,25591.000000,21417.216269,4173.783731
 confirmed,"Iraq","decay too fast",41,21816.000000,22067.018175,-251.018175
+confirmed,"Iraq","decay too fast",43,17420.000000,17922.637625,-502.637625
+confirmed,"Iraq","decay too fast",44,15444.000000,15578.119856,-134.119856
 confirmed,"Ireland","growth too fast",8,514.000000,219.966033,294.033967
 confirmed,"Ireland","growth too fast",11,2725.000000,2620.581374,104.418626
 confirmed,"Ireland","growth too fast",12,6697.000000,2632.984777,4064.015223
@@ -1346,16 +1460,18 @@ confirmed,"Ireland","growth too fast",16,1442.000000,1214.215332,227.784668
 confirmed,"Ireland","decay too fast",17,564.000000,767.423889,-203.423889
 confirmed,"Ireland","decay too fast",20,96.000000,185.927873,-89.927873
 confirmed,"Ireland","growth too fast",30,747.000000,638.070058,108.929942
+confirmed,"Ireland","decay too fast",31,777.000000,855.746875,-78.746875
 confirmed,"Ireland","decay too fast",32,753.000000,976.119805,-223.119805
 confirmed,"Ireland","growth too fast",34,1663.000000,1554.694336,108.305664
 confirmed,"Ireland","decay too fast",35,1971.000000,2095.813157,-124.813157
 confirmed,"Ireland","decay too fast",36,2603.000000,2869.577339,-266.577339
-confirmed,"Ireland","decay too fast",37,3489.000000,3653.179239,-164.179239
 confirmed,"Ireland","growth too fast",38,6343.000000,4417.643673,1925.356327
 confirmed,"Ireland","growth too fast",39,8047.000000,4876.661372,3170.338628
 confirmed,"Ireland","growth too fast",40,5821.000000,5022.721251,798.278749
 confirmed,"Ireland","decay too fast",41,3749.000000,4245.200205,-496.200205
 confirmed,"Ireland","decay too fast",42,2586.000000,3211.938970,-625.938970
+confirmed,"Ireland","growth too fast",43,2841.000000,2567.278465,273.721535
+confirmed,"Ireland","decay too fast",44,2021.000000,2285.902868,-264.902868
 confirmed,"Israel","decay too fast",11,3117.000000,3237.950384,-120.950384
 confirmed,"Israel","growth too fast",12,2699.000000,2325.184817,373.815183
 confirmed,"Israel","decay too fast",16,204.000000,292.825783,-88.825783
@@ -1380,6 +1496,8 @@ confirmed,"Israel","growth too fast",36,40645.000000,34901.252889,5743.747111
 confirmed,"Israel","decay too fast",38,14759.000000,17874.717445,-3115.717445
 confirmed,"Israel","decay too fast",39,7747.000000,12928.274308,-5181.274308
 confirmed,"Israel","decay too fast",42,4430.000000,4708.957120,-278.957120
+confirmed,"Israel","decay too fast",43,4945.000000,5585.774475,-640.774475
+confirmed,"Israel","decay too fast",44,5941.000000,6612.521101,-671.521101
 confirmed,"Italy","decay too fast",11,28384.000000,29159.647130,-775.647130
 confirmed,"Italy","growth too fast",12,25315.000000,23483.692325,1831.307675
 confirmed,"Italy","growth too fast",13,21032.000000,18556.423442,2475.576558
@@ -1398,7 +1516,8 @@ confirmed,"Italy","growth too fast",33,10268.000000,9735.775406,532.224594
 confirmed,"Italy","decay too fast",34,9845.000000,10602.127625,-757.127625
 confirmed,"Italy","decay too fast",35,11298.000000,11545.565546,-247.565546
 confirmed,"Italy","growth too fast",38,43204.000000,41908.307311,1295.692689
-confirmed,"Italy","growth too fast",39,84124.000000,75152.027751,8971.972249
+confirmed,"Italy","growth too fast",39,84124.000000,80950.840099,3173.159901
+confirmed,"Italy","growth too fast",44,201347.000000,187817.605080,13529.394920
 confirmed,"Jamaica","growth too fast",31,580.000000,443.113599,136.886401
 confirmed,"Jamaica","growth too fast",32,1026.000000,580.095811,445.904189
 confirmed,"Jamaica","decay too fast",33,615.000000,864.491421,-249.491421
@@ -1409,8 +1528,6 @@ confirmed,"Jamaica","growth too fast",38,794.000000,650.371089,143.628911
 confirmed,"Jamaica","decay too fast",40,327.000000,470.748858,-143.748858
 confirmed,"Jamaica","decay too fast",42,261.000000,370.829494,-109.829494
 confirmed,"Japan","growth too fast",11,2796.000000,1180.333196,1615.666804
-confirmed,"Japan","growth too fast",13,3071.000000,2751.049606,319.950394
-confirmed,"Japan","decay too fast",14,1815.000000,1880.685647,-65.685647
 confirmed,"Japan","growth too fast",15,1269.000000,1155.974731,113.025269
 confirmed,"Japan","decay too fast",16,543.000000,787.599868,-244.599868
 confirmed,"Japan","decay too fast",17,266.000000,519.103548,-253.103548
@@ -1427,16 +1544,19 @@ confirmed,"Japan","decay too fast",38,3723.000000,3888.502579,-165.502579
 confirmed,"Japan","decay too fast",39,3732.000000,4091.248669,-359.248669
 confirmed,"Japan","decay too fast",41,5290.000000,5990.400292,-700.400292
 confirmed,"Japan","growth too fast",42,8691.000000,7494.554103,1196.445897
+confirmed,"Japan","growth too fast",43,12204.000000,9315.431739,2888.568261
+confirmed,"Jordan","growth too fast",9,143.000000,4.937855,138.062145
 confirmed,"Jordan","growth too fast",20,125.000000,57.154225,67.845775
-confirmed,"Jordan","negative reported",26,-75.000000,37.474043,-112.474043
-confirmed,"Jordan","growth too fast",34,1392.000000,1226.112540,165.887460
-confirmed,"Jordan","decay too fast",35,2460.000000,2814.594718,-354.594718
-confirmed,"Jordan","growth too fast",37,8416.000000,7143.048070,1272.951930
+confirmed,"Jordan","negative reported",26,-75.000000,41.654063,-116.654063
+confirmed,"Jordan","decay too fast",33,506.000000,724.357211,-218.357211
+confirmed,"Jordan","growth too fast",36,6510.000000,4845.670058,1664.329942
 confirmed,"Jordan","growth too fast",38,11492.000000,11003.669823,488.330177
 confirmed,"Jordan","decay too fast",39,13432.000000,14909.181557,-1477.181557
 confirmed,"Jordan","decay too fast",40,18944.000000,19447.195783,-503.195783
 confirmed,"Jordan","growth too fast",41,30479.000000,24119.123950,6359.876050
 confirmed,"Jordan","growth too fast",42,36222.000000,29098.293233,7123.706767
+confirmed,"Jordan","growth too fast",43,37309.000000,31933.860416,5375.139584
+confirmed,"Jordan","growth too fast",44,33626.000000,30208.744971,3417.255029
 confirmed,"Kazakhstan","decay too fast",15,1176.000000,1280.992070,-104.992070
 confirmed,"Kazakhstan","decay too fast",16,993.000000,1341.452781,-348.452781
 confirmed,"Kazakhstan","growth too fast",17,1663.000000,1408.531973,254.468027
@@ -1452,6 +1572,8 @@ confirmed,"Kazakhstan","decay too fast",34,2234.000000,2475.754073,-241.754073
 confirmed,"Kazakhstan","decay too fast",36,1669.000000,1869.043624,-200.043624
 confirmed,"Kazakhstan","decay too fast",37,1639.000000,1805.217673,-166.217673
 confirmed,"Kazakhstan","decay too fast",38,1731.000000,1826.617341,-95.617341
+confirmed,"Kazakhstan","growth too fast",43,6542.000000,5963.359898,578.640102
+confirmed,"Kazakhstan","growth too fast",44,6230.000000,6081.991252,148.008748
 confirmed,"Kenya","growth too fast",17,351.000000,267.415488,83.584512
 confirmed,"Kenya","growth too fast",18,509.000000,404.948878,104.051122
 confirmed,"Kenya","decay too fast",22,1127.000000,1281.982469,-154.982469
@@ -1465,25 +1587,27 @@ confirmed,"Kenya","growth too fast",38,2965.000000,2456.014687,508.985313
 confirmed,"Kenya","growth too fast",40,5400.000000,5219.399321,180.600679
 confirmed,"Kenya","growth too fast",41,6983.000000,5792.558714,1190.441286
 confirmed,"Kenya","growth too fast",42,7128.000000,6459.259813,668.740187
+confirmed,"Kenya","growth too fast",43,7422.000000,6731.589685,690.410315
+confirmed,"Kenya","decay too fast",44,5957.000000,6473.229288,-516.229288
 confirmed,"Kosovo","growth too fast",12,199.000000,120.294477,78.705523
 confirmed,"Kosovo","growth too fast",13,207.000000,100.109120,106.890880
 confirmed,"Kosovo","growth too fast",21,535.000000,292.176201,242.823799
 confirmed,"Kosovo","growth too fast",22,530.000000,451.312980,78.687020
-confirmed,"Kosovo","growth too fast",24,1109.000000,816.873910,292.126090
 confirmed,"Kosovo","growth too fast",25,1269.000000,1016.282170,252.717830
-confirmed,"Kosovo","decay too fast",26,1098.000000,1248.623321,-150.623321
-confirmed,"Kosovo","growth too fast",27,1637.000000,1246.679360,390.320640
+confirmed,"Kosovo","decay too fast",26,1098.000000,1307.237224,-209.237224
+confirmed,"Kosovo","growth too fast",27,1637.000000,1309.670534,327.329466
 confirmed,"Kosovo","growth too fast",28,1584.000000,1282.163323,301.836677
 confirmed,"Kosovo","decay too fast",30,1018.000000,1102.416585,-84.416585
 confirmed,"Kosovo","growth too fast",31,975.000000,903.149164,71.850836
 confirmed,"Kosovo","decay too fast",34,436.000000,517.016949,-81.016949
 confirmed,"Kosovo","decay too fast",37,308.000000,392.252852,-84.252852
 confirmed,"Kosovo","decay too fast",40,1204.000000,1849.149754,-645.149754
+confirmed,"Kosovo","growth too fast",43,5134.000000,4936.958083,197.041917
 confirmed,"Kuwait","decay too fast",15,2543.000000,2816.852199,-273.852199
 confirmed,"Kuwait","decay too fast",18,5503.000000,5876.762504,-373.762504
 confirmed,"Kuwait","growth too fast",19,5809.000000,5277.544159,531.455841
 confirmed,"Kuwait","decay too fast",20,4511.000000,4907.782673,-396.782673
-confirmed,"Kuwait","decay too fast",21,3642.000000,4752.385838,-1110.385838
+confirmed,"Kuwait","decay too fast",21,3642.000000,4318.163572,-676.163572
 confirmed,"Kuwait","growth too fast",22,4714.000000,4509.656038,204.343962
 confirmed,"Kuwait","growth too fast",23,5071.000000,4494.111135,576.888865
 confirmed,"Kuwait","growth too fast",24,4981.000000,4778.412563,202.587437
@@ -1492,7 +1616,7 @@ confirmed,"Kuwait","decay too fast",26,4204.000000,4579.589857,-375.589857
 confirmed,"Kuwait","growth too fast",27,4657.000000,4485.083348,171.916652
 confirmed,"Kuwait","decay too fast",28,3516.000000,4200.291982,-684.291982
 confirmed,"Kuwait","growth too fast",29,4441.000000,4220.407679,220.592321
-confirmed,"Kuwait","decay too fast",31,4178.000000,4519.549002,-341.549002
+confirmed,"Kuwait","decay too fast",31,4178.000000,4383.694127,-205.694127
 confirmed,"Kuwait","decay too fast",32,4433.000000,4506.251102,-73.251102
 confirmed,"Kuwait","growth too fast",33,5444.000000,4502.382221,941.617779
 confirmed,"Kuwait","growth too fast",34,5002.000000,4506.489335,495.510665
@@ -1503,6 +1627,7 @@ confirmed,"Kuwait","growth too fast",38,4574.000000,4425.511439,148.488561
 confirmed,"Kuwait","growth too fast",39,5405.000000,4708.621801,696.378199
 confirmed,"Kuwait","growth too fast",40,5246.000000,4931.076104,314.923896
 confirmed,"Kuwait","decay too fast",41,4972.000000,5196.586677,-224.586677
+confirmed,"Kuwait","decay too fast",44,2725.000000,3268.767003,-543.767003
 confirmed,"Kyrgyzstan","growth too fast",23,2563.000000,2254.800140,308.199860
 confirmed,"Kyrgyzstan","growth too fast",25,3140.000000,2997.139538,142.860462
 confirmed,"Kyrgyzstan","growth too fast",26,18749.000000,3097.506671,15651.493329
@@ -1510,17 +1635,21 @@ confirmed,"Kyrgyzstan","growth too fast",27,3976.000000,3006.291589,969.708411
 confirmed,"Kyrgyzstan","decay too fast",31,952.000000,1073.346167,-121.346167
 confirmed,"Kyrgyzstan","decay too fast",32,676.000000,796.354064,-120.354064
 confirmed,"Kyrgyzstan","decay too fast",33,549.000000,631.090842,-82.090842
-confirmed,"Kyrgyzstan","decay too fast",34,469.000000,555.497108,-86.497108
-confirmed,"Kyrgyzstan","growth too fast",39,3417.000000,2634.550287,782.449713
+confirmed,"Kyrgyzstan","decay too fast",34,469.000000,668.632291,-199.632291
+confirmed,"Kyrgyzstan","decay too fast",35,604.000000,774.342895,-170.342895
+confirmed,"Kyrgyzstan","growth too fast",37,1501.000000,1417.813119,83.186881
 confirmed,"Kyrgyzstan","decay too fast",41,3511.000000,3625.947264,-114.947264
 confirmed,"Kyrgyzstan","growth too fast",42,3578.000000,3410.893724,167.106276
+confirmed,"Kyrgyzstan","growth too fast",43,3429.000000,3193.562831,235.437169
+confirmed,"Kyrgyzstan","growth too fast",44,3232.000000,3013.237491,218.762509
 confirmed,"Latvia","growth too fast",40,1437.000000,1245.340696,191.659304
 confirmed,"Latvia","growth too fast",41,1724.000000,1644.802326,79.197674
 confirmed,"Latvia","growth too fast",42,2262.000000,2151.745505,110.254495
+confirmed,"Latvia","decay too fast",43,2341.000000,2612.105702,-271.105702
+confirmed,"Latvia","growth too fast",44,3449.000000,3146.604234,302.395766
 confirmed,"Lebanon","growth too fast",9,211.000000,136.711573,74.288427
 confirmed,"Lebanon","growth too fast",25,588.000000,364.674776,223.325224
-confirmed,"Lebanon","growth too fast",26,661.000000,588.880641,72.119359
-confirmed,"Lebanon","decay too fast",28,1338.000000,1456.487683,-118.487683
+confirmed,"Lebanon","growth too fast",27,1074.000000,949.799708,124.200292
 confirmed,"Lebanon","growth too fast",30,3241.000000,2937.075232,303.924768
 confirmed,"Lebanon","decay too fast",33,3474.000000,4443.204718,-969.204718
 confirmed,"Lebanon","decay too fast",34,4331.000000,4944.706317,-613.706317
@@ -1531,12 +1660,14 @@ confirmed,"Lebanon","decay too fast",39,8282.000000,9568.287831,-1286.287831
 confirmed,"Lebanon","growth too fast",40,10751.000000,9972.713046,778.286954
 confirmed,"Lebanon","growth too fast",41,11408.000000,10330.809262,1077.190738
 confirmed,"Lebanon","growth too fast",42,11517.000000,11019.265682,497.734318
+confirmed,"Lebanon","growth too fast",43,11243.000000,10911.097849,331.902151
+confirmed,"Lebanon","decay too fast",44,10254.000000,10742.866047,-488.866047
 confirmed,"Lesotho","growth too fast",27,245.000000,117.971924,127.028076
 confirmed,"Lesotho","growth too fast",34,163.000000,92.899756,70.100244
 confirmed,"Lesotho","growth too fast",35,227.000000,115.802223,111.197777
 confirmed,"Libya","growth too fast",24,451.000000,350.529753,100.470247
-confirmed,"Libya","growth too fast",26,662.000000,587.417045,74.582955
-confirmed,"Libya","growth too fast",27,1124.000000,905.674097,218.325903
+confirmed,"Libya","growth too fast",26,662.000000,513.553694,148.446306
+confirmed,"Libya","growth too fast",27,1124.000000,811.603676,312.396324
 confirmed,"Libya","growth too fast",29,2171.000000,1876.861793,294.138207
 confirmed,"Libya","growth too fast",30,2657.000000,2414.216214,242.783786
 confirmed,"Libya","decay too fast",31,2567.000000,3019.544872,-452.544872
@@ -1548,19 +1679,20 @@ confirmed,"Libya","decay too fast",37,5084.000000,5343.309286,-259.309286
 confirmed,"Libya","growth too fast",38,6384.000000,5576.539965,807.460035
 confirmed,"Libya","growth too fast",40,7036.000000,6056.731743,979.268257
 confirmed,"Libya","growth too fast",42,6364.000000,5536.591534,827.408466
-confirmed,"Lithuania","decay too fast",12,173.000000,248.638105,-75.638105
-confirmed,"Lithuania","growth too fast",13,270.000000,160.509168,109.490832
-confirmed,"Lithuania","negative reported",14,-13.000000,115.234601,-128.234601
+confirmed,"Libya","decay too fast",43,4202.000000,5030.348407,-828.348407
+confirmed,"Libya","decay too fast",44,4401.000000,4724.311293,-323.311293
+confirmed,"Lithuania","growth too fast",13,270.000000,145.597826,124.402174
+confirmed,"Lithuania","negative reported",14,-13.000000,141.781837,-154.781837
 confirmed,"Lithuania","decay too fast",33,221.000000,286.494415,-65.494415
 confirmed,"Lithuania","growth too fast",35,566.000000,442.067761,123.932239
 confirmed,"Lithuania","decay too fast",37,841.000000,907.570025,-66.570025
 confirmed,"Lithuania","decay too fast",38,1135.000000,1381.770016,-246.770016
 confirmed,"Lithuania","decay too fast",39,1903.000000,2101.760115,-198.760115
 confirmed,"Lithuania","growth too fast",40,4425.000000,3434.108353,990.891647
-confirmed,"Lithuania","decay too fast",41,6003.000000,6349.552381,-346.552381
-confirmed,"Luxembourg","growth too fast",23,244.000000,135.287559,108.712441
+confirmed,"Lithuania","growth too fast",44,13265.000000,12463.642008,801.357992
 confirmed,"Luxembourg","growth too fast",25,566.000000,475.503088,90.496912
 confirmed,"Luxembourg","growth too fast",26,667.000000,478.848962,188.151038
+confirmed,"Luxembourg","growth too fast",27,664.000000,569.242189,94.757811
 confirmed,"Luxembourg","decay too fast",29,295.000000,370.830568,-75.830568
 confirmed,"Luxembourg","negative reported",32,-1117.000000,354.875902,-1471.875902
 confirmed,"Luxembourg","decay too fast",33,277.000000,388.324634,-111.324634
@@ -1570,6 +1702,7 @@ confirmed,"Luxembourg","decay too fast",37,624.000000,864.170938,-240.170938
 confirmed,"Luxembourg","decay too fast",38,1025.000000,1153.366126,-128.366126
 confirmed,"Luxembourg","growth too fast",39,2089.000000,1761.530433,327.469567
 confirmed,"Luxembourg","decay too fast",42,4071.000000,4285.732993,-214.732993
+confirmed,"Luxembourg","decay too fast",44,3630.000000,3756.612299,-126.612299
 confirmed,"Madagascar","decay too fast",21,200.000000,317.037363,-117.037363
 confirmed,"Madagascar","growth too fast",25,2307.000000,1179.800879,1127.199121
 confirmed,"Madagascar","growth too fast",27,2367.000000,1446.922231,920.077769
@@ -1581,28 +1714,28 @@ confirmed,"Madagascar","growth too fast",36,263.000000,164.003329,98.996671
 confirmed,"Madagascar","decay too fast",38,100.000000,196.236377,-96.236377
 confirmed,"Madagascar","decay too fast",39,56.000000,166.913213,-110.913213
 confirmed,"Madagascar","growth too fast",40,158.000000,92.290274,65.709726
+confirmed,"Madagascar","decay too fast",44,31.000000,103.573020,-72.573020
 confirmed,"Malawi","decay too fast",21,111.000000,186.950477,-75.950477
 confirmed,"Malawi","growth too fast",22,368.000000,201.311508,166.688492
 confirmed,"Malawi","growth too fast",23,382.000000,307.276181,74.723819
 confirmed,"Malawi","growth too fast",25,770.000000,639.573721,130.426279
 confirmed,"Malawi","growth too fast",28,633.000000,480.466542,152.533458
-confirmed,"Malaysia","growth too fast",11,1112.000000,913.592955,198.407045
-confirmed,"Malaysia","growth too fast",12,954.000000,802.046314,151.953686
-confirmed,"Malaysia","decay too fast",13,421.000000,677.661515,-256.661515
+confirmed,"Malaysia","growth too fast",11,1112.000000,716.062117,395.937883
 confirmed,"Malaysia","decay too fast",14,399.000000,526.499299,-127.499299
 confirmed,"Malaysia","growth too fast",15,465.000000,387.236548,77.763452
 confirmed,"Malaysia","decay too fast",17,240.000000,402.582982,-162.582982
 confirmed,"Malaysia","growth too fast",18,570.000000,308.996157,261.003843
-confirmed,"Malaysia","growth too fast",19,618.000000,248.030284,369.969716
-confirmed,"Malaysia","decay too fast",31,56.000000,156.525838,-100.525838
-confirmed,"Malaysia","decay too fast",32,78.000000,204.995866,-126.995866
+confirmed,"Malaysia","growth too fast",19,618.000000,287.521284,330.478716
 confirmed,"Malaysia","decay too fast",35,524.000000,611.090445,-87.090445
 confirmed,"Malaysia","decay too fast",36,908.000000,1070.699033,-162.699033
+confirmed,"Malaysia","growth too fast",37,2884.000000,1770.935581,1113.064419
 confirmed,"Malaysia","growth too fast",38,3761.000000,3308.699514,452.300486
 confirmed,"Malaysia","growth too fast",39,5675.000000,4968.493046,706.506954
 confirmed,"Malaysia","growth too fast",40,6286.000000,5680.969122,605.030878
 confirmed,"Malaysia","decay too fast",41,6344.000000,6703.825214,-359.825214
 confirmed,"Malaysia","growth too fast",42,7357.000000,7211.775732,145.224268
+confirmed,"Malaysia","growth too fast",43,7889.000000,7720.628930,168.371070
+confirmed,"Malaysia","growth too fast",44,9072.000000,8438.819940,633.180060
 confirmed,"Maldives","growth too fast",16,334.000000,240.112691,93.887309
 confirmed,"Maldives","growth too fast",19,359.000000,236.996715,122.003285
 confirmed,"Maldives","decay too fast",20,104.000000,224.196901,-120.196901
@@ -1613,7 +1746,10 @@ confirmed,"Maldives","growth too fast",31,959.000000,818.090220,140.909780
 confirmed,"Maldives","growth too fast",32,952.000000,768.097690,183.902310
 confirmed,"Maldives","decay too fast",33,619.000000,690.479457,-71.479457
 confirmed,"Maldives","decay too fast",42,192.000000,286.866467,-94.866467
-confirmed,"Mali","growth too fast",23,221.000000,130.900988,90.099012
+confirmed,"Maldives","growth too fast",43,367.000000,262.111690,104.888310
+confirmed,"Maldives","growth too fast",44,437.000000,248.222030,188.777970
+confirmed,"Mali","growth too fast",23,221.000000,129.821931,91.178069
+confirmed,"Mali","growth too fast",44,412.000000,333.449957,78.550043
 confirmed,"Malta","growth too fast",11,141.000000,65.722735,75.277265
 confirmed,"Malta","growth too fast",29,299.000000,179.229079,119.770921
 confirmed,"Malta","growth too fast",30,265.000000,196.622781,68.377219
@@ -1639,14 +1775,13 @@ confirmed,"Mexico","growth too fast",14,7591.000000,7043.563554,547.436446
 confirmed,"Mexico","growth too fast",15,10392.000000,10063.577713,328.422287
 confirmed,"Mexico","decay too fast",16,12979.000000,13056.280904,-77.280904
 confirmed,"Mexico","growth too fast",18,21833.000000,19884.879298,1948.120702
-confirmed,"Mexico","growth too fast",19,24280.000000,24022.649553,257.350447
 confirmed,"Mexico","growth too fast",20,28294.000000,27709.326747,584.673253
 confirmed,"Mexico","growth too fast",21,31481.000000,31133.999481,347.000519
 confirmed,"Mexico","growth too fast",22,37496.000000,34532.160019,2963.839981
 confirmed,"Mexico","decay too fast",23,35560.000000,37741.817244,-2181.817244
 confirmed,"Mexico","growth too fast",24,43772.000000,40568.579838,3203.420162
 confirmed,"Mexico","decay too fast",25,41758.000000,42150.962123,-392.962123
-confirmed,"Mexico","growth too fast",26,46671.000000,44366.005547,2304.994453
+confirmed,"Mexico","growth too fast",26,46671.000000,44392.013944,2278.986056
 confirmed,"Mexico","growth too fast",27,45467.000000,43902.972310,1564.027690
 confirmed,"Mexico","growth too fast",28,46511.000000,43599.722339,2911.277661
 confirmed,"Mexico","growth too fast",29,43061.000000,41954.122260,1106.877740
@@ -1661,34 +1796,37 @@ confirmed,"Mexico","growth too fast",37,56173.000000,34542.584202,21630.415798
 confirmed,"Mexico","decay too fast",38,30422.000000,35750.953999,-5328.953999
 confirmed,"Mexico","decay too fast",41,36386.000000,39731.251270,-3345.251270
 confirmed,"Mexico","decay too fast",42,42638.000000,44914.736864,-2276.736864
-confirmed,"Moldova","decay too fast",13,772.000000,838.573808,-66.573808
-confirmed,"Moldova","growth too fast",14,971.000000,869.445770,101.554230
+confirmed,"Mexico","decay too fast",43,27708.000000,49160.725996,-21452.725996
+confirmed,"Mexico","growth too fast",44,59051.000000,56212.304960,2838.695040
+confirmed,"Moldova","decay too fast",13,772.000000,865.538541,-93.538541
 confirmed,"Moldova","decay too fast",15,708.000000,887.812658,-179.812658
 confirmed,"Moldova","growth too fast",17,1151.000000,1018.260172,132.739828
 confirmed,"Moldova","decay too fast",18,1021.000000,1231.938387,-210.938387
 confirmed,"Moldova","decay too fast",19,1293.000000,1439.396786,-146.396786
 confirmed,"Moldova","growth too fast",20,1709.000000,1520.015291,188.984709
 confirmed,"Moldova","growth too fast",21,2379.000000,1675.190762,703.809238
-confirmed,"Moldova","growth too fast",22,2347.000000,1809.947112,537.052888
-confirmed,"Moldova","decay too fast",23,1697.000000,1867.698280,-170.698280
+confirmed,"Moldova","growth too fast",22,2347.000000,1798.384949,548.615051
 confirmed,"Moldova","decay too fast",25,1598.000000,1664.758760,-66.758760
 confirmed,"Moldova","growth too fast",27,2238.000000,2059.221421,178.778579
-confirmed,"Moldova","decay too fast",29,2459.000000,2573.322134,-114.322134
-confirmed,"Moldova","growth too fast",30,2850.000000,2755.532603,94.467397
+confirmed,"Moldova","decay too fast",29,2459.000000,2651.631368,-192.631368
 confirmed,"Moldova","growth too fast",31,3609.000000,2963.360948,645.639052
-confirmed,"Moldova","decay too fast",32,2826.000000,3215.551473,-389.551473
+confirmed,"Moldova","decay too fast",32,2826.000000,3254.270903,-428.270903
+confirmed,"Moldova","decay too fast",33,3332.000000,3574.828903,-242.828903
+confirmed,"Moldova","decay too fast",34,3279.000000,3737.567000,-458.567000
 confirmed,"Moldova","decay too fast",35,3970.000000,4089.793626,-119.793626
-confirmed,"Moldova","growth too fast",36,5111.000000,4403.074302,707.925698
+confirmed,"Moldova","growth too fast",36,5111.000000,4751.037639,359.962361
 confirmed,"Moldova","growth too fast",37,5851.000000,4818.772495,1032.227505
 confirmed,"Moldova","decay too fast",39,4492.000000,5238.870352,-746.870352
 confirmed,"Moldova","decay too fast",40,4665.000000,5299.453370,-634.453370
 confirmed,"Moldova","decay too fast",41,5333.000000,5655.637814,-322.637814
 confirmed,"Moldova","growth too fast",42,6472.000000,6394.138032,77.861968
+confirmed,"Moldova","growth too fast",43,7923.000000,7377.710310,545.289690
+confirmed,"Moldova","growth too fast",44,8933.000000,8310.997829,622.002171
 confirmed,"Monaco","negative reported",32,-11.000000,8.555451,-19.555451
-confirmed,"Montenegro","growth too fast",24,403.000000,279.463637,123.536363
-confirmed,"Montenegro","growth too fast",26,1282.000000,363.675878,918.324122
-confirmed,"Montenegro","growth too fast",27,447.000000,338.444781,108.555219
-confirmed,"Montenegro","decay too fast",30,372.000000,452.945972,-80.945972
+confirmed,"Mongolia","growth too fast",43,143.000000,48.060051,94.939949
+confirmed,"Montenegro","growth too fast",24,403.000000,280.203288,122.796712
+confirmed,"Montenegro","growth too fast",26,1282.000000,375.203252,906.796748
+confirmed,"Montenegro","growth too fast",27,447.000000,362.146704,84.853296
 confirmed,"Montenegro","decay too fast",31,329.000000,503.565084,-174.565084
 confirmed,"Montenegro","growth too fast",33,1057.000000,818.658822,238.341178
 confirmed,"Montenegro","growth too fast",34,1281.000000,1167.864305,113.135695
@@ -1700,6 +1838,7 @@ confirmed,"Montenegro","decay too fast",39,1587.000000,1943.199835,-356.199835
 confirmed,"Montenegro","decay too fast",40,1487.000000,2099.825184,-612.825184
 confirmed,"Montenegro","growth too fast",41,3787.000000,2358.560266,1428.439734
 confirmed,"Montenegro","growth too fast",42,3976.000000,2781.769172,1194.230828
+confirmed,"Montenegro","growth too fast",43,4068.000000,3917.119835,150.880165
 confirmed,"Morocco","growth too fast",13,1285.000000,943.678584,341.321416
 confirmed,"Morocco","decay too fast",14,855.000000,942.804393,-87.804393
 confirmed,"Morocco","growth too fast",15,1125.000000,863.525643,261.474357
@@ -1707,6 +1846,7 @@ confirmed,"Morocco","growth too fast",16,1059.000000,701.342119,357.657881
 confirmed,"Morocco","decay too fast",17,604.000000,766.499428,-162.499428
 confirmed,"Morocco","decay too fast",19,360.000000,839.305409,-479.305409
 confirmed,"Morocco","decay too fast",20,534.000000,606.809185,-72.809185
+confirmed,"Morocco","decay too fast",21,537.000000,754.096703,-217.096703
 confirmed,"Morocco","growth too fast",22,2264.000000,1005.548499,1258.451501
 confirmed,"Morocco","growth too fast",24,2110.000000,1733.895814,376.104186
 confirmed,"Morocco","decay too fast",25,1466.000000,1698.456587,-232.456587
@@ -1714,8 +1854,7 @@ confirmed,"Morocco","growth too fast",29,8291.000000,7808.325046,482.674954
 confirmed,"Morocco","growth too fast",30,9703.000000,8704.474902,998.525098
 confirmed,"Morocco","decay too fast",31,9447.000000,10038.026964,-591.026964
 confirmed,"Morocco","decay too fast",32,9770.000000,11117.867013,-1347.867013
-confirmed,"Morocco","growth too fast",33,12912.000000,12048.666451,863.333549
-confirmed,"Morocco","growth too fast",34,14737.000000,13413.560097,1323.439903
+confirmed,"Morocco","growth too fast",34,14737.000000,14248.848509,488.151491
 confirmed,"Morocco","growth too fast",35,15595.000000,15340.511959,254.488041
 confirmed,"Morocco","decay too fast",36,15945.000000,16813.840616,-868.840616
 confirmed,"Morocco","decay too fast",37,16909.000000,18247.312690,-1338.312690
@@ -1724,6 +1863,8 @@ confirmed,"Morocco","growth too fast",39,23081.000000,22782.514955,298.485045
 confirmed,"Morocco","decay too fast",40,25307.000000,25985.813426,-678.813426
 confirmed,"Morocco","growth too fast",41,28913.000000,28191.375523,721.624477
 confirmed,"Morocco","growth too fast",42,35870.000000,29880.379865,5989.620135
+confirmed,"Morocco","growth too fast",43,34733.000000,30489.131619,4243.868381
+confirmed,"Morocco","decay too fast",44,29130.000000,29293.258564,-163.258564
 confirmed,"Mozambique","growth too fast",25,291.000000,185.282018,105.717982
 confirmed,"Mozambique","decay too fast",27,226.000000,330.505549,-104.505549
 confirmed,"Mozambique","growth too fast",29,518.000000,356.882558,161.117442
@@ -1736,6 +1877,7 @@ confirmed,"Mozambique","decay too fast",38,898.000000,1106.834985,-208.834985
 confirmed,"Mozambique","growth too fast",39,1022.000000,943.830211,78.169789
 confirmed,"Mozambique","growth too fast",40,966.000000,871.962081,94.037919
 confirmed,"Mozambique","decay too fast",42,703.000000,772.576041,-69.576041
+confirmed,"Mozambique","decay too fast",43,629.000000,710.182589,-81.182589
 confirmed,"Myanmar","growth too fast",31,203.000000,111.881269,91.118731
 confirmed,"Myanmar","growth too fast",32,509.000000,313.505990,195.494010
 confirmed,"Myanmar","growth too fast",34,2149.000000,1864.629877,284.370123
@@ -1746,14 +1888,18 @@ confirmed,"Myanmar","growth too fast",38,9906.000000,7941.681486,1964.318514
 confirmed,"Myanmar","growth too fast",40,9395.000000,8807.534841,587.465159
 confirmed,"Myanmar","decay too fast",41,7532.000000,8646.499976,-1114.499976
 confirmed,"Myanmar","decay too fast",42,7663.000000,8766.992906,-1103.992906
+confirmed,"Myanmar","growth too fast",43,9284.000000,8698.927740,585.072260
+confirmed,"Myanmar","growth too fast",44,10323.000000,9073.374220,1249.625780
 confirmed,"Namibia","decay too fast",28,600.000000,727.733818,-127.733818
 confirmed,"Namibia","growth too fast",30,1368.000000,1056.567368,311.432632
 confirmed,"Namibia","growth too fast",31,1800.000000,1214.093354,585.906646
 confirmed,"Namibia","growth too fast",32,1370.000000,1240.680586,129.319414
 confirmed,"Namibia","growth too fast",36,633.000000,553.918001,79.081999
+confirmed,"Namibia","decay too fast",37,408.000000,475.159352,-67.159352
 confirmed,"Namibia","growth too fast",40,398.000000,331.215522,66.784478
-confirmed,"Namibia","decay too fast",41,232.000000,327.383065,-95.383065
-confirmed,"Namibia","decay too fast",42,255.000000,340.689988,-85.689988
+confirmed,"Namibia","decay too fast",41,232.000000,351.627024,-119.627024
+confirmed,"Namibia","decay too fast",42,255.000000,355.307240,-100.307240
+confirmed,"Namibia","growth too fast",44,493.000000,405.229548,87.770452
 confirmed,"Nepal","growth too fast",21,3234.000000,2680.765821,553.234179
 confirmed,"Nepal","growth too fast",22,3314.000000,2699.432661,614.567339
 confirmed,"Nepal","growth too fast",23,3357.000000,2125.343888,1231.656112
@@ -1774,20 +1920,18 @@ confirmed,"Nepal","growth too fast",39,26764.000000,22316.200592,4447.799408
 confirmed,"Nepal","decay too fast",40,16209.000000,19936.046593,-3727.046593
 confirmed,"Nepal","growth too fast",41,21256.000000,18135.787869,3120.212131
 confirmed,"Nepal","growth too fast",42,18268.000000,15246.515856,3021.484144
-confirmed,"Netherlands","decay too fast",11,7115.000000,7207.451973,-92.451973
-confirmed,"Netherlands","growth too fast",12,7480.000000,7002.202107,477.797893
-confirmed,"Netherlands","decay too fast",17,1220.000000,1524.919252,-304.919252
-confirmed,"Netherlands","decay too fast",19,996.000000,1098.225609,-102.225609
+confirmed,"Nepal","decay too fast",43,10778.000000,13960.507695,-3182.507695
+confirmed,"Nepal","growth too fast",44,12620.000000,12181.971392,438.028608
+confirmed,"Netherlands","growth too fast",12,7480.000000,4935.640575,2544.359425
+confirmed,"Netherlands","decay too fast",19,996.000000,1163.312802,-167.312802
 confirmed,"Netherlands","growth too fast",20,1310.000000,1006.124334,303.875666
-confirmed,"Netherlands","growth too fast",21,1069.000000,829.811929,239.188071
+confirmed,"Netherlands","growth too fast",21,1069.000000,845.325721,223.674279
 confirmed,"Netherlands","decay too fast",22,595.000000,746.146852,-151.146852
 confirmed,"Netherlands","decay too fast",23,501.000000,613.743385,-112.743385
 confirmed,"Netherlands","decay too fast",24,390.000000,478.022780,-88.022780
 confirmed,"Netherlands","decay too fast",27,1609.000000,1725.112438,-116.112438
 confirmed,"Netherlands","growth too fast",28,3216.000000,2977.923568,238.076432
 confirmed,"Netherlands","decay too fast",31,4141.000000,5108.208700,-967.208700
-confirmed,"Netherlands","decay too fast",32,4372.000000,5802.737533,-1430.737533
-confirmed,"Netherlands","decay too fast",33,6660.000000,7222.680593,-562.680593
 confirmed,"Netherlands","growth too fast",34,10246.000000,10101.804792,144.195208
 confirmed,"Netherlands","growth too fast",35,15637.000000,14911.605484,725.394516
 confirmed,"Netherlands","decay too fast",36,21384.000000,21781.319100,-397.319100
@@ -1797,9 +1941,11 @@ confirmed,"Netherlands","growth too fast",39,58718.000000,48362.956327,10355.043
 confirmed,"Netherlands","growth too fast",40,68112.000000,52900.703491,15211.296509
 confirmed,"Netherlands","growth too fast",41,60483.000000,51945.204243,8537.795757
 confirmed,"Netherlands","decay too fast",42,40264.000000,47983.979999,-7719.979999
+confirmed,"Netherlands","decay too fast",43,37265.000000,43236.849405,-5971.849405
+confirmed,"Netherlands","decay too fast",44,36521.000000,41097.472281,-4576.472281
 confirmed,"New Zealand","growth too fast",11,442.000000,269.021832,172.978168
-confirmed,"Nigeria","growth too fast",19,2601.000000,2441.629941,159.370059
-confirmed,"Nigeria","growth too fast",20,3038.000000,2743.573833,294.426167
+confirmed,"Nigeria","decay too fast",12,154.000000,336.884375,-182.884375
+confirmed,"Nigeria","growth too fast",21,3926.000000,3432.420996,493.579004
 confirmed,"Nigeria","growth too fast",22,4134.000000,3786.366669,347.633331
 confirmed,"Nigeria","growth too fast",23,4496.000000,4058.853833,437.146167
 confirmed,"Nigeria","decay too fast",24,3638.000000,4063.128859,-425.128859
@@ -1808,8 +1954,9 @@ confirmed,"Nigeria","growth too fast",26,4094.000000,3700.549006,393.450994
 confirmed,"Nigeria","growth too fast",27,3741.000000,3607.635341,133.364659
 confirmed,"Nigeria","decay too fast",28,2555.000000,3324.265789,-769.265789
 confirmed,"Nigeria","decay too fast",29,2872.000000,2993.105221,-121.105221
-confirmed,"Nigeria","growth too fast",30,2848.000000,2679.884958,168.115042
-confirmed,"Nigeria","decay too fast",33,1241.000000,1381.997404,-140.997404
+confirmed,"Nigeria","growth too fast",30,2848.000000,2608.758386,239.241614
+confirmed,"Nigeria","growth too fast",31,2353.000000,2041.762577,311.237423
+confirmed,"Nigeria","decay too fast",33,1241.000000,1434.193912,-193.193912
 confirmed,"Nigeria","growth too fast",35,1114.000000,974.151711,139.848289
 confirmed,"Nigeria","growth too fast",36,1152.000000,964.427640,187.572360
 confirmed,"Nigeria","decay too fast",37,840.000000,988.054932,-148.054932
@@ -1817,6 +1964,8 @@ confirmed,"Nigeria","growth too fast",38,1141.000000,902.557068,238.442932
 confirmed,"Nigeria","decay too fast",39,823.000000,920.630632,-97.630632
 confirmed,"Nigeria","decay too fast",40,716.000000,963.492459,-247.492459
 confirmed,"Nigeria","growth too fast",42,1220.000000,1012.607722,207.392278
+confirmed,"Nigeria","decay too fast",43,1111.000000,1420.294748,-309.294748
+confirmed,"Nigeria","decay too fast",44,1135.000000,1212.519277,-77.519277
 confirmed,"North Macedonia","growth too fast",11,279.000000,189.233687,89.766313
 confirmed,"North Macedonia","growth too fast",12,418.000000,188.085839,229.914161
 confirmed,"North Macedonia","decay too fast",17,175.000000,241.658734,-66.658734
@@ -1830,23 +1979,21 @@ confirmed,"North Macedonia","decay too fast",33,652.000000,795.091885,-143.09188
 confirmed,"North Macedonia","decay too fast",36,938.000000,1401.316444,-463.316444
 confirmed,"North Macedonia","decay too fast",40,4085.000000,4554.082793,-469.082793
 confirmed,"North Macedonia","growth too fast",41,6814.000000,5592.017571,1221.982429
-confirmed,"Norway","growth too fast",9,1623.000000,1196.363696,426.636304
-confirmed,"Norway","growth too fast",10,1778.000000,1011.449564,766.550436
+confirmed,"North Macedonia","growth too fast",44,7395.000000,6834.017790,560.982210
 confirmed,"Norway","growth too fast",11,1064.000000,935.485335,128.514665
-confirmed,"Norway","decay too fast",31,345.000000,455.200442,-110.200442
-confirmed,"Norway","growth too fast",32,578.000000,469.479680,108.520320
-confirmed,"Norway","growth too fast",33,747.000000,528.671631,218.328369
+confirmed,"Norway","decay too fast",30,346.000000,443.388638,-97.388638
+confirmed,"Norway","decay too fast",31,345.000000,515.990113,-170.990113
 confirmed,"Norway","decay too fast",38,916.000000,1025.101839,-109.101839
 confirmed,"Norway","decay too fast",39,1097.000000,1440.809382,-343.809382
-confirmed,"Norway","growth too fast",40,2330.000000,1712.803309,617.196691
 confirmed,"Norway","growth too fast",41,3665.000000,2169.633051,1495.366949
+confirmed,"Norway","growth too fast",43,4213.000000,3749.091282,463.908718
 confirmed,"Oman","decay too fast",18,2639.000000,2756.064541,-117.064541
 confirmed,"Oman","growth too fast",19,5307.000000,3705.911244,1601.088756
 confirmed,"Oman","growth too fast",20,5638.000000,4823.645224,814.354776
 confirmed,"Oman","growth too fast",21,6864.000000,6627.234287,236.765713
 confirmed,"Oman","growth too fast",22,8084.000000,7426.746786,657.253214
 confirmed,"Oman","decay too fast",23,7653.000000,8311.112224,-658.112224
-confirmed,"Oman","growth too fast",24,9170.000000,8607.971253,562.028747
+confirmed,"Oman","growth too fast",24,9170.000000,9087.971666,82.028334
 confirmed,"Oman","growth too fast",25,10849.000000,9833.779777,1015.220223
 confirmed,"Oman","growth too fast",26,10072.000000,8506.743127,1565.256873
 confirmed,"Oman","decay too fast",28,1554.000000,3568.354428,-2014.354428
@@ -1858,18 +2005,18 @@ confirmed,"Oman","growth too fast",34,3416.000000,2339.150107,1076.849893
 confirmed,"Oman","growth too fast",35,4154.000000,3084.342601,1069.657399
 confirmed,"Oman","decay too fast",36,2678.000000,3535.706306,-857.706306
 confirmed,"Oman","growth too fast",37,5544.000000,3433.580802,2110.419198
-confirmed,"Oman","growth too fast",38,4167.000000,3556.442880,610.557120
+confirmed,"Oman","growth too fast",38,4167.000000,3136.056349,1030.943651
 confirmed,"Oman","growth too fast",39,3541.000000,3461.209403,79.790597
 confirmed,"Oman","decay too fast",40,2597.000000,2987.498541,-390.498541
 confirmed,"Oman","growth too fast",41,2733.000000,2478.638338,254.361662
 confirmed,"Oman","growth too fast",42,2275.000000,2146.197425,128.802575
+confirmed,"Oman","decay too fast",44,1219.000000,1678.853526,-459.853526
 confirmed,"Pakistan","decay too fast",12,2330.000000,2931.427391,-601.427391
 confirmed,"Pakistan","growth too fast",13,4915.000000,4336.601015,578.398985
 confirmed,"Pakistan","decay too fast",15,8321.000000,8596.118864,-275.118864
 confirmed,"Pakistan","growth too fast",16,12364.000000,11250.478091,1113.521909
 confirmed,"Pakistan","decay too fast",17,11895.000000,15262.079674,-3367.079674
 confirmed,"Pakistan","decay too fast",18,13334.000000,20634.136802,-7300.136802
-confirmed,"Pakistan","growth too fast",20,36684.000000,21768.134920,14915.865080
 confirmed,"Pakistan","decay too fast",22,30683.000000,31638.709763,-955.709763
 confirmed,"Pakistan","growth too fast",23,26151.000000,25428.411477,722.588523
 confirmed,"Pakistan","growth too fast",24,21703.000000,19889.572930,1813.427070
@@ -1884,22 +2031,26 @@ confirmed,"Pakistan","decay too fast",33,2859.000000,3541.276562,-682.276562
 confirmed,"Pakistan","growth too fast",34,4015.000000,3583.121143,431.878857
 confirmed,"Pakistan","growth too fast",35,4629.000000,4286.249510,342.750490
 confirmed,"Pakistan","growth too fast",36,4416.000000,4297.333118,118.666882
-confirmed,"Pakistan","decay too fast",37,4164.000000,4516.154483,-352.154483
+confirmed,"Pakistan","decay too fast",37,4164.000000,4363.276323,-199.276323
 confirmed,"Pakistan","decay too fast",41,8065.000000,8316.441088,-251.441088
 confirmed,"Pakistan","growth too fast",42,12045.000000,11440.705283,604.294717
+confirmed,"Pakistan","growth too fast",43,16369.000000,15738.530753,630.469247
 confirmed,"Palestine","growth too fast",26,2332.000000,2085.930206,246.069794
 confirmed,"Palestine","decay too fast",27,1804.000000,2103.102285,-299.102285
 confirmed,"Palestine","decay too fast",28,1850.000000,2131.043440,-281.043440
 confirmed,"Palestine","decay too fast",29,2093.000000,2207.706287,-114.706287
 confirmed,"Palestine","decay too fast",31,2688.000000,2956.192360,-268.192360
 confirmed,"Palestine","growth too fast",32,3794.000000,3368.005011,425.994989
-confirmed,"Palestine","growth too fast",33,4193.000000,3611.304197,581.695803
 confirmed,"Palestine","growth too fast",34,5179.000000,3832.990840,1346.009160
 confirmed,"Palestine","decay too fast",36,2731.000000,3488.023050,-757.023050
 confirmed,"Palestine","decay too fast",37,2934.000000,3108.428026,-174.428026
 confirmed,"Palestine","decay too fast",38,2844.000000,3035.116201,-191.116201
 confirmed,"Palestine","decay too fast",39,3034.000000,3233.691594,-199.691594
 confirmed,"Palestine","growth too fast",41,4101.000000,3845.265192,255.734808
+confirmed,"Palestine","growth too fast",43,6512.000000,5898.820108,613.179892
+confirmed,"Palestine","growth too fast",44,11197.000000,10120.222805,1076.777195
+confirmed,"Panama","growth too fast",13,1415.000000,1317.859059,97.140941
+confirmed,"Panama","growth too fast",15,1336.000000,1263.611697,72.388303
 confirmed,"Panama","growth too fast",21,4765.000000,4501.124401,263.875599
 confirmed,"Panama","growth too fast",22,5686.000000,5265.728087,420.271913
 confirmed,"Panama","growth too fast",24,6979.000000,6609.173370,369.826630
@@ -1907,32 +2058,31 @@ confirmed,"Panama","growth too fast",25,8157.000000,6965.281549,1191.718451
 confirmed,"Panama","decay too fast",26,6444.000000,7203.250759,-759.250759
 confirmed,"Panama","growth too fast",27,7374.000000,6766.705908,607.294092
 confirmed,"Panama","growth too fast",28,7227.000000,6409.951966,817.048034
-confirmed,"Panama","growth too fast",29,7028.000000,6839.928834,188.071166
-confirmed,"Panama","decay too fast",30,5409.000000,6346.394406,-937.394406
-confirmed,"Panama","growth too fast",31,6127.000000,5909.339904,217.660096
-confirmed,"Panama","decay too fast",32,4932.000000,5292.303312,-360.303312
+confirmed,"Panama","decay too fast",30,5409.000000,6247.531272,-838.531272
+confirmed,"Panama","growth too fast",31,6127.000000,5823.453019,303.546981
 confirmed,"Panama","decay too fast",33,4801.000000,5006.193550,-205.193550
 confirmed,"Panama","decay too fast",34,4423.000000,4623.800430,-200.800430
 confirmed,"Panama","growth too fast",37,4712.000000,4642.432621,69.567379
 confirmed,"Panama","growth too fast",38,4829.000000,4646.402324,182.597676
 confirmed,"Panama","decay too fast",39,4344.000000,4641.197069,-297.197069
 confirmed,"Panama","growth too fast",40,4818.000000,4602.099707,215.900293
+confirmed,"Panama","decay too fast",44,9198.000000,9279.443402,-81.443402
 confirmed,"Paraguay","growth too fast",15,196.000000,54.318616,141.681384
 confirmed,"Paraguay","growth too fast",16,292.000000,63.790815,228.209185
 confirmed,"Paraguay","growth too fast",19,186.000000,86.059432,99.940568
 confirmed,"Paraguay","growth too fast",23,734.000000,225.530232,508.469768
-confirmed,"Paraguay","decay too fast",28,1168.000000,1320.787817,-152.787817
-confirmed,"Paraguay","decay too fast",29,2014.000000,2098.111807,-84.111807
-confirmed,"Paraguay","growth too fast",33,5672.000000,5175.500020,496.499980
-confirmed,"Paraguay","growth too fast",34,5482.000000,5278.335148,203.664852
+confirmed,"Paraguay","decay too fast",28,1168.000000,1533.301043,-365.301043
+confirmed,"Paraguay","decay too fast",29,2014.000000,2219.613814,-205.613814
+confirmed,"Paraguay","growth too fast",32,4669.000000,3985.817693,683.182307
+confirmed,"Paraguay","growth too fast",33,5672.000000,4399.562821,1272.437179
 confirmed,"Paraguay","decay too fast",35,5291.000000,5462.682497,-171.682497
 confirmed,"Paraguay","growth too fast",37,5517.000000,5226.139598,290.860402
 confirmed,"Paraguay","growth too fast",38,5280.000000,5030.532373,249.467627
 confirmed,"Paraguay","growth too fast",39,4930.000000,4786.823004,143.176996
 confirmed,"Paraguay","decay too fast",41,3728.000000,4435.329585,-707.329585
 confirmed,"Paraguay","decay too fast",42,3875.000000,4438.719671,-563.719671
-confirmed,"Peru","growth too fast",11,3842.000000,1785.981272,2056.018728
-confirmed,"Peru","growth too fast",12,7235.000000,3768.535811,3466.464189
+confirmed,"Paraguay","growth too fast",43,4842.000000,4533.479067,308.520933
+confirmed,"Paraguay","growth too fast",44,5022.000000,4950.170606,71.829394
 confirmed,"Peru","growth too fast",14,16062.000000,11544.424140,4517.575860
 confirmed,"Peru","growth too fast",15,21550.000000,15390.917520,6159.082480
 confirmed,"Peru","decay too fast",16,22078.000000,24724.200369,-2646.200369
@@ -1947,7 +2097,7 @@ confirmed,"Peru","decay too fast",24,24444.000000,25299.308881,-855.308881
 confirmed,"Peru","decay too fast",25,25138.000000,26288.469450,-1150.469450
 confirmed,"Peru","growth too fast",26,29510.000000,29046.079802,463.920198
 confirmed,"Peru","decay too fast",27,29587.000000,32224.110508,-2637.110508
-confirmed,"Peru","growth too fast",28,54726.000000,37913.321298,16812.678702
+confirmed,"Peru","growth too fast",28,54726.000000,36673.303825,18052.696175
 confirmed,"Peru","growth too fast",29,43146.000000,39037.706332,4108.293668
 confirmed,"Peru","growth too fast",30,59865.000000,50030.309458,9834.690542
 confirmed,"Peru","growth too fast",31,54958.000000,48553.887393,6404.112607
@@ -1961,15 +2111,15 @@ confirmed,"Peru","growth too fast",38,24078.000000,23795.833248,282.166752
 confirmed,"Peru","decay too fast",39,20136.000000,20371.014314,-235.014314
 confirmed,"Peru","decay too fast",40,15052.000000,17964.930730,-2912.930730
 confirmed,"Peru","growth too fast",41,19794.000000,15876.657312,3917.342688
+confirmed,"Peru","decay too fast",44,12508.000000,12614.571821,-106.571821
 confirmed,"Philippines","decay too fast",13,1321.000000,1508.799262,-187.799262
 confirmed,"Philippines","growth too fast",15,1855.000000,1579.494899,275.505101
-confirmed,"Philippines","decay too fast",16,1533.000000,1704.373902,-171.373902
-confirmed,"Philippines","decay too fast",17,1558.000000,1984.918968,-426.918968
+confirmed,"Philippines","decay too fast",16,1533.000000,1600.185994,-67.185994
+confirmed,"Philippines","decay too fast",17,1558.000000,2110.960446,-552.960446
 confirmed,"Philippines","growth too fast",18,2154.000000,2053.280902,100.719098
 confirmed,"Philippines","growth too fast",19,4794.000000,2802.503507,1991.496493
 confirmed,"Philippines","growth too fast",20,3793.000000,3505.005064,287.994936
-confirmed,"Philippines","decay too fast",21,3624.000000,4077.615398,-453.615398
-confirmed,"Philippines","growth too fast",22,5270.000000,4742.126181,527.873819
+confirmed,"Philippines","decay too fast",21,3624.000000,4420.314978,-796.314978
 confirmed,"Philippines","decay too fast",23,5736.000000,7413.148831,-1677.148831
 confirmed,"Philippines","growth too fast",24,12949.000000,9121.800520,3827.199480
 confirmed,"Philippines","growth too fast",26,13124.000000,12421.392258,702.607742
@@ -1977,7 +2127,7 @@ confirmed,"Philippines","decay too fast",27,14984.000000,16168.184030,-1184.1840
 confirmed,"Philippines","growth too fast",28,30086.000000,19842.161688,10243.838312
 confirmed,"Philippines","growth too fast",29,28066.000000,22433.093940,5632.906060
 confirmed,"Philippines","growth too fast",30,30496.000000,28082.332986,2413.667014
-confirmed,"Philippines","growth too fast",31,27559.000000,26470.336810,1088.663190
+confirmed,"Philippines","growth too fast",31,27559.000000,25629.804657,1929.195343
 confirmed,"Philippines","decay too fast",32,22822.000000,25336.109901,-2514.109901
 confirmed,"Philippines","decay too fast",33,20544.000000,23136.168841,-2592.168841
 confirmed,"Philippines","growth too fast",34,27342.000000,21411.724857,5930.275143
@@ -1985,6 +2135,8 @@ confirmed,"Philippines","growth too fast",38,16829.000000,15932.730942,896.26905
 confirmed,"Philippines","decay too fast",40,13047.000000,13995.847950,-948.847950
 confirmed,"Philippines","decay too fast",41,12790.000000,12919.225118,-129.225118
 confirmed,"Philippines","growth too fast",42,13095.000000,12129.710389,965.289611
+confirmed,"Philippines","decay too fast",43,10610.000000,11893.933318,-1283.933318
+confirmed,"Philippines","decay too fast",44,10867.000000,11357.602716,-490.602716
 confirmed,"Poland","growth too fast",13,2593.000000,2401.590018,191.409982
 confirmed,"Poland","decay too fast",15,2170.000000,2459.578833,-289.578833
 confirmed,"Poland","growth too fast",16,2568.000000,2405.081676,162.918324
@@ -1992,24 +2144,23 @@ confirmed,"Poland","growth too fast",17,2528.000000,2425.753376,102.246624
 confirmed,"Poland","growth too fast",18,2682.000000,2549.963086,132.036914
 confirmed,"Poland","decay too fast",19,2223.000000,2564.004167,-341.004167
 confirmed,"Poland","growth too fast",20,3153.000000,2406.654178,746.345822
-confirmed,"Poland","growth too fast",21,2814.000000,2399.122651,414.877349
+confirmed,"Poland","growth too fast",21,2814.000000,2502.976081,311.023919
 confirmed,"Poland","decay too fast",22,2104.000000,2310.278899,-206.278899
 confirmed,"Poland","decay too fast",23,2027.000000,2226.259112,-199.259112
 confirmed,"Poland","decay too fast",24,1805.000000,2016.029153,-211.029153
 confirmed,"Poland","decay too fast",25,2103.000000,2186.792664,-83.792664
 confirmed,"Poland","decay too fast",26,2526.000000,2694.827974,-168.827974
 confirmed,"Poland","growth too fast",27,3451.000000,3233.936675,217.063325
-confirmed,"Poland","growth too fast",28,4484.000000,3863.769246,620.230754
-confirmed,"Poland","growth too fast",30,4891.000000,4636.438325,254.561675
-confirmed,"Poland","growth too fast",31,5311.000000,4605.601566,705.398434
+confirmed,"Poland","growth too fast",28,4484.000000,4187.425543,296.574457
+confirmed,"Poland","growth too fast",30,4891.000000,4200.369246,690.630754
+confirmed,"Poland","growth too fast",31,5311.000000,4831.021575,479.978425
 confirmed,"Poland","decay too fast",33,3324.000000,4021.315874,-697.315874
-confirmed,"Poland","decay too fast",34,4118.000000,4693.506439,-575.506439
 confirmed,"Poland","decay too fast",36,10672.000000,10771.282519,-99.282519
 confirmed,"Poland","decay too fast",37,18118.000000,19163.927412,-1045.927412
-confirmed,"Poland","growth too fast",38,38304.000000,32747.425139,5556.574861
-confirmed,"Poland","growth too fast",39,64783.000000,57080.395432,7702.604568
+confirmed,"Poland","growth too fast",38,38304.000000,33826.661313,4477.338687
+confirmed,"Poland","growth too fast",39,64783.000000,60522.513849,4260.486151
 confirmed,"Poland","growth too fast",40,104519.000000,99951.851514,4567.148486
-confirmed,"Portugal","growth too fast",13,3512.000000,3378.761946,133.238054
+confirmed,"Poland","growth too fast",43,155302.000000,137532.273715,17769.726285
 confirmed,"Portugal","growth too fast",14,2692.000000,2508.749161,183.250839
 confirmed,"Portugal","decay too fast",18,1684.000000,1800.300223,-116.300223
 confirmed,"Portugal","growth too fast",19,1996.000000,1915.662773,80.337227
@@ -2017,13 +2168,15 @@ confirmed,"Portugal","growth too fast",20,2318.000000,2067.394448,250.605552
 confirmed,"Portugal","decay too fast",28,1193.000000,1388.578789,-195.578789
 confirmed,"Portugal","decay too fast",30,1444.000000,1624.230409,-180.230409
 confirmed,"Portugal","decay too fast",31,1681.000000,1963.621721,-282.621721
+confirmed,"Portugal","growth too fast",32,2378.000000,2260.851075,117.148925
 confirmed,"Portugal","growth too fast",33,3075.000000,2946.377739,128.622261
-confirmed,"Portugal","growth too fast",34,4270.000000,3743.155204,526.844796
 confirmed,"Portugal","growth too fast",35,4760.000000,4577.731484,182.268516
 confirmed,"Portugal","decay too fast",36,5240.000000,7016.229420,-1776.229420
 confirmed,"Portugal","growth too fast",39,16247.000000,15918.803053,328.196947
 confirmed,"Portugal","growth too fast",41,28734.000000,26953.052850,1780.947150
 confirmed,"Portugal","growth too fast",42,36661.000000,31366.443668,5294.556332
+confirmed,"Portugal","growth too fast",43,44998.000000,34410.327069,10587.672931
+confirmed,"Portugal","growth too fast",44,37385.000000,34107.454682,3277.545318
 confirmed,"Qatar","growth too fast",18,12263.000000,11483.899473,779.100527
 confirmed,"Qatar","growth too fast",19,12827.000000,10821.052856,2005.947144
 confirmed,"Qatar","growth too fast",20,11330.000000,10287.774814,1042.225186
@@ -2064,8 +2217,7 @@ confirmed,"Romania","growth too fast",38,22790.000000,20846.629665,1943.370335
 confirmed,"Romania","decay too fast",40,33036.000000,35555.609720,-2519.609720
 confirmed,"Romania","growth too fast",41,47762.000000,45200.745075,2561.254925
 confirmed,"Romania","growth too fast",42,57434.000000,43194.297546,14239.702454
-confirmed,"Russia","growth too fast",15,70662.000000,54039.875318,16622.124682
-confirmed,"Russia","growth too fast",16,75085.000000,62989.929117,12095.070883
+confirmed,"Romania","growth too fast",44,55498.000000,51627.664857,3870.335143
 confirmed,"Russia","decay too fast",17,65309.000000,67820.708812,-2511.708812
 confirmed,"Russia","decay too fast",18,61497.000000,64968.216339,-3471.216339
 confirmed,"Russia","growth too fast",20,61262.000000,58349.593405,2912.406595
@@ -2085,7 +2237,9 @@ confirmed,"Russia","decay too fast",33,35913.000000,36669.269612,-756.269612
 confirmed,"Russia","decay too fast",34,38316.000000,39068.305411,-752.305411
 confirmed,"Russia","growth too fast",37,73969.000000,72555.892578,1413.107422
 confirmed,"Russia","growth too fast",42,143983.000000,141633.759330,2349.240670
-confirmed,"Rwanda","growth too fast",14,89.000000,22.770197,66.229803
+confirmed,"Russia","growth too fast",43,155288.000000,154743.164135,544.835865
+confirmed,"Russia","growth too fast",44,170458.000000,166752.853409,3705.146591
+confirmed,"Rwanda","growth too fast",14,89.000000,21.835694,67.164306
 confirmed,"Rwanda","decay too fast",24,147.000000,212.035856,-65.035856
 confirmed,"Rwanda","growth too fast",27,284.000000,179.231232,104.768768
 confirmed,"Rwanda","decay too fast",29,89.000000,241.792386,-152.792386
@@ -2112,23 +2266,27 @@ confirmed,"Saudi Arabia","decay too fast",37,3035.000000,3132.279555,-97.279555
 confirmed,"Saudi Arabia","decay too fast",39,2712.000000,2860.723918,-148.723918
 confirmed,"Saudi Arabia","growth too fast",41,2904.000000,2613.116469,290.883531
 confirmed,"Saudi Arabia","growth too fast",42,2774.000000,2621.054433,152.945567
+confirmed,"Saudi Arabia","growth too fast",43,2367.000000,2249.790927,117.209073
+confirmed,"Saudi Arabia","decay too fast",44,1862.000000,1936.473037,-74.473037
 confirmed,"Senegal","decay too fast",12,85.000000,195.073368,-110.073368
+confirmed,"Senegal","growth too fast",14,454.000000,290.261978,163.738022
 confirmed,"Senegal","growth too fast",16,697.000000,607.788141,89.211859
 confirmed,"Senegal","decay too fast",18,536.000000,652.002886,-116.002886
 confirmed,"Senegal","growth too fast",23,821.000000,749.023911,71.976089
 confirmed,"Senegal","decay too fast",25,697.000000,772.700062,-75.700062
-confirmed,"Senegal","decay too fast",28,609.000000,785.500106,-176.500106
+confirmed,"Senegal","decay too fast",28,609.000000,754.478080,-145.478080
 confirmed,"Senegal","growth too fast",29,1025.000000,761.640933,263.359067
-confirmed,"Senegal","growth too fast",30,819.000000,655.209114,163.790886
-confirmed,"Senegal","decay too fast",33,324.000000,418.442660,-94.442660
-confirmed,"Senegal","growth too fast",34,468.000000,339.601843,128.398157
+confirmed,"Senegal","growth too fast",30,819.000000,638.062895,180.937105
+confirmed,"Senegal","decay too fast",33,324.000000,406.730273,-82.730273
+confirmed,"Senegal","growth too fast",34,468.000000,336.829044,131.170956
 confirmed,"Senegal","decay too fast",35,198.000000,275.580392,-77.580392
 confirmed,"Serbia","decay too fast",13,1958.000000,2026.066509,-68.066509
 confirmed,"Serbia","growth too fast",14,1733.000000,1459.323787,273.676213
 confirmed,"Serbia","decay too fast",15,839.000000,1087.753000,-248.753000
 confirmed,"Serbia","decay too fast",16,526.000000,811.964898,-285.964898
 confirmed,"Serbia","decay too fast",19,271.000000,449.240083,-178.240083
-confirmed,"Serbia","decay too fast",21,514.000000,704.971023,-190.971023
+confirmed,"Serbia","decay too fast",21,514.000000,632.276553,-118.276553
+confirmed,"Serbia","growth too fast",23,1823.000000,1199.801483,623.198517
 confirmed,"Serbia","growth too fast",24,2147.000000,1599.137005,547.862995
 confirmed,"Serbia","growth too fast",26,2726.000000,2319.771632,406.228368
 confirmed,"Serbia","growth too fast",27,2770.000000,2217.337039,552.662961
@@ -2139,9 +2297,10 @@ confirmed,"Serbia","decay too fast",33,460.000000,587.270960,-127.270960
 confirmed,"Serbia","decay too fast",35,468.000000,555.734737,-87.734737
 confirmed,"Serbia","decay too fast",36,499.000000,629.511667,-130.511667
 confirmed,"Serbia","decay too fast",37,682.000000,749.798022,-67.798022
-confirmed,"Serbia","growth too fast",40,6056.000000,4554.709369,1501.290631
 confirmed,"Serbia","growth too fast",41,12084.000000,8844.470457,3239.529543
 confirmed,"Serbia","decay too fast",42,18089.000000,18661.717692,-572.717692
+confirmed,"Serbia","growth too fast",43,30332.000000,28981.331187,1350.668813
+confirmed,"Serbia","growth too fast",44,44117.000000,39658.962684,4458.037316
 confirmed,"Seychelles","growth too fast",23,70.000000,2.144684,67.855316
 confirmed,"Sierra Leone","growth too fast",18,227.000000,154.205977,72.794023
 confirmed,"Sierra Leone","decay too fast",19,102.000000,195.582307,-93.582307
@@ -2152,7 +2311,6 @@ confirmed,"Singapore","growth too fast",16,5159.000000,4409.316535,749.683465
 confirmed,"Singapore","decay too fast",17,3714.000000,4008.140151,-294.140151
 confirmed,"Singapore","decay too fast",18,3437.000000,3557.147070,-120.147070
 confirmed,"Singapore","growth too fast",19,3673.000000,2878.512728,794.487272
-confirmed,"Singapore","decay too fast",20,2465.000000,2581.648598,-116.648598
 confirmed,"Singapore","growth too fast",21,2086.000000,1961.146519,124.853481
 confirmed,"Singapore","decay too fast",22,1263.000000,1723.256911,-460.256911
 confirmed,"Singapore","growth too fast",23,1574.000000,1355.460008,218.539992
@@ -2168,16 +2326,23 @@ confirmed,"Slovakia","growth too fast",38,8499.000000,7611.317309,887.682691
 confirmed,"Slovakia","decay too fast",39,11105.000000,11310.039420,-205.039420
 confirmed,"Slovakia","growth too fast",41,17006.000000,12963.536007,4042.463993
 confirmed,"Slovakia","decay too fast",42,13038.000000,13294.942892,-256.942892
+confirmed,"Slovakia","decay too fast",43,9806.000000,12250.194686,-2444.194686
+confirmed,"Slovakia","decay too fast",44,9679.000000,11539.807383,-1860.807383
 confirmed,"Slovenia","growth too fast",10,335.000000,263.616829,71.383171
 confirmed,"Slovenia","growth too fast",34,669.000000,536.351836,132.648164
 confirmed,"Slovenia","decay too fast",36,1049.000000,1572.187454,-523.187454
+confirmed,"Slovenia","growth too fast",38,3176.000000,2746.039513,429.960487
 confirmed,"Slovenia","growth too fast",39,6963.000000,6624.247377,338.752623
 confirmed,"Slovenia","decay too fast",42,9776.000000,10121.848833,-345.848833
+confirmed,"Slovenia","decay too fast",44,10039.000000,10109.711263,-70.711263
 confirmed,"Somalia","decay too fast",18,234.000000,301.502823,-67.502823
 confirmed,"Somalia","growth too fast",19,376.000000,269.891946,106.108054
 confirmed,"Somalia","growth too fast",41,288.000000,100.305513,187.694487
 confirmed,"South Africa","decay too fast",11,472.000000,578.583985,-106.583985
 confirmed,"South Africa","decay too fast",12,671.000000,819.075130,-148.075130
+confirmed,"South Africa","growth too fast",13,1348.000000,1101.494633,246.505367
+confirmed,"South Africa","decay too fast",15,2585.000000,2671.172127,-86.172127
+confirmed,"South Africa","growth too fast",16,4507.000000,4008.448485,498.551515
 confirmed,"South Africa","growth too fast",17,6398.000000,6017.172758,380.827242
 confirmed,"South Africa","decay too fast",18,8266.000000,8926.273035,-660.273035
 confirmed,"South Africa","growth too fast",19,13389.000000,12550.529717,838.470283
@@ -2198,10 +2363,14 @@ confirmed,"South Africa","growth too fast",39,12331.000000,11359.495806,971.5041
 confirmed,"South Africa","decay too fast",40,11255.000000,11825.982824,-570.982824
 confirmed,"South Africa","decay too fast",41,10644.000000,12560.880613,-1916.880613
 confirmed,"South Africa","decay too fast",42,12318.000000,13434.874352,-1116.874352
+confirmed,"South Africa","decay too fast",43,14926.000000,15252.312574,-326.312574
+confirmed,"South Africa","growth too fast",44,18913.000000,18458.698016,454.301984
 confirmed,"South Korea","growth too fast",16,196.000000,93.539867,102.460133
 confirmed,"South Korea","growth too fast",32,1765.000000,1685.495418,79.504582
 confirmed,"South Korea","decay too fast",33,1077.000000,1225.866326,-148.866326
 confirmed,"South Korea","decay too fast",36,497.000000,634.954931,-137.954931
+confirmed,"South Korea","growth too fast",43,1884.000000,1539.466677,344.533323
+confirmed,"South Korea","growth too fast",44,2870.000000,2118.431600,751.568400
 confirmed,"South Sudan","growth too fast",18,513.000000,233.063739,279.936261
 confirmed,"South Sudan","decay too fast",19,0.000000,253.226868,-253.226868
 confirmed,"South Sudan","growth too fast",20,676.000000,239.376256,436.623744
@@ -2229,26 +2398,29 @@ confirmed,"Spain","decay too fast",37,69717.000000,72825.083788,-3108.083788
 confirmed,"Spain","growth too fast",40,133802.000000,123300.537976,10501.462024
 confirmed,"Spain","growth too fast",41,146233.000000,117478.490071,28754.509929
 confirmed,"Spain","growth too fast",42,130904.000000,112621.322490,18282.677510
+confirmed,"Spain","growth too fast",43,104354.000000,96872.472024,7481.527976
+confirmed,"Spain","decay too fast",44,75781.000000,81839.023956,-6058.023956
 confirmed,"Sri Lanka","growth too fast",14,295.000000,169.238997,125.761003
 confirmed,"Sri Lanka","decay too fast",16,101.000000,175.574207,-74.574207
 confirmed,"Sri Lanka","growth too fast",18,475.000000,126.531999,348.468001
 confirmed,"Sri Lanka","growth too fast",19,267.000000,129.336071,137.663929
-confirmed,"Sri Lanka","decay too fast",20,80.000000,148.438419,-68.438419
 confirmed,"Sri Lanka","growth too fast",25,533.000000,66.743465,466.256535
-confirmed,"Sri Lanka","decay too fast",35,57.000000,164.085820,-107.085820
+confirmed,"Sri Lanka","decay too fast",35,57.000000,123.601725,-66.601725
 confirmed,"Sri Lanka","decay too fast",36,49.000000,209.079907,-160.079907
 confirmed,"Sri Lanka","growth too fast",37,1106.000000,277.399469,828.600531
 confirmed,"Sri Lanka","growth too fast",40,3504.000000,1530.451545,1973.548455
 confirmed,"Sri Lanka","growth too fast",41,2779.000000,2071.741886,707.258114
 confirmed,"Sri Lanka","growth too fast",42,3153.000000,2994.237961,158.762039
+confirmed,"Sri Lanka","decay too fast",43,3118.000000,3264.578034,-146.578034
+confirmed,"Sri Lanka","decay too fast",44,3187.000000,3561.543851,-374.543851
 confirmed,"Sudan","growth too fast",16,888.000000,819.103481,68.896519
-confirmed,"Sudan","growth too fast",17,1320.000000,926.561580,393.438420
 confirmed,"Sudan","growth too fast",19,1368.000000,1212.709905,155.290095
 confirmed,"Sudan","decay too fast",20,1016.000000,1102.299919,-86.299919
 confirmed,"Sudan","growth too fast",21,1290.000000,1001.882050,288.117950
 confirmed,"Sudan","growth too fast",22,964.000000,825.812500,138.187500
 confirmed,"Sudan","decay too fast",23,589.000000,755.428462,-166.428462
-confirmed,"Sudan","growth too fast",26,710.000000,399.021699,310.978301
+confirmed,"Sudan","decay too fast",25,369.000000,540.001828,-171.001828
+confirmed,"Sudan","growth too fast",26,710.000000,395.171309,314.828691
 confirmed,"Sudan","decay too fast",27,259.000000,420.906123,-161.906123
 confirmed,"Sudan","growth too fast",30,467.000000,349.349626,117.650374
 confirmed,"Sudan","growth too fast",31,463.000000,357.407460,105.592540
@@ -2275,13 +2447,13 @@ confirmed,"Sweden","decay too fast",37,3917.000000,3982.636316,-65.636316
 confirmed,"Sweden","decay too fast",38,4875.000000,5058.157934,-183.157934
 confirmed,"Sweden","growth too fast",40,12198.000000,9829.983686,2368.016314
 confirmed,"Sweden","growth too fast",41,20597.000000,13425.563420,7171.436580
-confirmed,"Switzerland","growth too fast",13,1764.000000,1682.804241,81.195759
-confirmed,"Switzerland","growth too fast",14,1090.000000,1001.645466,88.354534
-confirmed,"Switzerland","decay too fast",15,540.000000,604.946501,-64.946501
-confirmed,"Switzerland","growth too fast",23,539.000000,332.956160,206.043840
-confirmed,"Switzerland","growth too fast",24,619.000000,487.647963,131.352037
-confirmed,"Switzerland","decay too fast",26,710.000000,809.348092,-99.348092
-confirmed,"Switzerland","growth too fast",27,1022.000000,941.155964,80.844036
+confirmed,"Sweden","growth too fast",44,35300.000000,33544.966180,1755.033820
+confirmed,"Switzerland","growth too fast",13,1764.000000,1579.586492,184.413508
+confirmed,"Switzerland","growth too fast",14,1090.000000,954.259039,135.740961
+confirmed,"Switzerland","decay too fast",15,540.000000,622.366611,-82.366611
+confirmed,"Switzerland","decay too fast",19,117.000000,182.466313,-65.466313
+confirmed,"Switzerland","decay too fast",26,710.000000,797.347854,-87.347854
+confirmed,"Switzerland","growth too fast",27,1022.000000,924.175066,97.824934
 confirmed,"Switzerland","growth too fast",31,1980.000000,1870.145243,109.854757
 confirmed,"Switzerland","growth too fast",33,2584.000000,2380.687560,203.312440
 confirmed,"Switzerland","growth too fast",34,3084.000000,2544.545656,539.454344
@@ -2289,6 +2461,8 @@ confirmed,"Switzerland","growth too fast",35,2697.000000,2606.175327,90.824673
 confirmed,"Switzerland","growth too fast",38,12436.000000,11477.249124,958.750876
 confirmed,"Switzerland","growth too fast",39,25702.000000,24257.166700,1444.833300
 confirmed,"Switzerland","growth too fast",42,47892.000000,45971.995745,1920.004255
+confirmed,"Switzerland","decay too fast",43,35259.000000,38579.366326,-3320.366326
+confirmed,"Switzerland","decay too fast",44,28323.000000,33500.110723,-5177.110723
 confirmed,"Syria","growth too fast",29,433.000000,325.986636,107.013364
 confirmed,"Syria","growth too fast",30,576.000000,473.485969,102.514031
 confirmed,"Syria","decay too fast",34,275.000000,370.377646,-95.377646
@@ -2304,18 +2478,21 @@ confirmed,"Trinidad and Tobago","growth too fast",34,736.000000,629.007363,106.9
 confirmed,"Trinidad and Tobago","growth too fast",35,801.000000,571.091372,229.908628
 confirmed,"Trinidad and Tobago","decay too fast",36,335.000000,496.031437,-161.031437
 confirmed,"Trinidad and Tobago","decay too fast",41,138.000000,208.291635,-70.291635
-confirmed,"Tunisia","growth too fast",30,696.000000,371.069971,324.930029
+confirmed,"Trinidad and Tobago","growth too fast",43,303.000000,185.442893,117.557107
+confirmed,"Trinidad and Tobago","growth too fast",44,337.000000,189.884430,147.115570
 confirmed,"Tunisia","growth too fast",31,780.000000,625.213999,154.786001
 confirmed,"Tunisia","decay too fast",33,1488.000000,1691.767740,-203.767740
 confirmed,"Tunisia","growth too fast",34,2688.000000,2512.168791,175.831209
 confirmed,"Tunisia","growth too fast",35,4735.000000,3644.559266,1090.440734
 confirmed,"Tunisia","decay too fast",36,5108.000000,6095.233192,-987.233192
-confirmed,"Tunisia","growth too fast",37,8486.000000,7064.141071,1421.858929
+confirmed,"Tunisia","growth too fast",37,8486.000000,6462.253018,2023.746982
 confirmed,"Tunisia","growth too fast",38,7891.000000,7539.067571,351.932429
 confirmed,"Tunisia","growth too fast",39,11102.000000,9232.198817,1869.801183
 confirmed,"Tunisia","decay too fast",40,8386.000000,9361.129185,-975.129185
 confirmed,"Tunisia","growth too fast",41,12056.000000,9725.761239,2330.238761
 confirmed,"Tunisia","growth too fast",42,9772.000000,9036.928022,735.071978
+confirmed,"Tunisia","decay too fast",43,7666.000000,9118.030817,-1452.030817
+confirmed,"Tunisia","growth too fast",44,8703.000000,8318.864719,384.135281
 confirmed,"Turkey","growth too fast",13,27597.000000,25626.515053,1970.484947
 confirmed,"Turkey","decay too fast",14,18414.000000,19572.752767,-1158.752767
 confirmed,"Turkey","decay too fast",17,8799.000000,9108.123654,-309.123654
@@ -2352,6 +2529,7 @@ confirmed,"Uganda","growth too fast",36,1223.000000,1140.795066,82.204934
 confirmed,"Uganda","decay too fast",38,675.000000,1044.076361,-369.076361
 confirmed,"Uganda","decay too fast",39,924.000000,1047.754210,-123.754210
 confirmed,"Uganda","growth too fast",40,1160.000000,1093.084425,66.915575
+confirmed,"Uganda","decay too fast",44,1967.000000,2263.443816,-296.443816
 confirmed,"Ukraine","growth too fast",15,3285.000000,3194.573913,90.426087
 confirmed,"Ukraine","growth too fast",16,3156.000000,3033.029848,122.970152
 confirmed,"Ukraine","decay too fast",17,2859.000000,3108.511823,-249.511823
@@ -2374,6 +2552,8 @@ confirmed,"Ukraine","decay too fast",39,43240.000000,44032.856272,-792.856272
 confirmed,"Ukraine","decay too fast",40,49402.000000,51449.210201,-2047.210201
 confirmed,"Ukraine","growth too fast",41,61966.000000,60106.570706,1859.429294
 confirmed,"Ukraine","growth too fast",42,72125.000000,69696.660225,2428.339775
+confirmed,"Ukraine","growth too fast",43,84397.000000,83352.624362,1044.375638
+confirmed,"Ukraine","growth too fast",44,95603.000000,84648.178455,10954.821545
 confirmed,"United Arab Emirates","decay too fast",15,3759.000000,4279.003239,-520.003239
 confirmed,"United Arab Emirates","growth too fast",16,4844.000000,4637.504959,206.495041
 confirmed,"United Arab Emirates","growth too fast",17,5814.000000,4317.571454,1496.428546
@@ -2385,15 +2565,16 @@ confirmed,"United Arab Emirates","growth too fast",24,4108.000000,2633.171515,14
 confirmed,"United Arab Emirates","decay too fast",25,2552.000000,2691.154418,-139.154418
 confirmed,"United Arab Emirates","decay too fast",28,1622.000000,2059.473925,-437.473925
 confirmed,"United Arab Emirates","decay too fast",29,1644.000000,2258.072865,-614.072865
-confirmed,"United Arab Emirates","decay too fast",31,2709.000000,2854.579441,-145.579441
+confirmed,"United Arab Emirates","growth too fast",32,3643.000000,3566.897824,76.102176
 confirmed,"United Arab Emirates","growth too fast",33,4757.000000,4298.746229,458.253771
-confirmed,"United Arab Emirates","decay too fast",35,5964.000000,6078.251456,-114.251456
 confirmed,"United Arab Emirates","growth too fast",37,7581.000000,7474.568519,106.431481
 confirmed,"United Arab Emirates","growth too fast",38,8508.000000,8082.213750,425.786250
 confirmed,"United Arab Emirates","growth too fast",39,9273.000000,8499.928747,773.071253
 confirmed,"United Arab Emirates","growth too fast",40,9626.000000,8771.632738,854.367262
 confirmed,"United Arab Emirates","decay too fast",41,8263.000000,8826.006888,-563.006888
 confirmed,"United Arab Emirates","decay too fast",42,8136.000000,8691.760974,-555.760974
+confirmed,"United Arab Emirates","growth too fast",43,8519.000000,8449.586522,69.413478
+confirmed,"United Arab Emirates","growth too fast",44,8713.000000,8511.217161,201.782839
 confirmed,"United Kingdom","decay too fast",12,30515.000000,32538.744319,-2023.744319
 confirmed,"United Kingdom","growth too fast",13,33900.000000,30194.256206,3705.743794
 confirmed,"United Kingdom","growth too fast",14,32063.000000,27630.242323,4432.757677
@@ -2444,12 +2625,12 @@ confirmed,"United States","decay too fast",39,441421.000000,448919.468751,-7498.
 confirmed,"United States","growth too fast",41,732414.000000,716663.498939,15750.501061
 confirmed,"United States","growth too fast",42,934055.000000,919583.307295,14471.692705
 confirmed,"Uruguay","decay too fast",41,265.000000,379.193523,-114.193523
-confirmed,"Uzbekistan","growth too fast",11,377.000000,240.789150,136.210850
+confirmed,"Uruguay","decay too fast",44,740.000000,980.707050,-240.707050
+confirmed,"Uzbekistan","growth too fast",11,377.000000,215.233541,161.766459
 confirmed,"Uzbekistan","decay too fast",19,495.000000,619.579472,-124.579472
 confirmed,"Uzbekistan","growth too fast",24,2486.000000,2410.722456,75.277544
 confirmed,"Uzbekistan","growth too fast",25,3502.000000,3043.496950,458.503050
 confirmed,"Uzbekistan","growth too fast",26,3920.000000,3677.195737,242.804263
-confirmed,"Uzbekistan","growth too fast",27,4285.000000,4183.771567,101.228433
 confirmed,"Uzbekistan","growth too fast",28,5044.000000,4473.840756,570.159244
 confirmed,"Uzbekistan","growth too fast",29,5008.000000,4612.531026,395.468974
 confirmed,"Uzbekistan","decay too fast",32,2241.000000,3165.011136,-924.011136
@@ -2458,10 +2639,8 @@ confirmed,"Uzbekistan","decay too fast",37,2836.000000,2907.400926,-71.400926
 confirmed,"Uzbekistan","decay too fast",38,2252.000000,2458.755139,-206.755139
 confirmed,"Uzbekistan","growth too fast",40,1953.000000,1882.873867,70.126133
 confirmed,"Uzbekistan","decay too fast",41,1617.000000,1739.464440,-122.464440
+confirmed,"Uzbekistan","growth too fast",44,1488.000000,1327.342675,160.657325
 confirmed,"Venezuela","growth too fast",13,107.000000,25.171864,81.828136
-confirmed,"Venezuela","growth too fast",17,427.000000,201.174618,225.825382
-confirmed,"Venezuela","growth too fast",19,762.000000,541.334289,220.665711
-confirmed,"Venezuela","growth too fast",20,727.000000,630.918463,96.081537
 confirmed,"Venezuela","growth too fast",27,4246.000000,3666.634014,579.365986
 confirmed,"Venezuela","growth too fast",28,5421.000000,4020.880301,1400.119699
 confirmed,"Venezuela","growth too fast",29,7089.000000,5564.797912,1524.202088
@@ -2476,6 +2655,7 @@ confirmed,"Venezuela","growth too fast",38,4450.000000,4199.054485,250.945515
 confirmed,"Venezuela","decay too fast",39,2947.000000,3612.654180,-665.654180
 confirmed,"Venezuela","decay too fast",40,2864.000000,3148.838176,-284.838176
 confirmed,"Venezuela","decay too fast",42,2219.000000,2549.660116,-330.660116
+confirmed,"Venezuela","growth too fast",44,2550.000000,2471.562642,78.437358
 confirmed,"Vietnam","growth too fast",28,241.000000,84.169257,156.830743
 confirmed,"Vietnam","growth too fast",29,161.000000,89.822328,71.177672
 confirmed,"World","growth too fast",6,15354.000000,15104.747376,249.252624
@@ -2484,6 +2664,7 @@ confirmed,"World","growth too fast",8,114092.000000,85276.407500,28815.592500
 confirmed,"World","growth too fast",12,610616.000000,558592.414691,52023.585309
 confirmed,"World","decay too fast",13,557182.000000,565038.817289,-7856.817289
 confirmed,"World","decay too fast",15,580850.000000,590519.444790,-9669.444790
+confirmed,"World","decay too fast",16,593379.000000,616010.847696,-22631.847696
 confirmed,"World","decay too fast",17,663172.000000,665334.198705,-2162.198705
 confirmed,"World","decay too fast",18,707706.000000,726801.406306,-19095.406306
 confirmed,"World","growth too fast",19,826745.000000,801439.226345,25305.773655
@@ -2493,6 +2674,7 @@ confirmed,"World","growth too fast",23,1287113.000000,1258837.478564,28275.52143
 confirmed,"World","growth too fast",24,1395415.000000,1386460.743666,8954.256334
 confirmed,"World","growth too fast",25,1538490.000000,1531584.718148,6905.281852
 confirmed,"World","growth too fast",26,1696014.000000,1622385.005508,73628.994492
+confirmed,"World","growth too fast",27,1798295.000000,1712054.721633,86240.278367
 confirmed,"World","growth too fast",28,1795317.000000,1771140.592186,24176.407814
 confirmed,"World","growth too fast",29,1816237.000000,1801305.358655,14931.641345
 confirmed,"World","decay too fast",30,1785122.000000,1808033.539591,-22911.539591
@@ -2506,8 +2688,11 @@ confirmed,"World","decay too fast",37,2229444.000000,2241349.824633,-11905.82463
 confirmed,"World","decay too fast",39,2791715.000000,2830155.122426,-38440.122426
 confirmed,"World","growth too fast",40,3329108.000000,3207075.934126,122032.065874
 confirmed,"World","growth too fast",41,3727404.000000,3669119.531153,58284.468847
+confirmed,"World","decay too fast",43,4135911.000000,4284757.141811,-148846.141811
+confirmed,"World","decay too fast",44,4071380.000000,4139810.812172,-68430.812172
 confirmed,"Yemen","growth too fast",21,318.000000,175.596385,142.403615
 confirmed,"Yemen","growth too fast",25,196.000000,116.631065,79.368935
+confirmed,"Yemen","negative reported",46,-158.000000,0.000000,-158.000000
 confirmed,"Zambia","decay too fast",15,47.000000,118.279013,-71.279013
 confirmed,"Zambia","growth too fast",16,501.000000,75.707444,425.292556
 confirmed,"Zambia","growth too fast",17,212.000000,111.465555,100.534445
@@ -2523,12 +2708,128 @@ confirmed,"Zambia","growth too fast",34,714.000000,633.820748,80.179252
 confirmed,"Zambia","decay too fast",36,311.000000,532.714291,-221.714291
 confirmed,"Zambia","growth too fast",37,499.000000,405.458369,93.541631
 confirmed,"Zambia","growth too fast",41,445.000000,322.108924,122.891076
+confirmed,"Zambia","decay too fast",44,203.000000,267.894136,-64.894136
 confirmed,"Zimbabwe","negative reported",15,-6.000000,4.935650,-10.935650
 confirmed,"Zimbabwe","growth too fast",26,762.000000,696.292083,65.707917
 confirmed,"Zimbabwe","growth too fast",27,968.000000,751.798349,216.201651
 confirmed,"Zimbabwe","growth too fast",28,1247.000000,827.611749,419.388251
 confirmed,"Zimbabwe","decay too fast",29,651.000000,780.938544,-129.938544
 confirmed,"Zimbabwe","decay too fast",41,95.000000,179.628382,-84.628382
+confirmed,"Zimbabwe","growth too fast",44,577.000000,511.104581,65.895419
+confirmed,"Europe","decay too fast",11,195394.000000,228832.513785,-33438.513785
+confirmed,"Europe","growth too fast",12,272317.000000,208946.575367,63370.424633
+confirmed,"Europe","growth too fast",13,195771.000000,190788.751596,4982.248404
+confirmed,"Europe","growth too fast",16,150400.000000,145705.652231,4694.347769
+confirmed,"Europe","decay too fast",17,125848.000000,132668.404926,-6820.404926
+confirmed,"Europe","decay too fast",18,115827.000000,122672.454537,-6845.454537
+confirmed,"Europe","decay too fast",19,108063.000000,113621.050188,-5558.050188
+confirmed,"Europe","growth too fast",20,109353.000000,108249.823909,1103.176091
+confirmed,"Europe","growth too fast",21,110525.000000,104361.297068,6163.702932
+confirmed,"Europe","decay too fast",22,102260.000000,102353.761788,-93.761788
+confirmed,"Europe","decay too fast",23,93743.000000,100704.677837,-6961.677837
+confirmed,"Europe","decay too fast",24,91922.000000,99771.470116,-7849.470116
+confirmed,"Europe","decay too fast",25,97143.000000,102312.379763,-5169.379763
+confirmed,"Europe","decay too fast",26,107208.000000,109390.273286,-2182.273286
+confirmed,"Europe","decay too fast",27,119505.000000,120937.996733,-1432.996733
+confirmed,"Europe","decay too fast",28,134843.000000,136098.580031,-1255.580031
+confirmed,"Europe","decay too fast",29,150798.000000,153915.755210,-3117.755210
+confirmed,"Europe","growth too fast",31,203596.000000,202343.980222,1252.019778
+confirmed,"Europe","decay too fast",32,226309.000000,235973.636537,-9664.636537
+confirmed,"Europe","decay too fast",33,272674.000000,274132.427124,-1458.427124
+confirmed,"Europe","growth too fast",34,322094.000000,320143.703159,1950.296841
+confirmed,"Europe","growth too fast",35,390316.000000,377900.837630,12415.162370
+confirmed,"Europe","growth too fast",38,842099.000000,840885.049505,1213.950495
+confirmed,"Europe","decay too fast",39,1176574.000000,1177989.041282,-1415.041282
+confirmed,"Europe","growth too fast",42,1927755.000000,1850952.715312,76802.284688
+confirmed,"Europe","growth too fast",43,1771247.000000,1704863.357723,66383.642277
+confirmed,"Europe","decay too fast",44,1554571.000000,1618165.687716,-63594.687716
+confirmed,"Middle_East","decay too fast",14,50424.000000,52063.597510,-1639.597510
+confirmed,"Middle_East","decay too fast",15,50010.000000,56751.656818,-6741.656818
+confirmed,"Middle_East","growth too fast",16,62489.000000,59517.004940,2971.995060
+confirmed,"Middle_East","growth too fast",17,74081.000000,64628.078502,9452.921498
+confirmed,"Middle_East","decay too fast",19,85017.000000,86993.603817,-1976.603817
+confirmed,"Middle_East","growth too fast",20,93709.000000,87154.479357,6554.520643
+confirmed,"Middle_East","growth too fast",22,105838.000000,104372.305809,1465.694191
+confirmed,"Middle_East","growth too fast",23,111286.000000,108687.590276,2598.409724
+confirmed,"Middle_East","growth too fast",24,112015.000000,106069.037505,5945.962495
+confirmed,"Middle_East","growth too fast",25,106013.000000,103267.681662,2745.318338
+confirmed,"Middle_East","decay too fast",26,98890.000000,99363.636251,-473.636251
+confirmed,"Middle_East","decay too fast",27,94844.000000,95393.216830,-549.216830
+confirmed,"Middle_East","decay too fast",28,81579.000000,92368.687933,-10789.687933
+confirmed,"Middle_East","decay too fast",29,89712.000000,91292.808057,-1580.808057
+confirmed,"Middle_East","growth too fast",30,95203.000000,92754.812678,2448.187322
+confirmed,"Middle_East","decay too fast",31,93735.000000,99688.301350,-5953.301350
+confirmed,"Middle_East","growth too fast",34,130669.000000,125242.115191,5426.884809
+confirmed,"Middle_East","growth too fast",35,144941.000000,134939.121968,10001.878032
+confirmed,"Middle_East","growth too fast",36,150759.000000,140370.275679,10388.724321
+confirmed,"Middle_East","growth too fast",37,146793.000000,144631.153909,2161.846091
+confirmed,"Middle_East","decay too fast",38,133070.000000,147258.587251,-14188.587251
+confirmed,"Middle_East","decay too fast",39,136322.000000,150895.161490,-14573.161490
+confirmed,"Middle_East","decay too fast",40,157523.000000,158327.498815,-804.498815
+confirmed,"Middle_East","decay too fast",41,175704.000000,175950.657290,-246.657290
+confirmed,"Middle_East","decay too fast",42,198020.000000,199832.529188,-1812.529188
+confirmed,"Middle_East","decay too fast",43,217155.000000,226955.881240,-9800.881240
+confirmed,"Middle_East","growth too fast",44,267748.000000,252169.780399,15578.219601
+confirmed,"North America","growth too fast",13,225248.000000,221862.774715,3385.225285
+confirmed,"North America","growth too fast",14,219970.000000,213617.047801,6352.952199
+confirmed,"North America","growth too fast",15,214626.000000,207559.849992,7066.150008
+confirmed,"North America","decay too fast",16,187958.000000,200321.938575,-12363.938575
+confirmed,"North America","decay too fast",17,191130.000000,193808.822874,-2678.822874
+confirmed,"North America","decay too fast",18,182277.000000,190419.105206,-8142.105206
+confirmed,"North America","decay too fast",19,187390.000000,193392.874222,-6002.874222
+confirmed,"North America","decay too fast",20,190115.000000,199378.767594,-9263.767594
+confirmed,"North America","growth too fast",23,383685.000000,367322.904715,16362.095285
+confirmed,"North America","growth too fast",24,450387.000000,447559.097662,2827.902338
+confirmed,"North America","growth too fast",27,540213.000000,518089.755602,22123.244398
+confirmed,"North America","decay too fast",28,470271.000000,475199.483692,-4928.483692
+confirmed,"North America","decay too fast",29,441760.000000,442004.465336,-244.465336
+confirmed,"North America","decay too fast",30,396018.000000,402552.601942,-6534.601942
+confirmed,"North America","decay too fast",31,363890.000000,378053.917460,-14163.917460
+confirmed,"North America","decay too fast",32,358874.000000,360585.549828,-1711.549828
+confirmed,"North America","decay too fast",33,313128.000000,351398.789295,-38270.789295
+confirmed,"North America","decay too fast",34,345292.000000,355158.112491,-9866.112491
+confirmed,"North America","growth too fast",35,374092.000000,363388.980689,10703.019311
+confirmed,"North America","decay too fast",36,362880.000000,393922.409264,-31042.409264
+confirmed,"North America","growth too fast",37,430996.000000,429088.746800,1907.253200
+confirmed,"North America","decay too fast",38,448222.000000,470587.721086,-22365.721086
+confirmed,"North America","decay too fast",39,524983.000000,560096.263904,-35113.263904
+confirmed,"North America","growth too fast",41,814908.000000,808277.907531,6630.092469
+confirmed,"North America","growth too fast",42,1034151.000000,1012185.926749,21965.073251
+confirmed,"Oceania","growth too fast",9,2389.000000,236.379333,2152.620667
+confirmed,"Oceania","decay too fast",12,523.000000,591.476599,-68.476599
+confirmed,"Oceania","growth too fast",24,1328.000000,847.927264,480.072736
+confirmed,"Oceania","growth too fast",27,3344.000000,2497.443181,846.556819
+confirmed,"Oceania","growth too fast",28,3478.000000,2508.846502,969.153498
+confirmed,"Oceania","growth too fast",29,2612.000000,2243.782360,368.217640
+confirmed,"Oceania","growth too fast",30,1818.000000,1701.224854,116.775146
+confirmed,"Oceania","decay too fast",35,174.000000,241.454715,-67.454715
+confirmed,"Africa","decay too fast",12,5112.000000,5751.524407,-639.524407
+confirmed,"Africa","growth too fast",13,7772.000000,7352.225850,419.774150
+confirmed,"Africa","decay too fast",15,12766.000000,13224.775996,-458.775996
+confirmed,"Africa","decay too fast",18,23865.000000,24609.448230,-744.448230
+confirmed,"Africa","growth too fast",19,31116.000000,30705.407430,410.592570
+confirmed,"Africa","decay too fast",20,36986.000000,38047.309227,-1061.309227
+confirmed,"Africa","growth too fast",22,61162.000000,60082.946830,1079.053170
+confirmed,"Africa","decay too fast",23,74133.000000,76067.063970,-1934.063970
+confirmed,"Africa","growth too fast",24,101103.000000,95233.652468,5869.347532
+confirmed,"Africa","growth too fast",26,119275.000000,114552.991635,4722.008365
+confirmed,"Africa","growth too fast",27,116002.000000,103631.563745,12370.436255
+confirmed,"Africa","growth too fast",28,96467.000000,94077.354324,2389.645676
+confirmed,"Africa","decay too fast",29,73472.000000,82437.209236,-8965.209236
+confirmed,"Africa","decay too fast",31,58627.000000,59845.864197,-1218.864197
+confirmed,"Africa","decay too fast",32,50534.000000,55144.239261,-4610.239261
+confirmed,"Africa","decay too fast",33,48362.000000,50622.957889,-2260.957889
+confirmed,"Africa","decay too fast",34,45880.000000,48703.458716,-2823.458716
+confirmed,"Africa","growth too fast",35,49525.000000,49064.557033,460.442967
+confirmed,"Africa","decay too fast",36,46248.000000,50900.266979,-4652.266979
+confirmed,"Africa","decay too fast",37,52612.000000,53925.716782,-1313.716782
+confirmed,"Africa","growth too fast",38,58144.000000,57337.808558,806.191442
+confirmed,"Africa","growth too fast",39,67084.000000,63416.017838,3667.982162
+confirmed,"Africa","decay too fast",40,65421.000000,69241.131380,-3820.131380
+confirmed,"Africa","growth too fast",41,75671.000000,74582.839989,1088.160011
+confirmed,"Africa","growth too fast",42,83202.000000,78408.361949,4793.638051
+confirmed,"Africa","growth too fast",43,87433.000000,84716.619965,2716.380035
+confirmed,"Africa","decay too fast",44,86144.000000,90381.091690,-4237.091690
 confirmed,"Asia","growth too fast",12,25143.000000,24914.978120,228.021880
 confirmed,"Asia","decay too fast",15,50895.000000,51713.642465,-818.642465
 confirmed,"Asia","decay too fast",17,77892.000000,78434.580982,-542.580982
@@ -2557,32 +2858,8 @@ confirmed,"Asia","decay too fast",39,527909.000000,537634.854887,-9725.854887
 confirmed,"Asia","decay too fast",40,465824.000000,505879.824534,-40055.824534
 confirmed,"Asia","decay too fast",41,467652.000000,485013.559086,-17361.559086
 confirmed,"Asia","growth too fast",42,481135.000000,473273.993140,7861.006860
-confirmed,"Africa","decay too fast",12,5112.000000,5751.524407,-639.524407
-confirmed,"Africa","growth too fast",13,7772.000000,7352.225850,419.774150
-confirmed,"Africa","decay too fast",15,12766.000000,13224.775996,-458.775996
-confirmed,"Africa","decay too fast",18,23865.000000,24609.448230,-744.448230
-confirmed,"Africa","growth too fast",19,31116.000000,30705.407430,410.592570
-confirmed,"Africa","decay too fast",20,36986.000000,38047.309227,-1061.309227
-confirmed,"Africa","growth too fast",22,61162.000000,60082.946830,1079.053170
-confirmed,"Africa","decay too fast",23,74133.000000,76067.063970,-1934.063970
-confirmed,"Africa","growth too fast",24,101103.000000,95233.652468,5869.347532
-confirmed,"Africa","growth too fast",26,119275.000000,114552.991635,4722.008365
-confirmed,"Africa","growth too fast",27,116002.000000,103631.563745,12370.436255
-confirmed,"Africa","growth too fast",28,96467.000000,94077.354324,2389.645676
-confirmed,"Africa","decay too fast",29,73472.000000,82437.209236,-8965.209236
-confirmed,"Africa","growth too fast",30,69758.000000,68840.540108,917.459892
-confirmed,"Africa","decay too fast",31,58627.000000,59845.864197,-1218.864197
-confirmed,"Africa","decay too fast",32,50534.000000,55144.239261,-4610.239261
-confirmed,"Africa","decay too fast",33,48362.000000,50622.957889,-2260.957889
-confirmed,"Africa","decay too fast",34,45880.000000,48703.458716,-2823.458716
-confirmed,"Africa","growth too fast",35,49525.000000,49064.557033,460.442967
-confirmed,"Africa","decay too fast",36,46248.000000,50900.266979,-4652.266979
-confirmed,"Africa","decay too fast",37,52612.000000,53925.716782,-1313.716782
-confirmed,"Africa","growth too fast",38,58144.000000,57337.808558,806.191442
-confirmed,"Africa","growth too fast",39,67084.000000,63416.017838,3667.982162
-confirmed,"Africa","decay too fast",40,65421.000000,69241.131380,-3820.131380
-confirmed,"Africa","growth too fast",41,75671.000000,74582.839989,1088.160011
-confirmed,"Africa","growth too fast",42,83202.000000,78408.361949,4793.638051
+confirmed,"Asia","decay too fast",43,453186.000000,472876.301710,-19690.301710
+confirmed,"Asia","growth too fast",44,508499.000000,465554.712937,42944.287063
 confirmed,"South America","growth too fast",14,75562.000000,56529.994977,19032.005023
 confirmed,"South America","growth too fast",15,90259.000000,77741.061280,12517.938720
 confirmed,"South America","growth too fast",17,173912.000000,143055.407034,30856.592966
@@ -2609,85 +2886,4 @@ confirmed,"South America","decay too fast",39,358688.000000,359124.140753,-436.1
 confirmed,"South America","growth too fast",40,367501.000000,353589.471681,13911.528319
 confirmed,"South America","decay too fast",41,276213.000000,360957.526861,-84744.526861
 confirmed,"South America","decay too fast",42,351526.000000,361968.235218,-10442.235218
-confirmed,"Europe","decay too fast",11,195394.000000,228832.513785,-33438.513785
-confirmed,"Europe","growth too fast",12,272317.000000,208946.575367,63370.424633
-confirmed,"Europe","growth too fast",13,195771.000000,190788.751596,4982.248404
-confirmed,"Europe","growth too fast",16,150400.000000,145705.652231,4694.347769
-confirmed,"Europe","decay too fast",17,125848.000000,132668.404926,-6820.404926
-confirmed,"Europe","decay too fast",18,115827.000000,122672.454537,-6845.454537
-confirmed,"Europe","decay too fast",19,108063.000000,113621.050188,-5558.050188
-confirmed,"Europe","growth too fast",20,109353.000000,108249.823909,1103.176091
-confirmed,"Europe","growth too fast",21,110525.000000,104361.297068,6163.702932
-confirmed,"Europe","decay too fast",22,102260.000000,102353.761788,-93.761788
-confirmed,"Europe","decay too fast",23,93743.000000,100704.677837,-6961.677837
-confirmed,"Europe","decay too fast",24,91922.000000,99771.470116,-7849.470116
-confirmed,"Europe","decay too fast",25,97143.000000,102312.379763,-5169.379763
-confirmed,"Europe","decay too fast",26,107208.000000,109390.273286,-2182.273286
-confirmed,"Europe","decay too fast",27,119505.000000,120937.996733,-1432.996733
-confirmed,"Europe","decay too fast",28,134843.000000,136098.580031,-1255.580031
-confirmed,"Europe","decay too fast",29,150798.000000,153915.755210,-3117.755210
-confirmed,"Europe","growth too fast",31,203596.000000,202343.980222,1252.019778
-confirmed,"Europe","decay too fast",32,226309.000000,235973.636537,-9664.636537
-confirmed,"Europe","decay too fast",33,272674.000000,274132.427124,-1458.427124
-confirmed,"Europe","growth too fast",34,322094.000000,320143.703159,1950.296841
-confirmed,"Europe","growth too fast",35,390316.000000,377900.837630,12415.162370
-confirmed,"Europe","growth too fast",38,842099.000000,840885.049505,1213.950495
-confirmed,"Europe","decay too fast",39,1176574.000000,1177989.041282,-1415.041282
-confirmed,"Europe","growth too fast",42,1927755.000000,1850952.715312,76802.284688
-confirmed,"Oceania","growth too fast",9,2389.000000,236.379333,2152.620667
-confirmed,"Oceania","decay too fast",12,523.000000,591.476599,-68.476599
-confirmed,"Oceania","growth too fast",24,1328.000000,847.927264,480.072736
-confirmed,"Oceania","growth too fast",27,3344.000000,2497.443181,846.556819
-confirmed,"Oceania","growth too fast",28,3478.000000,2508.846502,969.153498
-confirmed,"Oceania","growth too fast",29,2612.000000,2243.782360,368.217640
-confirmed,"Oceania","growth too fast",30,1818.000000,1701.224854,116.775146
-confirmed,"Oceania","decay too fast",35,174.000000,241.454715,-67.454715
-confirmed,"North America","growth too fast",13,225248.000000,221862.774715,3385.225285
-confirmed,"North America","growth too fast",14,219970.000000,213617.047801,6352.952199
-confirmed,"North America","growth too fast",15,214626.000000,207559.849992,7066.150008
-confirmed,"North America","decay too fast",16,187958.000000,200321.938575,-12363.938575
-confirmed,"North America","decay too fast",17,191130.000000,193808.822874,-2678.822874
-confirmed,"North America","decay too fast",18,182277.000000,190419.105206,-8142.105206
-confirmed,"North America","decay too fast",19,187390.000000,193392.874222,-6002.874222
-confirmed,"North America","decay too fast",20,190115.000000,199378.767594,-9263.767594
-confirmed,"North America","growth too fast",23,383685.000000,367322.904715,16362.095285
-confirmed,"North America","growth too fast",24,450387.000000,447559.097662,2827.902338
-confirmed,"North America","growth too fast",27,540213.000000,518089.755602,22123.244398
-confirmed,"North America","decay too fast",28,470271.000000,475199.483692,-4928.483692
-confirmed,"North America","decay too fast",29,441760.000000,442004.465336,-244.465336
-confirmed,"North America","decay too fast",30,396018.000000,402552.601942,-6534.601942
-confirmed,"North America","decay too fast",31,363890.000000,378053.917460,-14163.917460
-confirmed,"North America","decay too fast",32,358874.000000,360585.549828,-1711.549828
-confirmed,"North America","decay too fast",33,313128.000000,351398.789295,-38270.789295
-confirmed,"North America","decay too fast",34,345292.000000,355158.112491,-9866.112491
-confirmed,"North America","growth too fast",35,374092.000000,363388.980689,10703.019311
-confirmed,"North America","decay too fast",36,362880.000000,393922.409264,-31042.409264
-confirmed,"North America","growth too fast",37,430996.000000,429088.746800,1907.253200
-confirmed,"North America","decay too fast",38,448222.000000,470587.721086,-22365.721086
-confirmed,"North America","decay too fast",39,524983.000000,560096.263904,-35113.263904
-confirmed,"North America","growth too fast",41,814908.000000,808277.907531,6630.092469
-confirmed,"North America","growth too fast",42,1034151.000000,1012185.926749,21965.073251
-confirmed,"Middle_East","decay too fast",14,50424.000000,61606.134624,-11182.134624
-confirmed,"Middle_East","decay too fast",15,50010.000000,56751.656818,-6741.656818
-confirmed,"Middle_East","growth too fast",16,62489.000000,59517.004940,2971.995060
-confirmed,"Middle_East","decay too fast",19,85017.000000,86993.603817,-1976.603817
-confirmed,"Middle_East","growth too fast",20,93709.000000,87154.479357,6554.520643
-confirmed,"Middle_East","growth too fast",22,105838.000000,104372.305809,1465.694191
-confirmed,"Middle_East","growth too fast",23,111286.000000,108687.590276,2598.409724
-confirmed,"Middle_East","growth too fast",24,112015.000000,106069.037505,5945.962495
-confirmed,"Middle_East","growth too fast",25,106013.000000,103267.681662,2745.318338
-confirmed,"Middle_East","decay too fast",26,98890.000000,99850.238772,-960.238772
-confirmed,"Middle_East","decay too fast",27,94844.000000,95393.216830,-549.216830
-confirmed,"Middle_East","decay too fast",28,81579.000000,92368.687933,-10789.687933
-confirmed,"Middle_East","decay too fast",29,89712.000000,91292.808057,-1580.808057
-confirmed,"Middle_East","growth too fast",30,95203.000000,92754.812678,2448.187322
-confirmed,"Middle_East","decay too fast",31,93735.000000,99688.301350,-5953.301350
-confirmed,"Middle_East","growth too fast",34,130669.000000,129863.481589,805.518411
-confirmed,"Middle_East","growth too fast",35,144941.000000,134939.121968,10001.878032
-confirmed,"Middle_East","growth too fast",36,150759.000000,140370.275679,10388.724321
-confirmed,"Middle_East","growth too fast",37,146793.000000,144631.153909,2161.846091
-confirmed,"Middle_East","decay too fast",38,133070.000000,147258.587251,-14188.587251
-confirmed,"Middle_East","decay too fast",39,136322.000000,150895.161490,-14573.161490
-confirmed,"Middle_East","decay too fast",40,157523.000000,158327.498815,-804.498815
-confirmed,"Middle_East","decay too fast",41,175704.000000,175950.657290,-246.657290
-confirmed,"Middle_East","decay too fast",42,198020.000000,199832.529188,-1812.529188
+confirmed,"South America","decay too fast",44,363766.000000,372501.637619,-8735.637619

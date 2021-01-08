@@ -58,7 +58,7 @@ def get_jhu_lat(jhu_file):
         i = 0
         for row in myreader:
             if i != 0:            # not first row which has headers (headers are ignored here)
-                latkeyed.update({(row[1]:row[0]):row[2]}) # 3rd column of csv file is latitude
+                latkeyed.update({(row[1],row[0]):row[2]}) # 3rd column of csv file is latitude
             i = i + 1;
     return latkeyed
 
